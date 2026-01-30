@@ -3,736 +3,915 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ilha Cuts | Sistema de Gestão Ultimate</title>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <title>Ricardo Barbershop | Premium Cuts</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Supabase SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <script>
         tailwind.config = {
-            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        amber: { 400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 900: '#78350f' },
-                        zinc: { 750: '#202023', 800: '#27272a', 900: '#18181b', 950: '#09090b' },
-                        emerald: { 500: '#10b981', 900: '#064e3b' },
-                        rose: { 500: '#f43f5e', 900: '#881337' }
+                        amber: {
+                            450: '#F59E0B',
+                            550: '#D97706',
+                        },
+                        google: '#DB4437'
                     },
-                    fontFamily: { 
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'] 
-                    },
-                    animation: { 
-                        'spin-slow': 'spin 3s linear infinite',
-                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    backgroundImage: {
+                        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+                        'hero-pattern': "url('https://images.unsplash.com/photo-1503951914875-452162b7f30a?auto=format&fit=crop&q=80&w=2070')",
                     }
                 }
             }
         }
     </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #000; color: #e4e4e7; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #09090b; }
-        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #f59e0b; }
-        .glass { background: rgba(24, 24, 27, 0.7); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes slideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .input-dark { @apply w-full bg-black border border-zinc-700 rounded-lg p-3 text-white text-sm outline-none focus:border-amber-500 transition-colors placeholder:text-zinc-600; }
-        .btn-primary { @apply w-full bg-gradient-to-r from-amber-500 to-amber-600 text-black font-bold py-3 rounded-lg transition-all hover:shadow-lg hover:shadow-amber-500/20 active:scale-95; }
-    </style>
-</head>
-<body class="bg-black text-zinc-200 antialiased selection:bg-amber-500 selection:text-black overflow-x-hidden">
-    <div id="root"></div>
-
-    <script type="text/babel">
-        const { useState, useEffect, useMemo, useRef, useReducer } = React;
-        
-        // --- SUPABASE CONFIG ---
-        // ⚠️ Substitua pelas chaves do seu projeto Supabase
-        const supabaseUrl = 'https://aqxwkrgmmomlhbvbolld.supabase.co'; 
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFxeHdrcmdtbW9tbGhidmJvbGxkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkzOTI5MTYsImV4cCI6MjA4NDk2ODkxNn0.dx61Nka8dKdozydNAps6KKMzNr1qEBJWF19GENEkpTc';
-        
-        let sbClient = null;
-        try { 
-            if (window.supabase) sbClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-        } catch (e) { console.error("Supabase Init Error:", e); }
-
-        // --- ICONS ---
-        const Icon = ({ path, size = 20, className = "" }) => (
-            <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} dangerouslySetInnerHTML={{ __html: path }} />
-        );
-        const icons = {
-            scissors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" x2="8.12" y1="4" y2="15.88"/><line x1="14.47" x2="20" y1="14.48" y2="20"/><line x1="8.12" x2="12" y1="8.12" y2="12"/>',
-            calendar: '<rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
-            clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
-            mapPin: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
-            user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
-            check: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',
-            x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
-            dollar: '<line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>',
-            users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
-            dashboard: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
-            settings: '<path d="M12.22 2h-.44a2 2 0 0 1-2-1.08l-.58-1.28a2 2 0 0 0-3.18-.53l-1 .85a2 2 0 0 1-2.26.23l-1.3-.8a2 2 0 0 0-2.88 1.48l-.13 1.34a2 2 0 0 1-1.63 1.83l-1.35.25a2 2 0 0 0-1.4 2.8l.94 1a2 2 0 0 1 .46 2.22l-.78 1.15a2 2 0 0 0 1.25 3l1.32.17a2 2 0 0 1 1.85 1.41l.46 1.3a2 2 0 0 0 2.93 1l1.1-.73a2 2 0 0 1 2.22.13l1.23.83a2 2 0 0 0 3-.97l.34-1.29a2 2 0 0 1 2.07-1.46l1.33-.08a2 2 0 0 0 2.15-2.6l-.8-1.13a2 2 0 0 1-.28-2.3l1-1.05a2 2 0 0 0-.6-3l-1.32-.42a2 2 0 0 1-1.63-1.8l.12-1.37a2 2 0 0 0-1.87-2.67l-1.22.42a2 2 0 0 1-2.2-.67l-.23-1.36A2 2 0 0 0 12.22 2z"/><circle cx="12" cy="12" r="3"/>',
-            phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
-            instagram: '<rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/>',
-            zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
-            arrowRight: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
-            barChart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
-            bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
-            trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
-            plus: '<line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/>',
-            box: '<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" x2="12" y1="22.08" y2="12"/>',
-            gift: '<polyline points="20 12 20 22 4 22 4 12"/><rect width="20" height="5" x="2" y="7"/><line x1="12" x2="12" y1="22" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/>',
-            mail: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>',
-            list: '<line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line>',
-            trendingUp: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
-            trendingDown: '<polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/>',
-            smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
-            logOut: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/>',
-            alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>'
-        };
-
-        const BUSINESS = {
-            name: "ILHA CUTS",
-            address: "Rua Bocaiúva, 1234, Centro - Floripa",
-            phone: "(48) 99999-9999",
-            map: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.275841643477!2d-48.54960302359744!3d-27.58503892804535!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527382046429357%3A0x6e257211516f1c4e!2sBeiramar%20Shopping!5e0!3m2!1spt-BR!2sbr"
-        };
-
-        const SERVICES_DEFAULT = [{ id: 1, name: "Corte Signature", price: 75, duration: 45, desc_text: "Consultoria visual completa." }];
-        const STAFF_DEFAULT = [{ id: 1, name: "João 'Navalha'", role: "Master", image: "JN", desc_text: "15 anos de tradição." }];
-        const GALLERY_IMGS = ["https://images.unsplash.com/photo-1599351431202-1e0f0137899a?q=80&w=800&auto=format&fit=crop","https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=800&auto=format&fit=crop","https://images.unsplash.com/photo-1532710093739-9470acff878f?q=80&w=800&auto=format&fit=crop","https://images.unsplash.com/photo-1503951914875-452162b7f30a?q=80&w=800&auto=format&fit=crop"];
-        const fmtMoney = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-
-        // --- COMPONENTS ---
-        const GlassCard = ({ children, className = '', hoverEffect = true }) => (
-            <div className={`glass p-6 rounded-2xl transition-all duration-300 ${hoverEffect ? 'hover:bg-zinc-800/80 hover:border-amber-500/30 hover:shadow-lg' : ''} ${className}`}>{children}</div>
-        );
-
-        const SectionHeader = ({ title, subtitle, centered = true }) => (
-            <div className={`mb-16 ${centered ? 'text-center' : ''} animate-slide-up`}>
-                <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight font-serif">{title.split(' ').map((w,i)=><span key={i} className={i===1?"text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-600":""}>{w} </span>)}</h2>
-                <div className={`h-1 w-24 bg-amber-500 rounded-full mb-6 ${centered ? 'mx-auto' : ''}`} />
-                {subtitle && <p className="text-zinc-400 text-lg max-w-2xl mx-auto">{subtitle}</p>}
-            </div>
-        );
-
-        const Button = ({ children, onClick, icon, disabled, className = '', variant = 'primary' }) => {
-            const base = "relative overflow-hidden font-bold py-3.5 px-8 rounded-xl transition-all duration-300 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3 disabled:cursor-not-allowed tracking-wide text-sm";
-            const style = variant === 'primary' ? "bg-gradient-to-r from-amber-500 to-amber-600 text-black hover:shadow-[0_0_25px_rgba(245,158,11,0.5)] hover:to-amber-500" : "border border-zinc-700 hover:bg-zinc-800 text-white hover:border-amber-500/50";
-            return (<button onClick={onClick} disabled={disabled} className={`${base} ${style} ${className}`}>{children} {icon && <Icon path={icons[icon]} size={18} />}</button>);
-        };
-
-        const Modal = ({ isOpen, onClose, title, children }) => {
-            if (!isOpen) return null;
-            return (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="w-full max-w-2xl bg-zinc-950 border border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-slide-up">
-                        <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-900/50"><h3 className="text-xl font-bold text-white font-serif">{title}</h3><button onClick={onClose} className="text-zinc-500 hover:text-white p-2 hover:bg-zinc-800 rounded-lg transition-colors"><Icon path={icons.x} /></button></div>
-                        <div className="p-6 overflow-y-auto custom-scrollbar">{children}</div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- SUB-COMPONENTS: ADMIN MODULES ---
-
-        const AgendaModule = ({ appointments, products, onUpdateStatus, onAddComanda }) => {
-            const [viewType, setViewType] = useState('list');
-            const [selectedApt, setSelectedApt] = useState(null); // For Comanda Modal
-            const [comandaItems, setComandaItems] = useState([]);
-
-            const activeAppointments = appointments.filter(a => !a.is_waiting_list);
-            const waitingList = appointments.filter(a => a.is_waiting_list);
-
-            const handleFinishService = (apt) => { setSelectedApt(apt); setComandaItems([]); };
-            const addItemToComanda = (prod) => setComandaItems([...comandaItems, prod]);
-            const confirmComanda = () => { onAddComanda(selectedApt, comandaItems); setSelectedApt(null); };
-
-            return (
-                <div className="space-y-6">
-                    <div className="flex gap-4 border-b border-zinc-800 pb-4">
-                        <button onClick={() => setViewType('list')} className={`px-4 py-2 rounded-lg text-sm font-bold ${viewType === 'list' ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:text-white'}`}>Agenda Principal</button>
-                        <button onClick={() => setViewType('waiting')} className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 ${viewType === 'waiting' ? 'bg-amber-500 text-black' : 'text-zinc-400 hover:text-white'}`}><Icon path={icons.clock} size={16}/> Lista de Espera ({waitingList.length})</button>
-                    </div>
-
-                    {viewType === 'list' ? (
-                        <div className="space-y-4">
-                            {activeAppointments.map(apt => (
-                                <div key={apt.id} className="bg-zinc-900 border border-zinc-800 p-4 rounded-xl flex justify-between items-center hover:border-amber-500/30 transition-all group">
-                                    <div className="flex items-center gap-4">
-                                        <div className="text-center bg-zinc-950 p-2 rounded-lg border border-zinc-800 min-w-[60px]"><p className="text-xs text-zinc-500 font-bold uppercase">{new Date(apt.date).toLocaleDateString('pt-BR', {weekday:'short'})}</p><p className="text-lg font-bold text-white">{apt.time}</p></div>
-                                        <div><p className="text-white font-bold">{apt.client_name}</p><p className="text-zinc-500 text-xs">{apt.service_data?.name} • {apt.staff_id ? 'Com Profissional' : 'Qualquer'}</p></div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {apt.status === 'confirmed' && (
-                                            <>
-                                                <button onClick={() => handleFinishService(apt)} className="px-3 py-2 bg-emerald-500/10 text-emerald-500 rounded-lg hover:bg-emerald-500/20 text-xs font-bold uppercase tracking-wider border border-emerald-500/20">Finalizar & Comanda</button>
-                                                <button onClick={() => onUpdateStatus(apt.id, 'cancelled')} className="p-2 bg-rose-500/10 text-rose-500 rounded-lg hover:bg-rose-500/20" title="Cancelar"><Icon path={icons.x} size={18}/></button>
-                                            </>
-                                        )}
-                                        <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded border self-center ${apt.status === 'confirmed' ? 'border-amber-500/30 text-amber-500' : apt.status === 'completed' ? 'border-emerald-500/30 text-emerald-500' : 'border-zinc-700 text-zinc-500'}`}>{apt.status}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="bg-zinc-900/50 rounded-xl p-6 text-center border border-zinc-800 border-dashed">{waitingList.length === 0 ? <p className="text-zinc-500">Ninguém na fila de espera.</p> : waitingList.map(w => (<div key={w.id} className="flex justify-between items-center p-3 border-b border-zinc-800 last:border-0"><div className="text-left"><p className="text-white font-bold">{w.client_name}</p><p className="text-xs text-zinc-500">Deseja: {w.date} - {w.time}</p></div><button onClick={() => onUpdateStatus(w.id, 'confirmed')} className="text-xs bg-amber-500 text-black px-3 py-1 rounded font-bold hover:bg-amber-400">Encaixar</button></div>))}</div>
-                    )}
-
-                    {/* Modal de Comanda */}
-                    <Modal isOpen={!!selectedApt} onClose={() => setSelectedApt(null)} title="Fechar Comanda">
-                        <div className="space-y-6">
-                            <div className="p-4 bg-zinc-900 rounded-xl border border-zinc-800">
-                                <h4 className="text-white font-bold mb-2">Resumo do Serviço</h4>
-                                <div className="flex justify-between text-sm"><span className="text-zinc-400">{selectedApt?.service_data?.name}</span><span className="text-white font-bold">{fmtMoney(selectedApt?.service_data?.price || 0)}</span></div>
-                            </div>
-                            <div>
-                                <h4 className="text-white font-bold mb-3 flex items-center gap-2"><Icon path={icons.box} size={16} className="text-amber-500"/> Adicionar Produtos</h4>
-                                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto mb-4 custom-scrollbar">
-                                    {products.map(p => (
-                                        <button key={p.id} onClick={() => addItemToComanda(p)} className="flex justify-between items-center p-2 bg-zinc-900 border border-zinc-800 rounded hover:border-amber-500/50 transition-colors text-left group">
-                                            <span className="text-xs text-zinc-300 group-hover:text-white truncate max-w-[120px]">{p.name}</span>
-                                            <span className="text-xs text-amber-500 font-bold">{fmtMoney(p.sell_price)}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="bg-zinc-900/50 p-3 rounded border border-zinc-800">
-                                    <p className="text-xs text-zinc-500 uppercase font-bold mb-2">Itens Adicionados:</p>
-                                    {comandaItems.length === 0 ? <span className="text-xs text-zinc-600 italic">Nenhum produto.</span> : comandaItems.map((item, idx) => (
-                                        <div key={idx} className="flex justify-between text-xs text-zinc-300 mb-1"><span>{item.name}</span><span>{fmtMoney(item.sell_price)}</span></div>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="pt-4 border-t border-zinc-800 flex justify-between items-end">
-                                <div><p className="text-zinc-500 text-xs">Total Final</p><p className="text-3xl font-bold text-white">{fmtMoney((selectedApt?.service_data?.price || 0) + comandaItems.reduce((a,c)=>a+Number(c.sell_price),0))}</p></div>
-                                <Button onClick={confirmComanda} icon="check">Confirmar Pagamento</Button>
-                            </div>
-                        </div>
-                    </Modal>
-                </div>
-            );
-        };
-
-        const FinanceModule = ({ transactions, onAdd }) => {
-            const [activeTab, setActiveTab] = useState('fluxo');
-            const [form, setForm] = useState({ type: 'income', amount: '', description: '', category: 'servico' });
-            
-            const income = transactions.filter(t => t.type === 'income').reduce((acc, t) => acc + Number(t.amount), 0);
-            const expense = transactions.filter(t => t.type === 'expense' || t.type === 'commission').reduce((acc, t) => acc + Number(t.amount), 0);
-            const profit = income - expense;
-
-            // Agrupar comissões (simulado) - Em prod viria de uma query agregada
-            const commissions = transactions.filter(t => t.type === 'commission');
-
-            return (
-                <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <GlassCard hoverEffect={false} className="border-l-4 border-emerald-500"><div className="flex justify-between mb-2"><span className="text-zinc-400 text-xs uppercase font-bold">Receitas</span><Icon path={icons.dollar} className="text-emerald-500"/></div><h3 className="text-3xl font-bold text-white font-serif">{fmtMoney(income)}</h3></GlassCard>
-                        <GlassCard hoverEffect={false} className="border-l-4 border-rose-500"><div className="flex justify-between mb-2"><span className="text-zinc-400 text-xs uppercase font-bold">Despesas</span><Icon path={icons.dollar} className="text-rose-500"/></div><h3 className="text-3xl font-bold text-white font-serif">{fmtMoney(expense)}</h3></GlassCard>
-                        <GlassCard hoverEffect={false} className="border-l-4 border-amber-500"><div className="flex justify-between mb-2"><span className="text-zinc-400 text-xs uppercase font-bold">Saldo</span><Icon path={icons.barChart} className="text-amber-500"/></div><h3 className={`text-3xl font-bold font-serif ${profit >= 0 ? 'text-white' : 'text-red-500'}`}>{fmtMoney(profit)}</h3></GlassCard>
-                    </div>
-
-                    <div className="flex gap-2 border-b border-zinc-800 pb-2 mb-6">
-                        <button onClick={() => setActiveTab('fluxo')} className={`px-4 py-2 text-sm font-bold rounded-t-lg ${activeTab === 'fluxo' ? 'text-amber-500 border-b-2 border-amber-500 bg-zinc-900/50' : 'text-zinc-500 hover:text-white'}`}>Fluxo de Caixa</button>
-                        <button onClick={() => setActiveTab('comissao')} className={`px-4 py-2 text-sm font-bold rounded-t-lg ${activeTab === 'comissao' ? 'text-amber-500 border-b-2 border-amber-500 bg-zinc-900/50' : 'text-zinc-500 hover:text-white'}`}>Comissões & Vales</button>
-                    </div>
-
-                    {activeTab === 'fluxo' && (
-                        <div className="grid md:grid-cols-2 gap-8">
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                                <h4 className="font-bold text-white mb-6">Lançamento Manual</h4>
-                                <form onSubmit={(e) => { e.preventDefault(); onAdd(form); setForm({ type: 'income', amount: '', description: '', category: 'servico' }); }} className="space-y-4">
-                                    <div className="flex gap-4">
-                                        <select className="input-dark w-1/3" value={form.type} onChange={e => setForm({...form, type: e.target.value})}><option value="income">Entrada</option><option value="expense">Saída</option></select>
-                                        <input type="number" className="input-dark flex-1" placeholder="Valor (R$)" value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} required/>
-                                    </div>
-                                    <input className="input-dark" placeholder="Descrição (ex: Conta de Luz)" value={form.description} onChange={e => setForm({...form, description: e.target.value})} required/>
-                                    <button type="submit" className={`btn-primary ${form.type === 'income' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'}`}>Registrar</button>
-                                </form>
-                            </div>
-                            <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                                <div className="p-4 border-b border-zinc-800"><h4 className="font-bold text-white">Extrato Recente</h4></div>
-                                <div className="divide-y divide-zinc-800 max-h-[300px] overflow-y-auto">
-                                    {transactions.slice(0,10).map((t, i) => (<div key={i} className="p-4 flex justify-between items-center hover:bg-zinc-800/50 transition-colors"><div><p className="text-white font-medium text-sm">{t.description}</p><p className="text-xs text-zinc-500">{new Date(t.created_at).toLocaleDateString()}</p></div><span className={`font-bold font-mono text-sm ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>{t.type === 'income' ? '+' : '-'}{fmtMoney(t.amount)}</span></div>))}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'comissao' && (
-                        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-6">
-                            <h4 className="font-bold text-white mb-4">Relatório de Comissões (Pago)</h4>
-                            <div className="divide-y divide-zinc-800">
-                                {commissions.length === 0 ? <p className="text-zinc-500 text-sm py-4">Nenhuma comissão registrada ainda.</p> : 
-                                    commissions.map((c, i) => (
-                                        <div key={i} className="py-3 flex justify-between items-center">
-                                            <div><p className="text-white font-bold">{c.description}</p><p className="text-xs text-zinc-500">{new Date(c.created_at).toLocaleDateString()}</p></div>
-                                            <span className="text-rose-500 font-bold font-mono">-{fmtMoney(c.amount)}</span>
-                                        </div>
-                                    ))
-                                }
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const StockModule = ({ products, onAdd, onUpdate }) => {
-            const [newProd, setNewProd] = useState({ name: '', cost_price: '', sell_price: '', stock_qty: '' });
-            return (
-                <div className="space-y-6">
-                    <div className="grid md:grid-cols-3 gap-6">
-                        <div className="md:col-span-2 bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
-                            <div className="p-4 border-b border-zinc-800 flex justify-between items-center"><h4 className="font-bold text-white">Inventário</h4><span className="text-xs text-zinc-500 uppercase tracking-widest">{products.length} Itens</span></div>
-                            <table className="w-full text-left text-sm">
-                                <thead className="bg-zinc-950 text-zinc-500 font-bold uppercase text-xs tracking-wider"><tr><th className="p-4">Produto</th><th className="p-4">Venda</th><th className="p-4">Estoque</th><th className="p-4">Ação</th></tr></thead>
-                                <tbody className="divide-y divide-zinc-800">
-                                    {products.map(p => (
-                                        <tr key={p.id} className="hover:bg-zinc-800/30 transition-colors">
-                                            <td className="p-4 font-bold text-white flex items-center gap-2">{p.stock_qty < 5 && <Icon path={icons.alert} className="text-rose-500" size={14}/>} {p.name}</td>
-                                            <td className="p-4 text-amber-500 font-mono">{fmtMoney(p.sell_price)}</td>
-                                            <td className="p-4"><span className={`px-2 py-1 rounded text-xs font-bold ${p.stock_qty < 5 ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>{p.stock_qty} un</span></td>
-                                            <td className="p-4"><button onClick={() => onUpdate(p.id, p.stock_qty + 1)} className="p-1.5 bg-zinc-800 hover:bg-amber-500 hover:text-black rounded transition-colors"><Icon path={icons.plus} size={14}/></button></td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-2xl h-fit">
-                            <h4 className="font-bold text-white mb-6 flex items-center gap-2"><Icon path={icons.box} size={18} className="text-amber-500"/> Novo Produto</h4>
-                            <form onSubmit={(e) => { e.preventDefault(); onAdd(newProd); setNewProd({ name: '', cost_price: '', sell_price: '', stock_qty: '' }); }} className="space-y-4">
-                                <input className="input-dark" placeholder="Nome do Produto" value={newProd.name} onChange={e => setNewProd({...newProd, name: e.target.value})} required/>
-                                <div className="flex gap-3"><input type="number" className="input-dark" placeholder="Custo" value={newProd.cost_price} onChange={e => setNewProd({...newProd, cost_price: e.target.value})} required/><input type="number" className="input-dark" placeholder="Venda" value={newProd.sell_price} onChange={e => setNewProd({...newProd, sell_price: e.target.value})} required/></div>
-                                <input type="number" className="input-dark" placeholder="Qtd Inicial" value={newProd.stock_qty} onChange={e => setNewProd({...newProd, stock_qty: e.target.value})} required/>
-                                <button type="submit" className="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 rounded-lg transition-all shadow-lg shadow-amber-500/20">Cadastrar</button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const MarketingModule = ({ clients }) => {
-            const birthdayClients = clients.filter(c => c.birthday && new Date(c.birthday).getMonth() === new Date().getMonth());
-            return (
-                <div className="space-y-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                        <GlassCard hoverEffect={false} className="!p-8">
-                            <div className="flex items-center gap-4 mb-6"><div className="p-3 bg-zinc-800 rounded-xl text-amber-500"><Icon path={icons.zap} size={24}/></div><div><h3 className="text-xl font-bold text-white">Disparo de Campanhas</h3><p className="text-zinc-500 text-sm">Marketing direto via SMS/Email.</p></div></div>
-                            <textarea className="input-dark h-32 resize-none mb-4" placeholder="Mensagem... Ex: Ganhe 20% OFF no seu aniversário!"></textarea>
-                            <div className="flex gap-4"><button className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-lg border border-zinc-700 transition-colors">Via SMS</button><button className="flex-1 bg-amber-500 hover:bg-amber-600 text-black font-bold py-3 rounded-lg transition-colors shadow-lg shadow-amber-500/20">Via E-mail</button></div>
-                        </GlassCard>
-                        <GlassCard hoverEffect={false} className="!p-8">
-                            <div className="flex items-center gap-4 mb-6"><div className="p-3 bg-zinc-800 rounded-xl text-blue-500"><Icon path={icons.check} size={24}/></div><div><h3 className="text-xl font-bold text-white">NPS (Satisfação)</h3><p className="text-zinc-500 text-sm">Feedback dos clientes pós-serviço.</p></div></div>
-                            <div className="flex items-center justify-center h-32 bg-zinc-900/50 rounded-xl border border-zinc-800"><div className="text-center"> <span className="text-5xl font-bold text-white font-serif">4.9</span> <span className="text-zinc-500 text-sm">/ 5.0</span> <div className="flex gap-1 text-amber-500 justify-center mt-2"><Icon path={icons.star} size={16}/><Icon path={icons.star} size={16}/><Icon path={icons.star} size={16}/><Icon path={icons.star} size={16}/><Icon path={icons.star} size={16}/></div> </div></div>
-                        </GlassCard>
-                    </div>
-                    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6">
-                        <h4 className="font-bold text-white mb-4 flex items-center gap-2"><Icon path={icons.gift} size={18} className="text-rose-500"/> Aniversariantes do Mês</h4>
-                        <div className="grid md:grid-cols-3 gap-4">
-                            {birthdayClients.length === 0 ? <p className="text-zinc-500 text-sm col-span-3 italic">Nenhum aniversariante encontrado para este mês.</p> : birthdayClients.map(c => (<div key={c.id} className="p-3 bg-black border border-zinc-800 rounded-lg flex justify-between items-center"><span className="text-white text-sm">{c.name}</span><button className="text-xs text-amber-500 font-bold uppercase hover:underline">Enviar Presente</button></div>))}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const ConfigModule = () => (
-            <div className="grid md:grid-cols-2 gap-8">
-                <GlassCard hoverEffect={false}>
-                    <h3 className="text-white font-bold text-lg mb-4">Configurações do Negócio</h3>
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center p-3 bg-zinc-900 rounded-lg border border-zinc-800"><span className="text-zinc-400 text-sm">Nome da Barbearia</span><span className="text-white font-bold">{BUSINESS.name}</span></div>
-                        <div className="flex justify-between items-center p-3 bg-zinc-900 rounded-lg border border-zinc-800"><span className="text-zinc-400 text-sm">Programa de Fidelidade</span><span className="text-emerald-500 font-bold text-xs uppercase bg-emerald-500/10 px-2 py-1 rounded">Ativo</span></div>
-                        <div className="flex justify-between items-center p-3 bg-zinc-900 rounded-lg border border-zinc-800"><span className="text-zinc-400 text-sm">Lembretes Automáticos</span><span className="text-emerald-500 font-bold text-xs uppercase bg-emerald-500/10 px-2 py-1 rounded">Ativo</span></div>
-                    </div>
-                </GlassCard>
-                <GlassCard hoverEffect={false}>
-                    <h3 className="text-white font-bold text-lg mb-4">Horários de Funcionamento</h3>
-                    <div className="space-y-2">
-                        {['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'].map(d => (
-                            <div key={d} className="flex justify-between text-sm py-2 border-b border-zinc-800 last:border-0"><span className="text-zinc-400">{d}</span><span className="text-white font-mono">09:00 - 19:00</span></div>
-                        ))}
-                        <div className="flex justify-between text-sm py-2 border-b border-zinc-800"><span className="text-zinc-400">Sábado</span><span className="text-white font-mono">09:00 - 16:00</span></div>
-                        <div className="flex justify-between text-sm py-2"><span className="text-rose-500 font-bold">Domingo</span><span className="text-zinc-600 font-mono">Fechado</span></div>
-                    </div>
-                </GlassCard>
-            </div>
-        );
-
-        const Navbar = ({ onViewChange, currentView, scrolled, onOpenBooking }) => {
-            const [mobileOpen, setMobileOpen] = useState(false);
-            const scrollToSection = (id) => {
-                const el = document.getElementById(id);
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-                setMobileOpen(false);
-            };
-
-            return (
-                <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-500 ${scrolled ? 'py-4 bg-black/90 backdrop-blur-xl border-b border-zinc-800' : 'py-6 bg-transparent border-transparent'}`}>
-                    <div className="container mx-auto px-6 flex justify-between items-center relative">
-                        <div onClick={() => onViewChange('home')} className="flex items-center gap-3 cursor-pointer group z-50">
-                            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center text-black shadow-lg shadow-amber-500/20 group-hover:rotate-12 transition-transform duration-500"><Icon path={icons.scissors} size={20}/></div>
-                            <div><h1 className="text-xl font-bold text-white font-serif tracking-wider">ILHA<span className="text-amber-500">CUTS</span></h1><span className="text-[10px] text-zinc-400 uppercase tracking-[0.3em] font-semibold">Premium</span></div>
-                        </div>
-                        <div className="hidden md:flex items-center gap-8">
-                            {['Serviços', 'Equipa', 'Galeria', 'Local'].map(i => (
-                                <button key={i} onClick={() => scrollToSection(i.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""))} className="text-sm font-bold text-zinc-400 hover:text-white uppercase tracking-widest transition-colors hover:text-amber-500">{i}</button>
-                            ))}
-                            {currentView === 'admin' ? 
-                                <button onClick={() => onViewChange('home')} className="text-red-500 text-xs font-bold uppercase border border-red-500/30 px-4 py-2 rounded-lg hover:bg-red-900/10 transition-colors">Sair Admin</button> :
-                                <div className="flex items-center gap-4">
-                                    <button onClick={() => onViewChange('admin')} className="text-zinc-600 hover:text-white transition-colors" title="Admin"><Icon path={icons.settings} size={20}/></button>
-                                    <Button onClick={onOpenBooking} className="!py-2 !px-6 text-xs uppercase tracking-widest">Agendar</Button>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </nav>
-            );
-        };
-
-        const Hero = ({ onCta }) => (
-            <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
-                <div className="absolute inset-0 z-0">
-                    <img src="https://images.unsplash.com/photo-1503951914875-452162b7f30a?q=80&w=2070&auto=format&fit=crop" className="w-full h-full object-cover opacity-30 scale-105 animate-slow-zoom"/>
-                    <div className="absolute inset-0 bg-gradient-to-r from-black via-black/90 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
-                </div>
-                <div className="container mx-auto px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
-                    <div className="space-y-8 animate-slide-up max-w-2xl">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-500 text-xs font-bold tracking-widest uppercase backdrop-blur-md"><Icon path={icons.star} size={12}/> A melhor da Ilha</div>
-                        <h1 className="text-6xl md:text-8xl font-bold text-white leading-[1.1] tracking-tight">Sua Imagem, <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Nosso Legado.</span></h1>
-                        <p className="text-zinc-400 text-lg md:text-xl max-w-lg leading-relaxed border-l-4 border-amber-500 pl-6">Não é apenas um corte. É um ritual de cavalheiros. Experimente a barbearia que redefiniu o conceito de estilo em Florianópolis.</p>
-                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <Button onClick={onCta} icon="calendar" className="text-lg">Agendar Horário</Button>
-                            <button onClick={() => document.getElementById('galeria')?.scrollIntoView({ behavior: 'smooth' })} className="px-8 py-4 rounded-xl border border-white/10 text-white font-bold hover:bg-white/5 transition-all flex items-center justify-center gap-2 group"><Icon path={icons.zap} size={20} className="text-amber-500 group-hover:scale-110 transition-transform"/> Ver Galeria</button>
-                        </div>
-                    </div>
-                    <div className="hidden lg:block relative animate-float">
-                        <GlassCard className="rotate-3 max-w-sm ml-auto border-amber-500/20 bg-black/60 backdrop-blur-2xl">
-                            <div className="flex justify-between items-start mb-6">
-                                <div><p className="text-amber-500 text-xs font-bold uppercase tracking-widest mb-1">Próximo Horário</p><h3 className="text-3xl font-bold text-white">Hoje, 14:00</h3></div>
-                                <div className="p-4 bg-gradient-to-br from-amber-400 to-amber-600 rounded-xl text-black shadow-lg shadow-amber-500/20"><Icon path={icons.scissors} size={28}/></div>
-                            </div>
-                            <div className="space-y-6">
-                                <div><div className="flex justify-between text-xs text-zinc-400 mb-2"><span>Disponibilidade</span><span>3 Barbeiros</span></div><div className="h-2 bg-zinc-800 rounded-full overflow-hidden"><div className="h-full w-3/4 bg-amber-500 animate-pulse" /></div></div>
-                                <button onClick={onCta} className="w-full py-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-bold transition-colors border border-zinc-700 hover:border-amber-500/50 flex justify-center items-center gap-2">Reservar Agora <Icon path={icons.arrowRight} size={16}/></button>
-                            </div>
-                        </GlassCard>
-                    </div>
-                </div>
-            </section>
-        );
-
-        const Features = ({ services }) => (
-            <section id="servicos" className="py-32 bg-black relative">
-                <div className="container mx-auto px-6">
-                    <SectionHeader title="Experiência Premium" subtitle="Técnicas clássicas combinadas com produtos de alta performance." />
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        {services.length > 0 ? services.map((s) => (
-                            <GlassCard key={s.id} className="group">
-                                <div className="flex justify-between items-start mb-8">
-                                    <div className="w-14 h-14 rounded-2xl bg-zinc-800/50 flex items-center justify-center text-amber-500 group-hover:bg-amber-500 group-hover:text-black transition-all duration-500"><Icon path={icons.scissors} size={28}/></div>
-                                    <span className="text-2xl font-bold text-white tracking-tight">{fmtMoney(s.price)}</span>
-                                </div>
-                                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-amber-500 transition-colors">{s.name}</h3>
-                                <p className="text-zinc-400 text-sm leading-relaxed mb-6 line-clamp-2">{s.desc_text}</p>
-                                <div className="flex items-center gap-2 text-xs text-zinc-500 font-bold uppercase tracking-wider"><Icon path={icons.clock} size={14} className="text-amber-500"/> {s.duration} min</div>
-                            </GlassCard>
-                        )) : <div className="col-span-4 text-center text-zinc-500">Carregando serviços...</div>}
-                    </div>
-                </div>
-            </section>
-        );
-
-        const Team = ({ staff }) => (
-            <section id="equipa" className="py-32 bg-zinc-950 relative border-y border-zinc-900">
-                <div className="container mx-auto px-6 relative z-10">
-                    <SectionHeader title="Mestres da Navalha" subtitle="Profissionais escolhidos a dedo para garantir a sua melhor versão." />
-                    <div className="grid md:grid-cols-3 gap-8">
-                        {staff.length > 0 ? staff.map(s => (
-                            <div key={s.id} className="group relative h-96 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800">
-                                <div className="absolute inset-0 flex items-center justify-center text-zinc-800 font-bold text-9xl opacity-20 group-hover:scale-110 transition-transform duration-700">{s.image}</div>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent flex flex-col justify-end p-8">
-                                    <h3 className="text-2xl font-bold text-white mb-1">{s.name}</h3>
-                                    <p className="text-amber-500 text-sm font-bold uppercase tracking-widest mb-4">{s.role}</p>
-                                    <p className="text-zinc-400 text-sm mb-6 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-4 group-hover:translate-y-0 duration-500">{s.desc_text}</p>
-                                    <div className="flex items-center gap-1 text-amber-400 text-sm"><Icon path={icons.star} size={16}/> {s.rating}/5.0</div>
-                                </div>
-                            </div>
-                        )) : <div className="col-span-3 text-center text-zinc-500">Carregando equipe...</div>}
-                    </div>
-                </div>
-            </section>
-        );
-
-        const Gallery = () => (
-            <section id="galeria" className="py-32 bg-black">
-                <div className="container mx-auto px-6">
-                    <SectionHeader title="Nossa Arte" subtitle="Confira alguns dos nossos trabalhos recentes." />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {GALLERY_IMGS.map((src, i) => (
-                            <div key={i} className={`rounded-xl overflow-hidden h-64 relative group cursor-pointer border border-zinc-800 ${i === 0 ? 'md:col-span-2 md:row-span-2 md:h-[33rem]' : ''}`}>
-                                <img src={src} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Corte" />
-                                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><Icon path={icons.instagram} className="text-white w-10 h-10" /></div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-        );
-
-        const Footer = () => (
-            <footer id="local" className="bg-zinc-950 py-24 border-t border-zinc-900 relative">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black p-4 rounded-full border border-zinc-800 text-amber-500"><Icon path={icons.scissors} size={32}/></div>
-                <div className="container mx-auto px-6 grid md:grid-cols-4 gap-12 text-center md:text-left">
-                    <div className="col-span-2">
-                        <h2 className="text-3xl font-bold text-white mb-6 font-serif">ILHA<span className="text-amber-500">CUTS</span></h2>
-                        <p className="text-zinc-400 max-w-sm mb-8 leading-relaxed font-light mx-auto md:mx-0">Onde tradição encontra estilo moderno. O melhor corte, a melhor cerveja, a melhor resenha de Floripa.</p>
-                    </div>
-                    <div><h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Links</h4><ul className="space-y-4 text-zinc-400 text-sm"><li>Serviços</li><li>Equipe</li><li>Galeria</li></ul></div>
-                    <div><h4 className="text-white font-bold mb-6 text-sm uppercase tracking-widest">Local</h4><p className="text-xs text-zinc-500">{BUSINESS.address}</p></div>
-                </div>
-            </footer>
-        );
-
-        // --- APP CONTROLLER ---
-        function App() {
-            const [view, setView] = useState('home');
-            const [activeModule, setActiveModule] = useState('dashboard');
-            const [scrolled, setScrolled] = useState(false);
-            const [bookingOpen, setBookingOpen] = useState(false);
-            const [toast, setToast] = useState(null);
-            
-            // Dados
-            const [appointments, setAppointments] = useState([]);
-            const [transactions, setTransactions] = useState([]);
-            const [products, setProducts] = useState([]);
-            const [clients, setClients] = useState([]);
-            const [services, setServices] = useState(SERVICES_DEFAULT);
-            const [staff, setStaff] = useState(STAFF_DEFAULT);
-
-            // Fetch
-            const fetchData = async () => {
-                if(!sbClient) return;
-                const [apts, trans, prods, custs, servs, stf] = await Promise.all([
-                    sbClient.from('appointments').select('*').order('created_at', {ascending:false}),
-                    sbClient.from('transactions').select('*').order('created_at', {ascending:false}),
-                    sbClient.from('products').select('*'),
-                    sbClient.from('customers').select('*'),
-                    sbClient.from('services').select('*'),
-                    sbClient.from('staff').select('*')
-                ]);
-                if(apts.data) setAppointments(apts.data);
-                if(trans.data) setTransactions(trans.data);
-                if(prods.data) setProducts(prods.data);
-                if(custs.data) setClients(custs.data);
-                if(servs.data?.length) setServices(servs.data);
-                if(stf.data?.length) setStaff(stf.data);
-            };
-
-            useEffect(() => { 
-                const onScroll = () => setScrolled(window.scrollY > 20);
-                window.addEventListener('scroll', onScroll);
-                fetchData();
-                return () => window.removeEventListener('scroll', onScroll);
-            }, []);
-
-            const showToast = (title, msg) => { setToast({ title, msg }); setTimeout(()=>setToast(null), 3000); };
-
-            // Logic: Finish Service -> Add Products -> Create Transaction -> Update Stock -> Pay Commission
-            const handleAddComanda = async (apt, items) => {
-                const serviceTotal = Number(apt.service_data?.price || 0);
-                const productsTotal = items.reduce((acc, i) => acc + Number(i.sell_price), 0);
-                const total = serviceTotal + productsTotal;
-
-                // 1. Create Income Transaction
-                await sbClient.from('transactions').insert([{
-                    type: 'income', category: 'venda', amount: total, 
-                    description: `Atendimento: ${apt.client_name}`, appointment_id: apt.id
-                }]);
-
-                // 2. Pay Commission (if applicable)
-                if(apt.staff_id) {
-                    const professional = staff.find(s => s.id === apt.staff_id);
-                    if(professional && professional.commission_rate > 0) {
-                        const commission = (serviceTotal * professional.commission_rate) / 100;
-                        await sbClient.from('transactions').insert([{
-                            type: 'commission', category: 'comissao', amount: commission,
-                            description: `Comissão ${professional.name}`, staff_id: apt.staff_id
-                        }]);
-                    }
-                }
-
-                // 3. Update Stock
-                for(let item of items) {
-                    await sbClient.from('products').update({ stock_qty: item.stock_qty - 1 }).eq('id', item.id);
-                }
-
-                // 4. Update Appointment Status
-                await sbClient.from('appointments').update({ status: 'completed', consumption_items: items, total_amount: total }).eq('id', apt.id);
-
-                showToast("Sucesso", "Atendimento finalizado e comanda fechada.");
-                fetchData();
-            };
-
-            const updateStatus = async (id, status) => {
-                await sbClient.from('appointments').update({status}).eq('id', id);
-                fetchData();
-            };
-
-            const handleBooking = async (form) => {
-                if(!sbClient) return showToast("Erro", "Configure o Supabase");
-                
-                // Check Waitlist Logic
-                if(form.isWaitList) {
-                    await sbClient.from('appointments').insert([{
-                        client_name: form.clientName, client_phone: form.clientPhone, date: form.date, time: form.time,
-                        service_data: form.service, is_waiting_list: true, status: 'pending'
-                    }]);
-                    showToast("Lista de Espera", "Você será avisado se vagar!");
-                } else {
-                    await sbClient.from('appointments').insert([{
-                        client_name: form.clientName, client_phone: form.clientPhone, date: form.date, time: form.time,
-                        service_data: form.service, barber: form.barber, staff_id: form.barber?.id, status: 'confirmed'
-                    }]);
-                    showToast("Sucesso", "Agendamento Confirmado!");
-                }
-                
-                // Mock Loyalty
-                const { data: client } = await sbClient.from('customers').select('*').eq('phone', form.clientPhone).single();
-                if(!client) await sbClient.from('customers').insert([{ name: form.clientName, phone: form.clientPhone, loyalty_points: 10 }]);
-                
-                setBookingOpen(false);
-                fetchData();
-            };
-
-            if(view === 'admin') return (
-                <div className="flex h-screen bg-black text-zinc-200 font-sans overflow-hidden">
-                    <aside className="w-72 bg-zinc-950 border-r border-zinc-800 p-6 flex flex-col hidden lg:flex">
-                        <div className="flex items-center gap-3 mb-10 px-2 text-white"><Icon path={icons.scissors} className="text-amber-500" size={24}/><span className="font-bold tracking-widest text-xl font-serif">ERP PRO</span></div>
-                        <nav className="space-y-1 flex-1">
-                            {[{id:'dashboard', l:'Visão Geral', i:'dashboard'}, {id:'agenda', l:'Agenda & Comanda', i:'calendar'}, {id:'financeiro', l:'Financeiro', i:'dollar'}, {id:'estoque', l:'Estoque', i:'box'}, {id:'marketing', l:'Marketing & NPS', i:'zap'}, {id:'clientes', l:'Clientes CRM', i:'users'}, {id:'config', l:'Configurações', i:'settings'}].map(x => (
-                                <button key={x.id} onClick={()=>setActiveModule(x.id)} className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeModule===x.id ? 'bg-amber-500/10 text-amber-500 border border-amber-500/20' : 'text-zinc-400 hover:text-white hover:bg-zinc-900'}`}><Icon path={icons[x.i]} size={18}/> {x.l}</button>
-                            ))}
-                        </nav>
-                        <button onClick={()=>setView('home')} className="flex items-center gap-2 text-zinc-500 hover:text-white px-4 py-2 text-sm transition-colors mt-4"><Icon path={icons.logOut} size={16}/> Sair</button>
-                    </aside>
-                    <main className="flex-1 p-8 lg:p-12 overflow-y-auto bg-black">
-                        <header className="flex justify-between items-center mb-10"><h2 className="text-3xl font-bold text-white capitalize font-serif">{activeModule}</h2><div className="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-500 to-amber-700"></div></header>
-                        <div className="animate-fade-in">
-                            {activeModule === 'agenda' && <AgendaModule appointments={appointments} products={products} onUpdateStatus={updateStatus} onAddComanda={handleAddComanda} />}
-                            {activeModule === 'financeiro' && <FinanceModule transactions={transactions} onAdd={async(d)=>{ await sbClient.from('transactions').insert([d]); fetchData(); }} />}
-                            {activeModule === 'marketing' && <MarketingModule clients={clients} />}
-                            {activeModule === 'estoque' && <StockModule products={products} onAdd={async(d)=>{ await sbClient.from('products').insert([d]); fetchData(); }} onUpdate={updateStock} />}
-                            {activeModule === 'clientes' && <ClientsModule clients={clients} />}
-                            {activeModule === 'config' && <ConfigModule />}
-                            {activeModule === 'dashboard' && <div className="text-center py-20 bg-zinc-900/30 rounded-2xl border border-zinc-800"><h3 className="text-xl text-zinc-400 font-bold">Bem-vindo ao Painel ERP</h3><p className="text-zinc-600 mt-2">Use o menu lateral para gerenciar seu negócio.</p></div>}
-                        </div>
-                    </main>
-                </div>
-            );
-
-            return (
-                <div className="text-zinc-200">
-                    <Navbar onViewChange={setView} currentView={view} scrolled={scrolled} onOpenBooking={() => setBookingOpen(true)} />
-                    <Hero onCta={() => setBookingOpen(true)} />
-                    <Features services={services} />
-                    <Team staff={staff} />
-                    <Gallery />
-                    <Footer />
-                    <Modal isOpen={bookingOpen} onClose={()=>setBookingOpen(false)} title="Agendamento">
-                        <BookingModalComp onClose={()=>setBookingOpen(false)} onConfirm={handleBooking} services={services} staff={staff} />
-                    </Modal>
-                    {toast && <div className="fixed bottom-6 right-6 z-[100] bg-zinc-900 border border-zinc-800 p-5 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-up border-l-4 border-l-amber-500"><Icon path={icons.check} size={20}/><div className="text-sm"><p className="font-bold text-white">{toast.title}</p><p className="text-zinc-400">{toast.msg}</p></div></div>}
-                </div>
-            );
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #09090b;
+            color: #f4f4f5;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.15), transparent 40%),
+                radial-gradient(circle at 0% 50%, rgba(24, 24, 27, 1), transparent 100%);
+            background-attachment: fixed;
         }
 
-        const BookingModalComp = ({ onClose, onConfirm, services, staff }) => {
-            const [step, setStep] = useState(1);
-            const [form, setForm] = useState({ service: null, barber: null, date: '', time: '', clientName: '', clientPhone: '', isWaitList: false });
-            const next = (k, v) => { if(k) setForm(p => ({...p, [k]: v})); setStep(s => s + 1); };
-            
-            return (
-                <div className="space-y-6">
-                    {step === 1 && (
-                        <div className="animate-fade-in space-y-3">
-                            {services.map(s => (
-                                <button key={s.id} onClick={() => next('service', s)} className="w-full text-left p-4 rounded-xl border border-zinc-800 hover:border-amber-500 bg-zinc-900/50 flex justify-between items-center group transition-all">
-                                    <div><span className="font-bold text-white group-hover:text-amber-500 transition-colors">{s.name}</span><p className="text-xs text-zinc-500">{s.desc_text}</p></div>
-                                    <span className="text-amber-500 font-bold font-serif">{fmtMoney(s.price)}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                    {step === 2 && (
-                        <div className="animate-fade-in grid grid-cols-2 gap-4">
-                            {staff.map(s => (
-                                <button key={s.id} onClick={() => next('barber', s)} className="p-4 rounded-xl border border-zinc-800 hover:border-amber-500 bg-zinc-900/50 flex flex-col items-center gap-3 group transition-all">
-                                    <div className="w-14 h-14 rounded-full bg-zinc-800 border-2 border-zinc-700 flex items-center justify-center font-bold text-zinc-500 group-hover:border-amber-500 group-hover:text-white transition-colors">{s.image}</div>
-                                    <div className="text-center"><span className="font-bold text-white block group-hover:text-amber-500">{s.name}</span><span className="text-xs text-zinc-500">{s.role}</span></div>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                    {step === 3 && (
-                        <div className="animate-fade-in space-y-4">
-                            <input type="date" className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white focus:border-amber-500 outline-none" onChange={e => setForm(p => ({...p, date: e.target.value}))} />
-                            <div className="grid grid-cols-3 gap-2">
-                                {["09:00","10:00","11:00","14:00","15:00","16:00","18:00","19:00"].map(t => (
-                                    <button key={t} onClick={() => next('time', t)} disabled={!form.date} className="py-2 rounded-lg border border-zinc-800 hover:bg-amber-500 hover:text-black text-white text-sm font-bold disabled:opacity-30 transition-colors">{t}</button>
-                                ))}
-                            </div>
-                            <div className="flex items-center gap-2 pt-2 border-t border-zinc-800 mt-2">
-                                <input type="checkbox" id="wl" onChange={e => setForm(p => ({...p, isWaitList: e.target.checked}))} className="accent-amber-500 w-4 h-4"/>
-                                <label htmlFor="wl" className="text-sm text-zinc-400 cursor-pointer">Não achou horário? Entrar na <span className="text-amber-500 font-bold">Lista de Espera</span></label>
-                            </div>
-                        </div>
-                    )}
-                    {step === 4 && (
-                        <div className="animate-fade-in space-y-4">
-                            <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 space-y-2">
-                                <div className="flex justify-between text-sm"><span className="text-zinc-500">Serviço</span><span className="text-white font-bold">{form.service?.name}</span></div>
-                                <div className="flex justify-between text-sm"><span className="text-zinc-500">Profissional</span><span className="text-white font-bold">{form.barber?.name}</span></div>
-                                <div className="flex justify-between text-sm"><span className="text-zinc-500">Data</span><span className="text-white font-bold">{form.date} às {form.time}</span></div>
-                                {form.isWaitList && <div className="p-2 bg-amber-500/10 text-amber-500 text-xs font-bold text-center rounded border border-amber-500/20">LISTA DE ESPERA - SEM GARANTIA</div>}
-                            </div>
-                            <input placeholder="Seu Nome" className="input-dark" onChange={e => setForm(p => ({...p, clientName: e.target.value}))}/>
-                            <input placeholder="WhatsApp" className="input-dark" onChange={e => setForm(p => ({...p, clientPhone: e.target.value}))}/>
-                            <Button onClick={() => onConfirm(form)} className="w-full mt-4">Confirmar {form.isWaitList ? "na Lista" : "Agendamento"}</Button>
-                        </div>
-                    )}
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-card {
+            background: rgba(39, 39, 42, 0.4);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            background: rgba(39, 39, 42, 0.6);
+            border-color: rgba(217, 119, 6, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(217, 119, 6, 0.15);
+        }
+
+        .glass-card.selected {
+            background: rgba(217, 119, 6, 0.15);
+            border-color: #d97706;
+            box-shadow: 0 0 20px -5px rgba(217, 119, 6, 0.3);
+        }
+
+        .glass-input {
+            background: rgba(24, 24, 27, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+        .glass-input:focus {
+            background: rgba(24, 24, 27, 0.8);
+            border-color: #d97706;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #18181b; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3f3f46; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #d97706; 
+        }
+
+        /* Animations */
+        @keyframes fade-in-up {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+            animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes scale-up-modal {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-scale-up {
+            animation: scale-up-modal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .btn-glow {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-glow:hover::after {
+            left: 100%;
+        }
+
+        /* Spinner */
+        .loader {
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top: 3px solid #d97706;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="antialiased selection:bg-amber-600 selection:text-white">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed w-full z-50 glass-panel border-b-0">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
+                    <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
                 </div>
-            );
+                <div>
+                    <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
+                    <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
+                </div>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8">
+                <a href="#home" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
+                <a href="#services" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
+                <a href="#about" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
+                
+                <!-- Auth State: Guest -->
+                <div id="nav-guest" class="flex items-center gap-4">
+                    <button onclick="openAuthModal('login')" class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
+                        Entrar
+                    </button>
+                    <button onclick="startBooking()" class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
+                        Agendar Horário
+                    </button>
+                </div>
+
+                <!-- Auth State: Logged In -->
+                <div id="nav-user" class="hidden items-center gap-4">
+                    <div class="flex items-center gap-3 cursor-pointer group relative">
+                        <div class="text-right hidden lg:block">
+                            <p class="text-xs text-zinc-400">Olá,</p>
+                            <p id="user-name-display" class="text-sm font-bold text-white group-hover:text-amber-500 transition-colors">Usuário</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-zinc-800 border-2 border-amber-600 overflow-hidden">
+                            <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                            <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
+                        </div>
+                        
+                        <!-- Dropdown -->
+                        <div class="absolute top-full right-0 mt-4 w-48 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+                            <a href="#" onclick="openAppointments()" class="block px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
+                                <i data-lucide="calendar-check" class="w-4 h-4"></i> Meus Agendamentos
+                            </a>
+                            <div class="h-px bg-white/10 my-1"></div>
+                            <a href="#" onclick="logout()" class="block px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2">
+                                <i data-lucide="log-out" class="w-4 h-4"></i> Sair
+                            </a>
+                        </div>
+                    </div>
+                    <button onclick="startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(217,119,6,0.3)]">
+                        Novo Corte
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-white p-2" onclick="toggleMobileMenu()">
+                <i data-lucide="menu" id="menu-icon"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up">
+            <div class="flex flex-col gap-4">
+                <a href="#home" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Início</a>
+                <a href="#services" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Serviços</a>
+                <a href="#about" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Sobre</a>
+                
+                <!-- Mobile Guest -->
+                <div id="mobile-guest" class="flex flex-col gap-3 pt-4 border-t border-white/5">
+                     <button onclick="toggleMobileMenu(); openAuthModal('login')" class="text-lg font-medium text-zinc-300 text-left">
+                        Entrar / Cadastrar
+                    </button>
+                    <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl">
+                        Agendar Agora
+                    </button>
+                </div>
+
+                <!-- Mobile User -->
+                <div id="mobile-user" class="hidden flex-col gap-3 pt-4 border-t border-white/5">
+                    <div class="flex items-center gap-3 mb-2">
+                         <div class="w-10 h-10 rounded-full bg-zinc-800 border border-amber-600 overflow-hidden flex-shrink-0">
+                            <div id="mobile-user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500">Logado como</p>
+                            <p id="mobile-user-name" class="font-bold text-white">Usuário</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileMenu(); openAppointments()" class="text-lg font-medium text-amber-500 text-left flex items-center gap-2">
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i> Meus Agendamentos
+                    </button>
+                    <button onclick="toggleMobileMenu(); logout()" class="text-lg font-medium text-red-400 text-left flex items-center gap-2">
+                        <i data-lucide="log-out" class="w-5 h-5"></i> Sair
+                    </button>
+                    <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl mt-2">
+                        Novo Agendamento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="relative h-screen flex items-center overflow-hidden">
+        <div class="absolute inset-0 z-0 scale-105">
+            <img src="https://images.unsplash.com/photo-1585747860715-2ba37e788b70?auto=format&fit=crop&q=80&w=2074" alt="Barbershop Atmosphere" class="w-full h-full object-cover opacity-60"/>
+            <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/90 to-zinc-950/30"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10 pt-20">
+            <div class="max-w-3xl animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span class="text-xs font-medium text-amber-200 uppercase tracking-wider">Aberto hoje até as 20h</span>
+                </div>
+                <h1 class="text-5xl md:text-8xl font-bold text-white leading-[0.9] mb-8 tracking-tight">
+                    Domine <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu Estilo.</span>
+                </h1>
+                <p class="text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed max-w-lg font-light">
+                    Não é apenas um corte, é a sua assinatura. Experimente o atendimento premium que transformou a Ricardo Barbershop em referência.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-5">
+                    <button onclick="startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
+                        Agendar Agora <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                    <button onclick="document.getElementById('services').scrollIntoView()" class="glass-panel hover:bg-white/5 text-white border border-white/10 font-bold py-4 px-8 rounded-xl transition-all">
+                        Conhecer Serviços
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="py-32 relative">
+        <div class="absolute top-1/2 left-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+        <div class="container mx-auto px-6 relative">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+                <div>
+                    <h3 class="text-amber-500 font-bold uppercase tracking-widest text-xs mb-3">Nossa Expertise</h3>
+                    <h2 class="text-4xl md:text-5xl font-bold text-white">Menu de Serviços</h2>
+                </div>
+                <p class="text-zinc-400 max-w-sm text-right md:text-left">
+                    Técnicas clássicas combinadas com tendências modernas para entregar o visual que você merece.
+                </p>
+            </div>
+            <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="py-24 relative overflow-hidden">
+        <div class="container mx-auto px-6">
+            <div class="glass-panel p-8 md:p-12 rounded-3xl border border-white/5 bg-zinc-900/40">
+                <div class="flex flex-col lg:flex-row items-center gap-16">
+                    <div class="lg:w-1/2 relative group">
+                        <div class="absolute inset-0 bg-amber-600/20 rounded-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500"></div>
+                        <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=1000" alt="Barber working" class="relative w-full rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700 object-cover aspect-[4/3]"/>
+                    </div>
+                    <div class="lg:w-1/2">
+                        <div class="mb-8">
+                            <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Mais que uma barbearia, <br/>um <span class="text-amber-500">Lifestyle.</span></h2>
+                            <p class="text-zinc-400 text-lg leading-relaxed">
+                                Fundada em 2018, a Ricardo Barbershop nasceu para redefinir o conceito de cuidado masculino. 
+                                Nosso espaço é um refúgio onde a navalha afiada encontra a conversa boa e a cerveja gelada.
+                            </p>
+                        </div>
+                        <div class="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
+                            <div><h4 class="text-4xl font-bold text-white mb-1">5+</h4><span class="text-zinc-500 text-sm uppercase tracking-wider">Anos de História</span></div>
+                            <div><h4 class="text-4xl font-bold text-white mb-1">12k+</h4><span class="text-zinc-500 text-sm uppercase tracking-wider">Cortes Realizados</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION -->
+    <section class="py-24 bg-gradient-to-b from-transparent to-zinc-950/50">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white">O Que Dizem</h2>
+            </div>
+            <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="pt-24 pb-12 border-t border-white/5 relative bg-[#0c0c0e]">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-16">
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Modernized Footer Logo -->
+                    <div class="flex items-center gap-4 mb-6 group cursor-default">
+                        <div class="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-700 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-amber-900/30 ring-1 ring-white/10 relative overflow-hidden transition-transform group-hover:scale-105 duration-300">
+                            <div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500"></div>
+                            <i data-lucide="scissors" class="w-7 h-7 fill-white/20 relative z-10"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-3xl font-extrabold leading-none tracking-tight text-white group-hover:text-amber-500 transition-colors duration-300">RICARDO</h2>
+                            <span class="text-[0.65rem] text-zinc-500 group-hover:text-zinc-400 tracking-[0.35em] font-bold uppercase block mt-1 transition-colors duration-300">Barbershop</span>
+                        </div>
+                    </div>
+                    
+                    <p class="text-zinc-400 max-w-md leading-relaxed border-l-2 border-amber-500/30 pl-4">
+                        O lugar onde estilo e tradição se encontram. Agende seu horário e venha nos visitar para uma experiência única.
+                    </p>
+                    <div class="flex gap-4 pt-4">
+                        <a href="#" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-zinc-400 hover:text-white hover:border-amber-500 hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-900/30 transition-all duration-300">
+                            <i data-lucide="instagram" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-zinc-400 hover:text-white hover:border-amber-500 hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-900/30 transition-all duration-300">
+                            <i data-lucide="facebook" class="w-5 h-5"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 rounded-full glass-card flex items-center justify-center text-zinc-400 hover:text-white hover:border-amber-500 hover:bg-amber-600 hover:shadow-lg hover:shadow-amber-900/30 transition-all duration-300">
+                            <i data-lucide="twitter" class="w-5 h-5"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-white mb-4">Contato</h3>
+                    <ul class="space-y-3">
+                        <li class="flex items-start gap-3 text-zinc-400 hover:text-amber-500 transition-colors cursor-pointer"><i data-lucide="map-pin" class="w-5 h-5 shrink-0 mt-0.5"></i><span>Rua das Pedras, 123<br>Centro, Florianópolis</span></li>
+                        <li class="flex items-center gap-3 text-zinc-400 hover:text-amber-500 transition-colors cursor-pointer"><i data-lucide="phone" class="w-5 h-5 shrink-0"></i><span>(48) 99999-9999</span></li>
+                    </ul>
+                </div>
+                <div class="space-y-4">
+                    <h3 class="text-lg font-bold text-white mb-4">Horários</h3>
+                    <ul class="space-y-2 text-zinc-400 text-sm">
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Seg - Sex</span><span class="text-white font-medium">09:00 - 20:00</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Sábado</span><span class="text-white font-medium">09:00 - 18:00</span></li>
+                        <li class="flex justify-between pt-1"><span>Domingo</span><span class="text-amber-600 font-bold">Fechado</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-sm gap-4">
+                <p>&copy; 2024 Ricardo Barbershop. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAuthModal()"></div>
+        <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="p-8">
+                
+                <!-- Warning Message Container -->
+                <div id="auth-message-container" class="hidden mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
+                    <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                    <p id="auth-message-text" class="text-sm text-amber-200">Para agendar seu horário, faça login ou crie sua conta.</p>
+                </div>
+
+                <div class="flex gap-6 border-b border-white/10 mb-8">
+                    <button onclick="switchAuthTab('login')" id="tab-login" class="pb-2 text-amber-500 border-b-2 border-amber-500 font-bold text-lg transition-all">Entrar</button>
+                    <button onclick="switchAuthTab('register')" id="tab-register" class="pb-2 text-zinc-400 hover:text-white font-medium text-lg transition-all">Criar Conta</button>
+                </div>
+                <div id="form-login" class="space-y-6">
+                    <div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label><input type="email" id="login-email" class="w-full glass-input rounded-xl py-3 px-4" placeholder="seu@email.com"></div>
+                    <div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">Senha</label><input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4" placeholder="••••••••"></div>
+                    <button onclick="handleLogin()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">Entrar</button>
+                </div>
+                <div id="form-register" class="space-y-6 hidden">
+                    <div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">Nome Completo</label><input type="text" id="register-name" class="w-full glass-input rounded-xl py-3 px-4" placeholder="Ricardo Oliveira"></div>
+                    <div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label><input type="email" id="register-email" class="w-full glass-input rounded-xl py-3 px-4" placeholder="seu@email.com"></div>
+                    <div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">Senha</label><input type="password" id="register-password" class="w-full glass-input rounded-xl py-3 px-4" placeholder="••••••••"></div>
+                    <button onclick="handleRegister()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">Criar Conta</button>
+                </div>
+                <div class="relative my-8"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div><div class="relative flex justify-center text-xs uppercase"><span class="bg-[#18181b] px-4 text-zinc-500 font-bold">Ou continue com</span></div></div>
+                <button onclick="handleGoogleLogin()" class="w-full glass-input hover:bg-white hover:text-black transition-colors font-bold py-3 rounded-xl flex items-center justify-center gap-3 group">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    <span id="google-btn-text">Google</span>
+                    <div id="google-loader" class="loader hidden"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- IMPROVED BOOKING MODAL -->
+    <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeBooking()"></div>
+        <!-- Increased width to max-w-4xl for split view -->
+        <div class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 flex flex-col h-[90vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+            <!-- Header -->
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                <div>
+                    <h3 class="text-xl font-bold text-white">Agendar Horário</h3>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-xs text-amber-500 font-bold uppercase tracking-wider" id="step-indicator">Passo 1 de 5</span>
+                    </div>
+                </div>
+                <button onclick="closeBooking()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden">
+                <!-- MAIN CONTENT (LEFT SIDE) -->
+                <div id="booking-content" class="flex-1 p-6 overflow-y-auto custom-scrollbar border-r border-white/5">
+                    <!-- Dynamic Step Content -->
+                </div>
+
+                <!-- SUMMARY SIDEBAR (RIGHT SIDE) - Hidden on mobile -->
+                <div class="hidden md:flex w-80 bg-zinc-900/30 flex-col p-6 border-l border-white/5">
+                    <h4 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-6">Resumo do Pedido</h4>
+                    
+                    <div class="space-y-6 flex-1">
+                        <!-- Service Summary -->
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
+                                <i data-lucide="scissors" class="w-4 h-4 text-amber-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-zinc-500 mb-1">Serviço</p>
+                                <p id="summary-service" class="text-sm font-bold text-white leading-tight">Nenhum selecionado</p>
+                                <p id="summary-price" class="text-xs text-amber-500 font-medium mt-1">--</p>
+                            </div>
+                        </div>
+
+                        <!-- Barber Summary -->
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
+                                <i data-lucide="user" class="w-4 h-4 text-zinc-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-zinc-500 mb-1">Profissional</p>
+                                <p id="summary-barber" class="text-sm font-medium text-zinc-300">--</p>
+                            </div>
+                        </div>
+
+                        <!-- Date Summary -->
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
+                                <i data-lucide="calendar" class="w-4 h-4 text-zinc-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-zinc-500 mb-1">Data e Hora</p>
+                                <p id="summary-date" class="text-sm font-medium text-zinc-300">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="pt-6 border-t border-white/10">
+                        <div class="flex justify-between items-end mb-4">
+                            <span class="text-zinc-400 text-sm">Total Estimado</span>
+                            <span id="summary-total" class="text-2xl font-bold text-white">R$ 0,00</span>
+                        </div>
+                        <div id="booking-footer-action">
+                            <!-- Button injected via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Footer (Visible only on mobile) -->
+            <div class="md:hidden p-4 border-t border-white/5 bg-zinc-900/80 backdrop-blur flex justify-between items-center">
+                 <div class="text-left">
+                    <p class="text-xs text-zinc-500">Total</p>
+                    <p id="mobile-total" class="font-bold text-white">R$ 0,00</p>
+                 </div>
+                 <div id="mobile-footer-action"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MY APPOINTMENTS MODAL -->
+    <div id="appointments-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
+        <div class="glass-panel w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="calendar-check" class="text-amber-500"></i> Meus Agendamentos
+                </h3>
+                <button onclick="closeAppointments()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors"><i data-lucide="x"></i></button>
+            </div>
+            <div id="appointments-content" class="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script>
+        // --- SUPABASE CONFIGURATION (IMPORTANT: REPLACE THESE) ---
+        // 1. Crie um projeto em https://supabase.com
+        // 2. Vá em Project Settings > API para pegar essas chaves
+        // 3. Configure o Google Auth seguindo o guia enviado no chat
+        const SUPABASE_URL = 'SUA_URL_DO_SUPABASE_AQUI'; 
+        const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_AQUI';
+
+        // Initialize Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // --- DATA ---
+        const SERVICES = [
+            { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, duration: "45 min", description: "Corte tradicional com tesoura e máquina." },
+            { id: 2, category: 'barba', name: "Barba Terapia", price: 40, duration: "30 min", description: "Modelagem com toalha quente e esfoliação." },
+            { id: 3, category: 'combo', name: "Cabelo & Barba", price: 80, duration: "75 min", description: "Combo completo. Desconto de R$ 10." },
+            { id: 4, category: 'cabelo', name: "Acabamento", price: 20, duration: "15 min", description: "Apenas contorno e limpeza." },
+            { id: 5, category: 'cabelo', name: "Corte Infantil", price: 45, duration: "40 min", description: "Para os pequenos até 12 anos." },
+            { id: 6, category: 'cabelo', name: "Selagem Capilar", price: 120, duration: "90 min", description: "Redução de volume e hidratação." }
+        ];
+
+        const BARBERS = [
+            { id: 1, name: "Ricardo Silva", role: "Master Barber", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 2, name: "André Costa", role: "Barber Pro", image: "https://images.unsplash.com/photo-1618077553780-7553d680668f?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 3, name: "Disponibilidade Rápida", role: "Qualquer Profissional", image: null }
+        ];
+
+        const TESTIMONIALS = [
+            { id: 1, name: "Carlos Eduardo", text: "Melhor barbearia da cidade. O Ricardo é fera demais.", rating: 5 },
+            { id: 2, name: "Felipe Santos", text: "Ambiente sensacional, cerveja gelada e atendimento de primeira.", rating: 5 },
+            { id: 3, name: "João Pedro", text: "Sistema de agendamento muito prático.", rating: 5 },
+        ];
+
+        // --- STATE ---
+        let currentUser = null;
+        let currentStep = 1;
+        let selectedCategory = 'todos';
+        let pendingBooking = false; 
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', notes: '' };
+        let appointments = [];
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderServicesLanding();
+            renderTestimonials();
+            lucide.createIcons();
+            
+            // Check session on load
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                handleSession(session);
+            });
+
+            // Listen for auth changes
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                handleSession(session);
+            });
+        });
+
+        // --- AUTH LOGIC (Supabase) ---
+        function handleSession(session) {
+            if (session) {
+                currentUser = {
+                    name: session.user.user_metadata.full_name || session.user.email.split('@')[0],
+                    email: session.user.email,
+                    avatar: session.user.user_metadata.avatar_url,
+                    id: session.user.id
+                };
+                updateUIForUser();
+                closeAuthModal();
+                fetchAppointments(session.user.id);
+                
+                if(pendingBooking) {
+                    openBooking();
+                    pendingBooking = false;
+                }
+            } else {
+                currentUser = null;
+                updateUIForGuest();
+                appointments = []; 
+            }
+        }
+
+        function updateUIForUser() {
+            document.getElementById('nav-guest').classList.add('hidden');
+            document.getElementById('nav-user').classList.remove('hidden');
+            document.getElementById('nav-user').classList.add('flex');
+            document.getElementById('mobile-guest').classList.add('hidden');
+            document.getElementById('mobile-user').classList.remove('hidden');
+            document.getElementById('mobile-user').classList.add('flex');
+            document.getElementById('user-name-display').textContent = currentUser.name.split(' ')[0];
+            document.getElementById('mobile-user-name').textContent = currentUser.name;
+            if (currentUser.avatar) { 
+                document.getElementById('user-avatar').src = currentUser.avatar; 
+                document.getElementById('user-avatar').classList.remove('hidden'); 
+                document.getElementById('user-initial').classList.add('hidden'); 
+            } else { 
+                const initial = currentUser.name.charAt(0).toUpperCase(); 
+                document.getElementById('user-initial').textContent = initial; 
+                document.getElementById('mobile-user-initial').textContent = initial; 
+                document.getElementById('user-avatar').classList.add('hidden'); 
+                document.getElementById('user-initial').classList.remove('hidden'); 
+            }
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('nav-guest').classList.remove('hidden');
+            document.getElementById('nav-user').classList.add('hidden');
+            document.getElementById('mobile-guest').classList.remove('hidden');
+            document.getElementById('mobile-user').classList.add('hidden');
+        }
+
+        // Global exports for HTML handlers
+        window.openAuthModal = (tab = 'login') => { 
+            if(!pendingBooking) document.getElementById('auth-message-container').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden'); 
+            window.switchAuthTab(tab); 
+        };
+        window.closeAuthModal = () => { 
+            document.getElementById('auth-modal').classList.add('hidden'); 
+            pendingBooking = false; 
+        };
+        window.switchAuthTab = (tab) => {
+            if (tab === 'login') { document.getElementById('form-login').classList.remove('hidden'); document.getElementById('form-register').classList.add('hidden'); document.getElementById('tab-login').classList.add('text-amber-500','border-amber-500'); document.getElementById('tab-register').classList.remove('text-amber-500','border-amber-500'); }
+            else { document.getElementById('form-register').classList.remove('hidden'); document.getElementById('form-login').classList.add('hidden'); document.getElementById('tab-register').classList.add('text-amber-500','border-amber-500'); document.getElementById('tab-login').classList.remove('text-amber-500','border-amber-500'); }
+        };
+        window.logout = () => supabaseClient.auth.signOut();
+        
+        // Login with Email
+        window.handleLogin = async () => { 
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return alert("Preencha todos os campos");
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) alert("Erro ao entrar: " + error.message);
         };
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Register with Email
+        window.handleRegister = async () => { 
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            if(!email || !password) return alert("Preencha todos os campos");
+            const { data, error } = await supabaseClient.auth.signUp({
+                email: email, password: password,
+                options: { data: { full_name: name } },
+            });
+            if (error) alert("Erro ao criar conta: " + error.message);
+            else alert("Conta criada! Verifique seu e-mail ou faça login.");
+        };
+
+        window.handleGoogleLogin = async () => {
+             const btnText = document.getElementById('google-btn-text'); 
+             const loader = document.getElementById('google-loader');
+             btnText.textContent = "Conectando..."; 
+             loader.classList.remove('hidden');
+             const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: { redirectTo: window.location.href }
+             });
+             if(error) { console.error(error); alert("Erro ao conectar: " + error.message); btnText.textContent = "Google"; loader.classList.add('hidden'); }
+        };
+
+        // --- DATABASE LOGIC (Supabase) ---
+        async function fetchAppointments(userId) {
+            const { data, error } = await supabaseClient
+                .from('appointments')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
+            
+            if (error) {
+                console.error("Error fetching appointments:", error);
+            } else {
+                appointments = data.map(item => ({
+                    id: item.id,
+                    ...item.details, // We stored bookingData in 'details' column
+                    db_id: item.id // Keep DB ID separate if needed
+                }));
+                if(!document.getElementById('appointments-modal').classList.contains('hidden')) { renderAppointments(); }
+            }
+        }
+
+        async function saveAppointment() {
+            if (!currentUser) return;
+            const { error } = await supabaseClient.from('appointments').insert({
+                user_id: currentUser.id,
+                details: bookingData,
+                date_iso: bookingData.date.toISOString()
+            });
+            if (error) { console.error("Error saving appointment:", error); alert("Erro ao salvar agendamento. Tente novamente."); } 
+            else { fetchAppointments(currentUser.id); }
+        }
+
+        window.deleteAppointment = async (id) => {
+            if (!currentUser) return;
+            const appt = appointments.find(a => a.id == id);
+            if (!appt) return;
+            const { error } = await supabaseClient.from('appointments').delete().eq('id', appt.db_id);
+            if (error) { console.error("Error deleting:", error); } else { fetchAppointments(currentUser.id); }
+        };
+
+        // --- BOOKING LOGIC ---
+        window.startBooking = () => {
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', notes: '' };
+            currentStep = 1;
+            window.openBooking();
+        };
+
+        window.openBooking = () => { 
+            if(!currentUser) {
+                document.getElementById('auth-message-container').classList.remove('hidden');
+                document.getElementById('auth-message-text').textContent = "Para agendar seu horário, faça login ou crie sua conta.";
+                pendingBooking = true;
+                window.openAuthModal('login');
+                return;
+            }
+            document.getElementById('booking-modal').classList.remove('hidden'); 
+            if(!bookingData.clientName) bookingData.clientName = currentUser.name;
+            if(bookingData.service && currentStep < 2) currentStep = 2;
+            else if(!bookingData.service) currentStep = 1;
+            updateSummary(); 
+            renderStep(); 
+        };
+
+        window.closeBooking = () => { document.getElementById('booking-modal').classList.add('hidden'); };
+        window.nextStep = () => { if(currentStep === 4) { saveAppointment(); } currentStep++; renderStep(); };
+        window.prevStep = () => { currentStep--; renderStep(); };
+        window.selectCategory = (cat) => { selectedCategory = cat; renderStep(); };
+        
+        window.selectService = (id) => { 
+            const s = SERVICES.find(x => x.id === id);
+            if(s) { 
+                bookingData.service = s; 
+                bookingData.price = s.price; 
+                updateSummary(); 
+                window.openBooking();
+            }
+        };
+        window.selectBarber = (id) => { bookingData.barber = BARBERS.find(b => b.id === id); updateSummary(); window.nextStep(); };
+        window.selectDate = (d) => { bookingData.date = new Date(d); bookingData.time = null; updateSummary(); renderStep(); };
+        window.selectTime = (t) => { bookingData.time = t; updateSummary(); window.nextStep(); };
+        window.updateClientData = (field, value) => { 
+            bookingData[field] = value; 
+            const isValid = bookingData.clientName && bookingData.clientPhone;
+            document.querySelectorAll('.confirm-btn-cls').forEach(btn => {
+                btn.disabled = !isValid;
+                btn.classList.toggle('opacity-50', !isValid);
+                btn.classList.toggle('cursor-not-allowed', !isValid);
+                btn.classList.toggle('grayscale', !isValid);
+            });
+        };
+
+        // --- RENDER FUNCTIONS ---
+        function updateSummary() {
+            const sName = bookingData.service ? bookingData.service.name : 'Nenhum selecionado';
+            const sPrice = bookingData.service ? `R$ ${bookingData.service.price},00` : '--';
+            const bName = bookingData.barber ? bookingData.barber.name : '--';
+            const dDate = bookingData.date ? bookingData.date.toLocaleDateString('pt-BR') : '--';
+            const dTime = bookingData.time ? `às ${bookingData.time}` : '';
+            const total = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
+
+            document.getElementById('summary-service').textContent = sName;
+            document.getElementById('summary-price').textContent = sPrice;
+            document.getElementById('summary-barber').textContent = bName;
+            document.getElementById('summary-date').textContent = `${dDate} ${dTime}`;
+            document.getElementById('summary-total').textContent = total;
+            document.getElementById('mobile-total').textContent = total;
+            
+            const desktopAction = document.getElementById('booking-footer-action');
+            const mobileAction = document.getElementById('mobile-footer-action');
+            
+            if (currentStep < 4) {
+               let html = '';
+               if(currentStep > 1) html = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 font-bold py-3 rounded-xl transition-all mb-2">Voltar</button>`;
+               desktopAction.innerHTML = html;
+               mobileAction.innerHTML = currentStep > 1 ? `<button onclick="prevStep()" class="text-zinc-400 hover:text-white px-4 py-2">Voltar</button>` : '';
+            } 
+            else if (currentStep === 4) {
+               const btnHtml = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg opacity-50 cursor-not-allowed grayscale" disabled>Confirmar</button>`;
+               const backHtml = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 font-bold py-3 rounded-xl transition-all mb-2">Voltar</button>`;
+               desktopAction.innerHTML = backHtml + btnHtml;
+               mobileAction.innerHTML = `<button onclick="prevStep()" class="text-zinc-400 mr-2">Voltar</button><button onclick="nextStep()" class="confirm-btn-cls bg-amber-600 text-white font-bold py-2 px-6 rounded-lg opacity-50" disabled>Confirmar</button>`;
+            } else {
+               desktopAction.innerHTML = ''; mobileAction.innerHTML = '';
+            }
+        }
+
+        function renderStep() {
+            const content = document.getElementById('booking-content');
+            document.getElementById('step-indicator').textContent = `Passo ${currentStep} de 5`;
+            let html = '<div class="animate-fade-in-up pb-20 md:pb-0">';
+
+            if (currentStep === 1) {
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4><div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar"><button onclick="selectCategory('todos')" class="${selectedCategory==='todos'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Todos</button><button onclick="selectCategory('cabelo')" class="${selectedCategory==='cabelo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Cabelo</button><button onclick="selectCategory('barba')" class="${selectedCategory==='barba'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Barba</button><button onclick="selectCategory('combo')" class="${selectedCategory==='combo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Combos</button></div><div class="grid grid-cols-1 gap-3">`;
+                const filtered = SERVICES.filter(s => selectedCategory === 'todos' || s.category === selectedCategory);
+                html += filtered.map(s => `<div onclick="selectService(${s.id})" class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/30 hover:bg-zinc-800 cursor-pointer transition-all flex justify-between items-center group relative overflow-hidden ${bookingData.service?.id === s.id ? 'selected ring-1 ring-amber-500' : ''}"><div class="flex items-center gap-4 relative z-10"><div class="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center text-amber-500 border border-white/5"><i data-lucide="${s.category === 'barba' ? 'smile' : 'scissors'}" class="w-6 h-6"></i></div><div><h4 class="font-bold text-white text-lg leading-tight">${s.name}</h4><p class="text-zinc-400 text-xs mt-1">${s.description}</p><span class="text-[10px] uppercase tracking-wider text-zinc-500 font-bold mt-2 inline-block bg-zinc-900/50 px-2 py-0.5 rounded">${s.duration}</span></div></div><div class="text-right relative z-10"><span class="block text-xl font-bold text-white">R$ ${s.price}</span>${bookingData.service?.id === s.id ? '<div class="mt-1 text-amber-500"><i data-lucide="check-circle" class="w-5 h-5 ml-auto"></i></div>' : ''}</div></div>`).join('');
+                html += '</div>';
+            } 
+            else if (currentStep === 2) {
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Profissional</h4><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">`;
+                html += BARBERS.map(b => `<div onclick="selectBarber(${b.id})" class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/30 hover:bg-zinc-800 cursor-pointer transition-all flex items-center gap-4 group ${bookingData.barber?.id === b.id ? 'selected ring-1 ring-amber-500' : ''}"><div class="w-16 h-16 rounded-full bg-zinc-800 overflow-hidden flex-shrink-0 border-2 border-zinc-700 group-hover:border-amber-500 transition-colors relative">${b.image ? `<img src="${b.image}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-zinc-500"><i data-lucide="user"></i></div>'}</div><div><h4 class="font-bold text-white text-lg">${b.name}</h4><p class="text-xs text-amber-500 font-bold tracking-wider uppercase mb-1">${b.role}</p><span class="inline-flex items-center gap-1 text-[10px] text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">● Disponível</span></div></div>`).join('');
+                html += '</div>';
+            }
+            else if (currentStep === 3) {
+                const dates = []; const today = new Date(); for(let i=0;i<7;i++) { const d=new Date(today); d.setDate(today.getDate()+i); dates.push(d); }
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Data e Hora</h4><div class="mb-8"><label class="block text-zinc-400 text-xs font-bold mb-3 uppercase tracking-wider">Próximos Dias</label><div class="flex gap-3 overflow-x-auto pb-4 custom-scrollbar">`;
+                html += dates.map(d => {
+                    const isSel = bookingData.date && bookingData.date.toDateString() === d.toDateString();
+                    return `<div onclick="selectDate('${d.toISOString()}')" class="flex-shrink-0 w-20 h-24 rounded-xl flex flex-col items-center justify-center cursor-pointer border transition-all ${isSel ? 'bg-amber-600 border-amber-500 text-white shadow-lg shadow-amber-900/50 transform scale-105' : 'bg-zinc-800/40 border-white/5 text-zinc-400 hover:border-zinc-600 hover:bg-zinc-800'}"><span class="text-[0.7rem] font-bold tracking-wider opacity-80 uppercase">${d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')}</span><span class="text-2xl font-bold mt-1">${d.getDate()}</span></div>`;
+                }).join('');
+                html += `</div></div>`;
+                if(bookingData.date) {
+                    const periods = { 'Manhã': [9,10,11], 'Tarde': [13,14,15,16,17], 'Noite': [18,19,20] };
+                    html += `<div class="animate-fade-in-up space-y-6">`;
+                    for (const [period, hours] of Object.entries(periods)) {
+                        html += `<div><h5 class="text-white font-bold mb-3 text-sm flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> ${period}</h5><div class="grid grid-cols-4 sm:grid-cols-5 gap-3">`;
+                        hours.forEach(h => {
+                             const slots = [`${h}:00`, `${h}:30`];
+                             slots.forEach(t => {
+                                 const disabled = Math.random() < 0.3; const isSelected = bookingData.time === t;
+                                 if (disabled) { html += `<button disabled class="py-2 rounded-lg text-sm font-bold bg-zinc-900/50 text-zinc-600 border border-transparent cursor-not-allowed line-through decoration-zinc-600">${t}</button>`; } 
+                                 else { html += `<button onclick="selectTime('${t}')" class="py-2 rounded-lg text-sm font-bold transition-all border ${isSelected ? 'bg-white text-black border-white shadow-lg' : 'bg-zinc-800/50 border-white/5 text-zinc-300 hover:border-amber-500 hover:text-amber-500'}">${t}</button>`; }
+                             });
+                        });
+                        html += `</div></div>`;
+                    }
+                    html += `</div>`;
+                }
+                html += '</div>';
+            }
+            else if (currentStep === 4) {
+                if(currentUser && !bookingData.clientName) bookingData.clientName = currentUser.name;
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Seus Dados</h4><div class="space-y-6 max-w-lg"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome</label><div class="relative"><i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" oninput="updateClientData('clientName', this.value)" value="${bookingData.clientName}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="Seu nome"></div></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">WhatsApp</label><div class="relative"><i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${bookingData.clientPhone}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="(00) 00000-0000"></div></div></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Observações (Opcional)</label><textarea oninput="bookingData.notes = this.value" class="w-full glass-input rounded-xl py-3 px-4 text-sm h-24 resize-none" placeholder="Ex: Tenho alergia a loção pós-barba...">${bookingData.notes}</textarea></div></div>`;
+            }
+            else if (currentStep === 5) {
+                html += `<div class="h-full flex flex-col items-center justify-center text-center"><div class="relative w-24 h-24 mb-6"><div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div><div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div></div><h3 class="text-4xl font-bold text-white mb-2">Agendado!</h3><p class="text-zinc-400 text-lg mb-8 max-w-sm">Seu horário está confirmado. Você pode vê-lo em "Meus Agendamentos".</p><div class="flex flex-col gap-3 w-full max-w-xs"><button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button><button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button></div></div>`;
+            }
+            content.innerHTML = html;
+            lucide.createIcons();
+            updateSummary();
+        }
+
+        function renderServicesLanding() {
+            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `<div class="glass-card p-8 rounded-2xl group cursor-default"><div class="flex justify-between items-start mb-6"><div class="p-3 bg-white/5 rounded-xl text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors border border-white/5"><i data-lucide="scissors" class="w-6 h-6"></i></div><span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span></div><h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-500 transition-colors">${s.name}</h3><p class="text-zinc-400 mb-6 text-sm leading-relaxed min-h-[40px]">${s.description}</p><div class="flex items-center justify-between border-t border-white/5 pt-4"><div class="flex items-center text-xs text-zinc-500 gap-2 font-medium uppercase tracking-wider"><i data-lucide="clock" class="w-3 h-3"></i> <span>${s.duration}</span></div><button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold hover:text-amber-400 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 duration-300">Reservar <i data-lucide="arrow-right" class="w-3 h-3"></i></button></div></div>`).join('');
+        }
+        function renderTestimonials() {
+             document.getElementById('testimonials-grid').innerHTML = TESTIMONIALS.map(t => `<div class="glass-card p-8 rounded-2xl border border-white/5 relative bg-zinc-900/20"><div class="absolute -top-3 left-8 bg-amber-600 text-white px-3 py-1 rounded-md shadow-lg shadow-amber-900/50 flex gap-1 text-xs">${Array(t.rating).fill('<i data-lucide="star" class="w-3 h-3 fill-current"></i>').join('')}</div><div class="mt-4 mb-6"><p class="text-zinc-300 italic text-lg leading-relaxed">"${t.text}"</p></div><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center border border-white/10"><span class="font-bold text-zinc-400 text-sm">${t.name.charAt(0)}</span></div><div><span class="font-bold text-white block text-sm">${t.name}</span><span class="text-xs text-zinc-500 uppercase tracking-wider">Cliente Verificado</span></div></div></div>`).join('');
+        }
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu'); const icon = document.getElementById('menu-icon');
+            menu.classList.toggle('hidden'); icon.setAttribute('data-lucide', menu.classList.contains('hidden') ? 'menu' : 'x'); lucide.createIcons();
+        }
+        
+        window.openAppointments = () => { 
+            if(!currentUser) { window.openAuthModal(); return; } 
+            document.getElementById('appointments-modal').classList.remove('hidden'); 
+            fetchAppointments(currentUser.id); // Ensure fresh data
+        };
+        window.closeAppointments = () => { document.getElementById('appointments-modal').classList.add('hidden'); };
+        
+        function renderAppointments() {
+            const container = document.getElementById('appointments-content');
+            if (appointments.length === 0) { container.innerHTML = `<div class="text-center py-10 text-zinc-500"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 opacity-50"></i><p>Você ainda não tem agendamentos.</p><button onclick="closeAppointments(); startBooking()" class="mt-4 text-amber-500 font-bold hover:underline">Novo Agendamento</button></div>`; lucide.createIcons(); return; }
+            container.innerHTML = appointments.map(app => `<div class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/50 flex justify-between items-center group"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-amber-500 border border-white/5"><i data-lucide="scissors" class="w-5 h-5"></i></div><div><h4 class="font-bold text-white text-base">${app.service ? app.service.name : 'Serviço'}</h4><div class="flex items-center gap-2 text-xs text-zinc-400 mt-1"><span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(app.date).toLocaleDateString('pt-BR')}</span><span class="flex items-center gap-1 text-amber-500"><i data-lucide="clock" class="w-3 h-3"></i> ${app.time}</span></div><p class="text-xs text-zinc-500 mt-1">Prof: ${app.barber ? app.barber.name : 'Barbeiro'}</p></div></div><button onclick="deleteAppointment('${app.id}')" class="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join(''); lucide.createIcons();
+        }
+        
+        // Expose functions for onclick handlers
+        window.toggleMobileMenu = toggleMobileMenu;
     </script>
 </body>
 </html>
