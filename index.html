@@ -639,6 +639,101 @@
         </div>
     </div>
 
+    <!-- PAYMENT PAGE OVERLAY (Full Screen, acts like a new tab) -->
+    <div id="payment-overlay" class="fixed inset-0 z-[100] bg-[#09090b] hidden overflow-y-auto custom-scrollbar animate-fade-in-up">
+        <div class="container mx-auto px-6 py-8 min-h-screen flex flex-col">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-12">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg">
+                        <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
+                        <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
+                    </div>
+                </div>
+                <button onclick="closePaymentOverlay()" class="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold">
+                    <i data-lucide="x" class="w-4 h-4"></i> Fechar
+                </button>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 flex flex-col md:flex-row gap-8 lg:gap-16 items-start max-w-6xl mx-auto w-full">
+                
+                <!-- Left: Order Summary -->
+                <div class="w-full md:w-1/2 space-y-8">
+                    <div>
+                        <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Quase lá!</h2>
+                        <p class="text-zinc-400 text-lg">Realize o pagamento via PIX para confirmar seu agendamento instantaneamente.</p>
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-2xl border border-white/5 space-y-4">
+                        <h3 class="text-xs font-bold text-amber-500 uppercase tracking-widest mb-4">Resumo do Pedido</h3>
+                        
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <span class="text-zinc-400">Serviço</span>
+                            <span id="pay-service" class="font-bold text-white text-lg text-right">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <span class="text-zinc-400">Profissional</span>
+                            <span id="pay-barber" class="font-bold text-white text-right">--</span>
+                        </div>
+                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
+                            <span class="text-zinc-400">Data e Hora</span>
+                            <span id="pay-date" class="font-bold text-white text-right">--</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2">
+                            <span class="text-zinc-400">Total a Pagar</span>
+                            <span id="pay-total" class="font-bold text-amber-500 text-3xl">R$ 0,00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex gap-3">
+                        <i data-lucide="clock" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+                        <p class="text-sm text-amber-200">Este QR Code expira em 15 minutos. Após o pagamento, seu horário será confirmado automaticamente.</p>
+                    </div>
+                </div>
+
+                <!-- Right: Payment Area (AbacatePay Style) -->
+                <div class="w-full md:w-1/2">
+                    <div class="glass-card p-8 rounded-3xl border border-white/10 bg-[#18181b] shadow-2xl relative overflow-hidden text-center">
+                        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-600"></div>
+                        
+                        <div class="mb-6">
+                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-900/20">
+                                <!-- AbacatePay Logo or Placeholder -->
+                                <i data-lucide="qr-code" class="w-8 h-8 text-green-600"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-white">Pagamento Seguro</h3>
+                            <p class="text-zinc-500 text-sm">Processado por AbacatePay</p>
+                        </div>
+
+                        <!-- QR Code Container -->
+                        <div class="bg-white p-4 rounded-2xl shadow-inner mb-8 mx-auto max-w-[280px]">
+                            <img id="pay-qrcode" src="" alt="Carregando QR Code..." class="w-full h-full object-contain aspect-square">
+                        </div>
+
+                        <!-- Copy Paste -->
+                        <div class="space-y-3">
+                            <p class="text-xs text-zinc-500 uppercase font-bold tracking-wider">Pix Copia e Cola</p>
+                            <div class="flex gap-2">
+                                <input id="pay-copypaste" readonly value="" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-300 font-mono focus:outline-none focus:border-amber-500 transition-colors">
+                                <button onclick="copyPixCode()" class="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-4 flex items-center justify-center transition-all shadow-lg shadow-amber-900/20 active:scale-95">
+                                    <i data-lucide="copy" class="w-5 h-5"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button onclick="checkPaymentStatus()" class="w-full mt-8 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-white/5 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Já realizei o pagamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MY APPOINTMENTS MODAL -->
     <div id="appointments-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
@@ -962,7 +1057,7 @@
                     name: appointmentData.clientName,
                     cellphone: appointmentData.clientPhone.replace(/\D/g, ''),
                     email: currentUser ? currentUser.email : "cliente@exemplo.com",
-                    taxId: appointmentData.clientCpf.replace(/\D/g, '') 
+                    taxId: appointmentData.clientCpf.replace(/\D/g, '') // CPF Required for PIX
                 }
             };
 
@@ -1128,8 +1223,6 @@
             }
 
             if (bookingData.paymentMethod === 'online') {
-                // For online, we now show overlay and DO NOT save immediately
-                // Only create payment
                 const pixResult = await createAbacatePayCharge(bookingData);
                 if (pixResult) {
                     bookingData.pixData = pixResult; 
@@ -1150,13 +1243,22 @@
 
         window.deleteAppointment = async (id) => {
             if (!currentUser) return;
+            // CONFIRMATION DIALOG ADDED
+            if(!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
+
             const appt = appointments.find(a => a.id == id);
             if (!appt) return;
             
             const lookupId = USE_MOCK ? appt.id : appt.db_id;
             
             const { error } = await supabaseClient.from('appointments').delete().eq('id', lookupId);
-            if (error) { console.error("Error deleting:", error); } else { fetchAppointments(currentUser.id); }
+            if (error) { 
+                console.error("Error deleting:", error); 
+                alert("Erro ao cancelar agendamento.");
+            } else { 
+                alert("Agendamento cancelado com sucesso.");
+                fetchAppointments(currentUser.id); 
+            }
         };
 
         // --- HELPER: MASK ---
@@ -1445,24 +1547,83 @@
         };
         window.closeAppointments = () => { document.getElementById('appointments-modal').classList.add('hidden'); };
         
+        // NOVO DESIGN PARA A LISTA DE AGENDAMENTOS
         function renderAppointments() {
             const container = document.getElementById('appointments-content');
             if (!container) return;
             
             if (appointments.length === 0) { 
-                container.innerHTML = `<div class="text-center py-10 text-zinc-500"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 opacity-50"></i><p>Você ainda não tem agendamentos.</p><button onclick="closeAppointments(); startBooking()" class="mt-4 text-amber-500 font-bold hover:underline">Novo Agendamento</button></div>`; 
+                container.innerHTML = `
+                    <div class="flex flex-col items-center justify-center py-12 text-zinc-500">
+                        <div class="w-16 h-16 bg-zinc-900 rounded-full flex items-center justify-center mb-4 border border-zinc-800">
+                            <i data-lucide="calendar-x" class="w-8 h-8 opacity-50"></i>
+                        </div>
+                        <h4 class="text-white font-bold text-lg mb-1">Sem agendamentos</h4>
+                        <p class="text-sm mb-6 max-w-[200px] text-center">Você ainda não tem horários marcados conosco.</p>
+                        <button onclick="closeAppointments(); startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-6 rounded-xl transition-all shadow-lg">
+                            Novo Agendamento
+                        </button>
+                    </div>`; 
                 lucide.createIcons(); 
                 return; 
             }
             
-            container.innerHTML = appointments.map(app => {
-                // Ensure service and barber objects exist to prevent crash
+            container.innerHTML = `<h4 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4 px-1">Próximos Horários</h4><div class="space-y-3">` + 
+            appointments.map(app => {
                 const serviceName = app.service ? app.service.name : 'Serviço não encontrado';
+                const servicePrice = app.service ? `R$ ${app.service.price},00` : '';
                 const barberName = app.barber ? app.barber.name : 'Profissional';
-                const dateStr = app.date ? new Date(app.date).toLocaleDateString('pt-BR') : 'Data inválida';
+                const rawDate = app.date ? new Date(app.date) : null;
                 
-                return `<div class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/50 flex justify-between items-center group"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-amber-500 border border-white/5"><i data-lucide="scissors" class="w-5 h-5"></i></div><div><h4 class="font-bold text-white text-base">${serviceName}</h4><div class="flex items-center gap-2 text-xs text-zinc-400 mt-1"><span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${dateStr}</span><span class="flex items-center gap-1 text-amber-500"><i data-lucide="clock" class="w-3 h-3"></i> ${app.time}</span></div><p class="text-xs text-zinc-500 mt-1">Prof: ${barberName}</p></div></div><button onclick="deleteAppointment('${app.id}')" class="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`;
-            }).join(''); 
+                // Formatação robusta de data
+                const day = rawDate ? rawDate.getDate() : '--';
+                const month = rawDate ? rawDate.toLocaleDateString('pt-BR', { month: 'short' }).replace('.','').toUpperCase() : '--';
+                const weekday = rawDate ? rawDate.toLocaleDateString('pt-BR', { weekday: 'long' }) : '';
+                
+                return `
+                <div class="glass-card p-0 rounded-2xl border border-white/5 bg-zinc-800/30 overflow-hidden group hover:border-amber-500/30 transition-all">
+                    <div class="flex flex-col sm:flex-row">
+                        <!-- Date Column -->
+                        <div class="bg-zinc-900/80 p-4 sm:w-24 flex flex-col items-center justify-center border-b sm:border-b-0 sm:border-r border-white/5">
+                            <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">${month}</span>
+                            <span class="text-2xl font-bold text-white my-1">${day}</span>
+                            <span class="text-[10px] text-zinc-500 uppercase tracking-wide">${app.time}</span>
+                        </div>
+                        
+                        <!-- Info Column -->
+                        <div class="p-4 flex-1 flex flex-col justify-center">
+                            <div class="flex justify-between items-start mb-2">
+                                <div>
+                                    <h4 class="font-bold text-white text-base">${serviceName}</h4>
+                                    <p class="text-xs text-zinc-400 capitalize">${weekday}</p>
+                                </div>
+                                <span class="bg-green-500/10 text-green-400 text-[10px] font-bold px-2 py-1 rounded-full border border-green-500/20">CONFIRMADO</span>
+                            </div>
+                            
+                            <div class="flex items-center gap-3 mt-1">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-zinc-300">
+                                        <i data-lucide="user" class="w-3 h-3"></i>
+                                    </div>
+                                    <span class="text-xs text-zinc-300">${barberName}</span>
+                                </div>
+                                <div class="w-px h-3 bg-white/10"></div>
+                                <span class="text-xs font-bold text-amber-500">${servicePrice}</span>
+                            </div>
+                        </div>
+
+                        <!-- Actions Column -->
+                        <div class="p-4 sm:w-32 flex flex-row sm:flex-col items-center justify-center gap-2 border-t sm:border-t-0 sm:border-l border-white/5 bg-white/[0.02]">
+                            <button onclick="window.open('https://wa.me/5548999999999?text=Olá, gostaria de falar sobre meu agendamento do dia ${day}/${month}', '_blank')" class="w-full py-2 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-medium transition-colors flex items-center justify-center gap-2">
+                                <i data-lucide="message-circle" class="w-3 h-3"></i> Ajuda
+                            </button>
+                            <button onclick="deleteAppointment('${app.id}')" class="w-full py-2 px-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 text-xs font-medium transition-colors flex items-center justify-center gap-2 border border-red-500/10 hover:border-red-500/30">
+                                <i data-lucide="x" class="w-3 h-3"></i> Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') + `</div>`; 
             lucide.createIcons();
         }
         
