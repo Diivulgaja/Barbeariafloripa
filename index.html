@@ -515,7 +515,7 @@
                             </div>
                             <div>
                                 <p class="text-xs text-zinc-500 mb-1">Pagamento</p>
-                                <p class="text-sm font-medium text-zinc-300">No Local</p>
+                                <p id="summary-payment" class="text-sm font-medium text-zinc-300">No Local</p>
                             </div>
                         </div>
                     </div>
@@ -683,7 +683,7 @@
         let currentStep = 1;
         let selectedCategory = 'todos';
         let pendingBooking = false; 
-        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
         let appointments = [];
         let unavailableSlots = []; 
 
@@ -986,6 +986,8 @@
         
         window.selectTime = (t) => { bookingData.time = t; updateSummary(); window.nextStep(); };
         
+        // Removed selectPayment as it's no longer used (defaults to local)
+
         window.updateClientData = (field, value) => { 
             if(field === 'clientPhone') value = maskPhone(value);
             
@@ -1005,25 +1007,41 @@
 
         // --- RENDER FUNCTIONS ---
         function updateSummary() {
+            // SAFE GUARDS: Check if elements exist before updating textContent
             const sName = bookingData.service ? bookingData.service.name : 'Nenhum selecionado';
             const sPrice = bookingData.service ? `R$ ${bookingData.service.price},00` : '--';
             const bName = bookingData.barber ? bookingData.barber.name : '--';
             const dDate = bookingData.date ? bookingData.date.toLocaleDateString('pt-BR') : '--';
             const dTime = bookingData.time ? `às ${bookingData.time}` : '';
             const total = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
-            const paymentText = 'Pagar no Local'; // Simplificado
+            const paymentText = 'Pagar no Local'; 
 
-            document.getElementById('summary-service').textContent = sName;
-            document.getElementById('summary-price').textContent = sPrice;
-            document.getElementById('summary-barber').textContent = bName;
-            document.getElementById('summary-date').textContent = `${dDate} ${dTime}`;
-            document.getElementById('summary-payment').textContent = paymentText;
-            document.getElementById('summary-total').textContent = total;
-            document.getElementById('mobile-total').textContent = total;
+            const elService = document.getElementById('summary-service');
+            if(elService) elService.textContent = sName;
+
+            const elPrice = document.getElementById('summary-price');
+            if(elPrice) elPrice.textContent = sPrice;
+
+            const elBarber = document.getElementById('summary-barber');
+            if(elBarber) elBarber.textContent = bName;
+
+            const elDate = document.getElementById('summary-date');
+            if(elDate) elDate.textContent = `${dDate} ${dTime}`;
+
+            const elPayment = document.getElementById('summary-payment');
+            if(elPayment) elPayment.textContent = paymentText;
+
+            const elTotal = document.getElementById('summary-total');
+            if(elTotal) elTotal.textContent = total;
+
+            const elMobileTotal = document.getElementById('mobile-total');
+            if(elMobileTotal) elMobileTotal.textContent = total;
             
             const desktopAction = document.getElementById('booking-footer-action');
             const mobileAction = document.getElementById('mobile-footer-action');
             
+            if (!desktopAction || !mobileAction) return;
+
             if (currentStep < 4) {
                let html = '';
                if(currentStep > 1) html = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 font-bold py-3 rounded-xl transition-all mb-2">Voltar</button>`;
