@@ -265,101 +265,6 @@
         </div>
     </nav>
 
-    <!-- PAYMENT PAGE OVERLAY (Full Screen, acts like a new tab) -->
-    <div id="payment-overlay" class="fixed inset-0 z-[100] bg-[#09090b] hidden overflow-y-auto custom-scrollbar animate-fade-in-up">
-        <div class="container mx-auto px-6 py-8 min-h-screen flex flex-col">
-            <!-- Header -->
-            <div class="flex justify-between items-center mb-12">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg">
-                        <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
-                        <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
-                    </div>
-                </div>
-                <button onclick="closePaymentOverlay()" class="text-zinc-500 hover:text-white transition-colors flex items-center gap-2 text-sm font-bold">
-                    <i data-lucide="x" class="w-4 h-4"></i> Fechar
-                </button>
-            </div>
-
-            <!-- Content -->
-            <div class="flex-1 flex flex-col md:flex-row gap-8 lg:gap-16 items-start max-w-6xl mx-auto w-full">
-                
-                <!-- Left: Order Summary -->
-                <div class="w-full md:w-1/2 space-y-8">
-                    <div>
-                        <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Quase lá!</h2>
-                        <p class="text-zinc-400 text-lg">Realize o pagamento via PIX para confirmar seu agendamento instantaneamente.</p>
-                    </div>
-
-                    <div class="glass-panel p-6 rounded-2xl border border-white/5 space-y-4">
-                        <h3 class="text-xs font-bold text-amber-500 uppercase tracking-widest mb-4">Resumo do Pedido</h3>
-                        
-                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                            <span class="text-zinc-400">Serviço</span>
-                            <span id="pay-service" class="font-bold text-white text-lg text-right">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                            <span class="text-zinc-400">Profissional</span>
-                            <span id="pay-barber" class="font-bold text-white text-right">--</span>
-                        </div>
-                        <div class="flex justify-between items-center border-b border-white/5 pb-4">
-                            <span class="text-zinc-400">Data e Hora</span>
-                            <span id="pay-date" class="font-bold text-white text-right">--</span>
-                        </div>
-                        <div class="flex justify-between items-center pt-2">
-                            <span class="text-zinc-400">Total a Pagar</span>
-                            <span id="pay-total" class="font-bold text-amber-500 text-3xl">R$ 0,00</span>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex gap-3">
-                        <i data-lucide="clock" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
-                        <p class="text-sm text-amber-200">Este QR Code expira em 15 minutos. Após o pagamento, seu horário será confirmado automaticamente.</p>
-                    </div>
-                </div>
-
-                <!-- Right: Payment Area (AbacatePay Style) -->
-                <div class="w-full md:w-1/2">
-                    <div class="glass-card p-8 rounded-3xl border border-white/10 bg-[#18181b] shadow-2xl relative overflow-hidden text-center">
-                        <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 to-emerald-600"></div>
-                        
-                        <div class="mb-6">
-                            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-green-900/20">
-                                <!-- AbacatePay Logo or Placeholder -->
-                                <i data-lucide="qr-code" class="w-8 h-8 text-green-600"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-white">Pagamento Seguro</h3>
-                            <p class="text-zinc-500 text-sm">Processado por AbacatePay</p>
-                        </div>
-
-                        <!-- QR Code Container -->
-                        <div class="bg-white p-4 rounded-2xl shadow-inner mb-8 mx-auto max-w-[280px]">
-                            <img id="pay-qrcode" src="" alt="Carregando QR Code..." class="w-full h-full object-contain aspect-square">
-                        </div>
-
-                        <!-- Copy Paste -->
-                        <div class="space-y-3">
-                            <p class="text-xs text-zinc-500 uppercase font-bold tracking-wider">Pix Copia e Cola</p>
-                            <div class="flex gap-2">
-                                <input id="pay-copypaste" readonly value="" class="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-300 font-mono focus:outline-none focus:border-amber-500 transition-colors">
-                                <button onclick="copyPixCode()" class="bg-amber-600 hover:bg-amber-700 text-white rounded-xl px-4 flex items-center justify-center transition-all shadow-lg shadow-amber-900/20 active:scale-95">
-                                    <i data-lucide="copy" class="w-5 h-5"></i>
-                                </button>
-                            </div>
-                        </div>
-                        
-                        <button onclick="checkPaymentStatus()" class="w-full mt-8 bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-4 rounded-xl border border-white/5 transition-all flex items-center justify-center gap-2">
-                            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Já realizei o pagamento
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- HERO SECTION -->
     <section id="home" class="relative h-screen flex items-center overflow-hidden">
         <div class="absolute inset-0 z-0 scale-105">
@@ -654,70 +559,62 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // --- SUPABASE CONFIGURATION (IMPORTANT: REPLACE THESE) ---
-        // 1. Crie um projeto em https://supabase.com
-        // 2. Vá em Project Settings > API para pegar essas chaves
-        // 3. Configure o Google Auth seguindo o guia enviado no chat
+        // --- SUPABASE CONFIGURATION ---
         const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
         
-        // --- ABACATEPAY CONFIGURATION ---
-        const ABACATEPAY_API_URL = 'https://api.abacatepay.com/v1'; // URL Base da API
-        const ABACATEPAY_TOKEN = 'abc_prod_5BLupaUyfWLmJEFFtsLcGNFA'; // Substitua pela sua chave Bearer Token
-
-        // Initialize Supabase
+        // Initialize Supabase (or Mock)
         const { createClient } = supabase;
-        
         let supabaseClient;
         let USE_MOCK = false;
 
         try {
             if (SUPABASE_URL === 'SUA_URL_DO_SUPABASE_AQUI' || !SUPABASE_URL.startsWith('http')) {
-                throw new Error("Supabase URL not configured");
+                throw new Error("Supabase not configured");
             }
             supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
-            console.warn("Supabase não configurado. As funcionalidades de login e banco de dados não funcionarão.", e);
-            // Create a mock client to prevent "undefined" errors in the UI
+            console.warn("Modo de Demonstração Ativado: Supabase não configurado ou chaves inválidas.", e);
             USE_MOCK = true;
             supabaseClient = createMockClient();
         }
 
         // --- MOCK CLIENT FACTORY ---
         function createMockClient() {
-             return {
+            return {
                 auth: {
                     getSession: async () => {
                         const session = localStorage.getItem('mock_session');
                         return { data: { session: session ? JSON.parse(session) : null } };
                     },
                     onAuthStateChange: (callback) => {
+                        // In mock mode, we manually trigger handleSession on login/logout
                         return { data: { subscription: { unsubscribe: () => {} } } };
                     },
                     signInWithPassword: async ({ email }) => {
                         const user = { id: 'mock_user_id', email, user_metadata: { full_name: email.split('@')[0] } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        window.location.reload();
+                        handleSession(session); // Manual Trigger
                         return { data: { session }, error: null };
                     },
                     signUp: async ({ email, options }) => {
                         const user = { id: 'mock_user_id', email, user_metadata: { full_name: options.data.full_name } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        window.location.reload();
+                        handleSession(session); // Manual Trigger
                         return { data: { session }, error: null };
                     },
                     signInWithOAuth: async () => {
                         const user = { id: 'mock_user_id', email: 'demo@gmail.com', user_metadata: { full_name: 'Usuário Demo', avatar_url: null } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        window.location.reload();
+                        handleSession(session); // Manual Trigger
                         return { data: { session }, error: null };
                     },
                     signOut: async () => {
                         localStorage.removeItem('mock_session');
-                        window.location.reload();
+                        handleSession(null); // Manual Trigger
                         return { error: null };
                     }
                 },
@@ -736,7 +633,7 @@
                     }),
                     insert: async (row) => {
                         const data = JSON.parse(localStorage.getItem('mock_' + table) || '[]');
-                        const newItem = { id: Date.now(), ...row };
+                        const newItem = { id: Date.now(), ...row, details: row.details, date_iso: row.date_iso };
                         data.push(newItem);
                         localStorage.setItem('mock_' + table, JSON.stringify(data));
                         return { data: [newItem], error: null };
@@ -744,7 +641,7 @@
                     delete: () => ({
                         eq: async (col, val) => {
                             let data = JSON.parse(localStorage.getItem('mock_' + table) || '[]');
-                            data = data.filter(item => item[col] !== val); // Fixed logic
+                            data = data.filter(item => item[col] !== val);
                             localStorage.setItem('mock_' + table, JSON.stringify(data));
                             return { error: null };
                         }
@@ -780,7 +677,7 @@
         let currentStep = 1;
         let selectedCategory = 'todos';
         let pendingBooking = false; 
-        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
         let appointments = [];
         let unavailableSlots = []; 
 
@@ -790,12 +687,15 @@
             renderTestimonials();
             lucide.createIcons();
             
-            supabaseClient.auth.getSession().then(({ data: { session } }) => {
-                handleSession(session);
-            });
-
-            // Only listen if not mock
-            if (!USE_MOCK) {
+            if (USE_MOCK) {
+                // Manually trigger initial check in mock mode
+                const sessionStr = localStorage.getItem('mock_session');
+                if (sessionStr) handleSession(JSON.parse(sessionStr));
+                else updateUIForGuest();
+            } else {
+                supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                    handleSession(session);
+                });
                 supabaseClient.auth.onAuthStateChange((_event, session) => {
                     handleSession(session);
                 });
@@ -870,175 +770,70 @@
         
         window.logout = async () => { 
             await supabaseClient.auth.signOut();
-            updateUIForGuest(); 
+            // In Mock mode, manual trigger is needed inside the mock client, which we did. 
+            // If real supabase, the listener will catch it.
         };
         
         window.handleLogin = async () => { 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             if(!email || !password) return alert("Preencha todos os campos");
+            
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) alert("Erro ao entrar: " + error.message);
+            
+            if (error) {
+                console.error("Erro Login:", error);
+                alert("Erro ao entrar: " + error.message);
+            }
         };
 
         window.handleRegister = async () => { 
             const name = document.getElementById('register-name').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
+
             if(!email || !password) return alert("Preencha todos os campos");
+            if(password.length < 6) return alert("Senha deve ter pelo menos 6 caracteres");
+
             const { data, error } = await supabaseClient.auth.signUp({
                 email: email, password: password, options: { data: { full_name: name } },
             });
-            if (error) alert("Erro ao criar conta: " + error.message);
-            else alert("Conta criada! Verifique seu e-mail ou faça login.");
+            
+            if (error) {
+                console.error("Erro Cadastro:", error);
+                alert("Erro ao criar conta: " + error.message);
+            } else if (!USE_MOCK) {
+                alert("Conta criada! Se necessário, verifique seu e-mail.");
+            }
         };
 
         window.handleGoogleLogin = async () => {
              const btnText = document.getElementById('google-btn-text'); 
              const loader = document.getElementById('google-loader');
+             
+             if (USE_MOCK) {
+                 // Mock behavior handled by mock client immediately
+                 await supabaseClient.auth.signInWithOAuth();
+                 return;
+             }
+
              btnText.textContent = "Conectando..."; 
              loader.classList.remove('hidden');
+             
              const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
                 options: { redirectTo: window.location.href }
              });
-             if(error) { console.error(error); alert("Erro ao conectar: " + error.message); btnText.textContent = "Google"; loader.classList.add('hidden'); }
+             
+             if(error) { 
+                 console.error(error); 
+                 alert("Erro ao conectar Google: " + error.message); 
+                 btnText.textContent = "Google"; 
+                 loader.classList.add('hidden'); 
+             }
         };
 
-        // --- ABACATEPAY INTEGRATION ---
-        async function createAbacatePayCharge(appointmentData) {
-            const amountInCents = Math.round(appointmentData.price * 100); 
-            
-            // Check if environment is local file to use fallback
-            let url = window.location.href;
-            if (!url.startsWith('http')) {
-                console.warn("Ambiente local detectado (file://). Usando URL de fallback para o pagamento.");
-                url = "https://google.com"; // Fallback for validation only
-            }
-            
-            const payload = {
-                frequency: "ONE_TIME",
-                methods: ["PIX"],
-                products: [
-                    {
-                        externalId: appointmentData.service.id.toString(),
-                        name: appointmentData.service.name,
-                        quantity: 1,
-                        price: amountInCents,
-                        description: `Agendamento com ${appointmentData.barber.name} em ${appointmentData.date.toLocaleDateString()}`
-                    }
-                ],
-                completionUrl: url, 
-                returnUrl: url, // Sending both to satisfy API
-                customer: {
-                    name: appointmentData.clientName,
-                    cellphone: appointmentData.clientPhone.replace(/\D/g, ''),
-                    email: currentUser ? currentUser.email : "cliente@exemplo.com",
-                    taxId: appointmentData.clientCpf.replace(/\D/g, '') // CPF Required for PIX
-                }
-            };
-
-            console.log("Iniciando transação AbacatePay:", payload);
-
-            try {
-                const response = await fetch(`${ABACATEPAY_API_URL}/billing/create`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${ABACATEPAY_TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-                
-                const json = await response.json();
-                
-                if (!response.ok) {
-                    console.error("AbacatePay Error:", json);
-                    alert("Erro ao criar cobrança: " + (json.error || "Verifique o console"));
-                    return null;
-                }
-                
-                const result = json.data;
-                
-                return {
-                    pix: {
-                        code: result.pix.code || result.pix, // Adjust based on actual API
-                        qrcode_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(result.pix.code || result.pix)}`
-                    },
-                    billingUrl: result.billingUrl || result.url
-                };
-
-            } catch (error) {
-                console.error("Network Error AbacatePay:", error);
-                alert("Erro de conexão com o pagamento.");
-                return null;
-            }
-        }
-
-        // --- PAYMENT OVERLAY LOGIC ---
-        function showPaymentLayout(pixData, appointmentData) {
-            closeBooking(); // Close the modal
-            
-            // Populate Data
-            document.getElementById('pay-service').textContent = appointmentData.service.name;
-            document.getElementById('pay-barber').textContent = appointmentData.barber.name;
-            document.getElementById('pay-date').textContent = `${appointmentData.date.toLocaleDateString()} às ${appointmentData.time}`;
-            document.getElementById('pay-total').textContent = `R$ ${appointmentData.price},00`;
-            
-            // Populate PIX
-            document.getElementById('pay-qrcode').src = pixData.pix.qrcode_url;
-            document.getElementById('pay-copypaste').value = pixData.pix.code;
-            
-            // Show Overlay
-            const overlay = document.getElementById('payment-overlay');
-            overlay.classList.remove('hidden');
-            
-            // Lock body scroll
-            document.body.style.overflow = 'hidden';
-            
-            lucide.createIcons();
-        }
-
-        window.closePaymentOverlay = () => {
-            if(confirm("Deseja realmente cancelar o pagamento? Seu horário não será reservado.")) {
-                document.getElementById('payment-overlay').classList.add('hidden');
-                document.body.style.overflow = 'auto';
-            }
-        };
-
-        window.copyPixCode = () => {
-            const codeInput = document.getElementById('pay-copypaste');
-            codeInput.select();
-            codeInput.setSelectionRange(0, 99999);
-            navigator.clipboard.writeText(codeInput.value);
-            
-            // Visual feedback
-            const btn = document.querySelector('#pay-copypaste + button'); // Get the button next to input
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i>';
-            btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            btn.classList.remove('bg-amber-600', 'hover:bg-amber-700');
-            lucide.createIcons();
-            
-            setTimeout(() => {
-                btn.innerHTML = originalHTML;
-                btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                btn.classList.add('bg-amber-600', 'hover:bg-amber-700');
-                lucide.createIcons();
-            }, 2000);
-        };
-
-        window.checkPaymentStatus = () => {
-            alert("Estamos verificando seu pagamento... (Em um sistema real, isso seria automático via WebSocket ou Polling)");
-            setTimeout(() => {
-                alert("Pagamento Confirmado! Agendamento salvo.");
-                document.getElementById('payment-overlay').classList.add('hidden');
-                document.body.style.overflow = 'auto';
-                openAppointments();
-            }, 1500);
-        };
-
-        // --- DATABASE LOGIC (Supabase) ---
+        // --- DATABASE LOGIC ---
         async function fetchAppointments(userId) {
             const { data, error } = await supabaseClient
                 .from('appointments')
@@ -1047,26 +842,33 @@
                 .order('created_at', { ascending: false });
             
             if (error) { console.error("Error fetching appointments:", error); } else {
-                appointments = data.map(item => ({ id: item.id, ...item.details, db_id: item.id }));
+                appointments = data.map(item => {
+                    const details = typeof item.details === 'string' ? JSON.parse(item.details) : item.details;
+                    return { id: item.id, ...details, db_id: item.id };
+                });
                 if(!document.getElementById('appointments-modal').classList.contains('hidden')) { renderAppointments(); }
             }
         }
 
         async function fetchUnavailableSlots(date, barberId) {
             if(!date) return [];
+            
+            // Mock mode doesn't check server conflicts effectively without a real backend
+            if(USE_MOCK) return [];
+
             const dateStr = date.toISOString().split('T')[0]; 
             const { data, error } = await supabaseClient
                 .from('appointments')
                 .select('details')
                 .filter('date_iso', 'ilike', `${dateStr}%`);
 
-            if (error) {
-                console.error("Error fetching slots:", error);
-                return [];
-            }
+            if (error) return [];
             
             const taken = data
-                .map(row => row.details)
+                .map(row => {
+                    const d = typeof row.details === 'string' ? JSON.parse(row.details) : row.details;
+                    return d;
+                })
                 .filter(detail => {
                     if (barberId && barberId !== 3 && detail.barber.id !== barberId) return false;
                     return true;
@@ -1074,16 +876,6 @@
                 .map(detail => detail.time);
                 
             return taken;
-        }
-        
-        async function finalizeSave() {
-             const { error } = await supabaseClient.from('appointments').insert({
-                user_id: currentUser.id,
-                details: bookingData,
-                date_iso: bookingData.date.toISOString()
-            });
-            if (error) { console.error("Error saving:", error); alert("Erro ao salvar."); } 
-            else { fetchAppointments(currentUser.id); }
         }
 
         async function saveAppointment() {
@@ -1096,26 +888,13 @@
                 return;
             }
 
-            if (bookingData.paymentMethod === 'online') {
-                const pixResult = await createAbacatePayCharge(bookingData);
-                if (pixResult) {
-                    bookingData.pixData = pixResult; 
-                    // Show custom overlay for payment
-                    showPaymentLayout(pixResult, bookingData);
-                    // Save as pending/initiated (optional, but good practice)
-                    // For simplicity, we just save normally here assuming they will pay
-                     await finalizeSave();
-                } else {
-                    alert("Erro ao gerar PIX. Tente pagar no local.");
-                    bookingData.paymentMethod = 'local';
-                    await finalizeSave();
-                }
-            } else {
-                await finalizeSave();
-                // If local payment, show standard success modal (Step 5)
-                currentStep = 5;
-                renderStep();
-            }
+            const { error } = await supabaseClient.from('appointments').insert({
+                user_id: currentUser.id,
+                details: bookingData,
+                date_iso: bookingData.date.toISOString()
+            });
+            if (error) { console.error("Error saving appointment:", error); alert("Erro ao salvar. Tente novamente."); } 
+            else { fetchAppointments(currentUser.id); }
         }
 
         window.deleteAppointment = async (id) => {
@@ -1134,19 +913,16 @@
         function maskPhone(value) {
             return value.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d)(\d{4})$/, '$1-$2').slice(0, 15);
         }
-
-        function maskCpf(value) {
-            return value
-                .replace(/\D/g, '')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d)/, '$1.$2')
-                .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
-                .slice(0, 14);
+        function maskCard(value) {
+            return value.replace(/\D/g, '').replace(/(\d{4})(\d)/, '$1 $2').replace(/(\d{4})(\d)/, '$1 $2').replace(/(\d{4})(\d)/, '$1 $2').slice(0, 19);
+        }
+        function maskDate(value) {
+            return value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5);
         }
 
         // --- BOOKING LOGIC ---
         window.startBooking = () => {
-            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
             currentStep = 1;
             window.openBooking();
         };
@@ -1171,11 +947,8 @@
         
         window.nextStep = async () => { 
             if(currentStep === 4) { await saveAppointment(); }
-            // Only advance step if NOT online payment (because online shows overlay instead)
-            else {
-                currentStep++; 
-                renderStep(); 
-            }
+            currentStep++; 
+            renderStep(); 
         };
         
         window.prevStep = () => { currentStep--; renderStep(); };
@@ -1208,15 +981,19 @@
 
         window.updateClientData = (field, value) => { 
             if(field === 'clientPhone') value = maskPhone(value);
-            if(field === 'clientCpf') value = maskCpf(value);
-            
             bookingData[field] = value; 
-            
             if(field === 'clientPhone') { const input = document.querySelector('input[name="phone"]'); if(input) input.value = value; }
-            if(field === 'clientCpf') { const input = document.querySelector('input[name="cpf"]'); if(input) input.value = value; }
 
-            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14 && (bookingData.paymentMethod !== 'online' || (bookingData.clientCpf && bookingData.clientCpf.length === 14));
-            
+            // Validate Card if online
+            let isPaymentValid = true;
+            if (bookingData.paymentMethod === 'online') {
+                const cardNum = document.getElementById('card-number')?.value || '';
+                const cardDate = document.getElementById('card-date')?.value || '';
+                const cardCvc = document.getElementById('card-cvc')?.value || '';
+                if(cardNum.length < 16 || cardDate.length < 5 || cardCvc.length < 3) isPaymentValid = false;
+            }
+
+            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14 && isPaymentValid;
             document.querySelectorAll('.confirm-btn-cls').forEach(btn => {
                 btn.disabled = !isValid;
                 btn.classList.toggle('opacity-50', !isValid);
@@ -1233,7 +1010,7 @@
             const dDate = bookingData.date ? bookingData.date.toLocaleDateString('pt-BR') : '--';
             const dTime = bookingData.time ? `às ${bookingData.time}` : '';
             const total = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
-            const paymentText = bookingData.paymentMethod === 'online' ? 'PIX (AbacatePay)' : 'Pagar no Local';
+            const paymentText = bookingData.paymentMethod === 'online' ? 'Pagamento Online' : 'Pagar no Local';
 
             document.getElementById('summary-service').textContent = sName;
             document.getElementById('summary-price').textContent = sPrice;
@@ -1253,11 +1030,10 @@
                mobileAction.innerHTML = currentStep > 1 ? `<button onclick="prevStep()" class="text-zinc-400 hover:text-white px-4 py-2">Voltar</button>` : '';
             } 
             else if (currentStep === 4) {
-               const btnLabel = bookingData.paymentMethod === 'online' ? 'Gerar PIX e Agendar' : 'Confirmar Agendamento';
-               const btnHtml = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg opacity-50 cursor-not-allowed grayscale" disabled>${btnLabel}</button>`;
+               const btnHtml = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg opacity-50 cursor-not-allowed grayscale" disabled>Confirmar Agendamento</button>`;
                const backHtml = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 font-bold py-3 rounded-xl transition-all mb-2">Voltar</button>`;
                desktopAction.innerHTML = backHtml + btnHtml;
-               mobileAction.innerHTML = `<button onclick="prevStep()" class="text-zinc-400 mr-2">Voltar</button><button onclick="nextStep()" class="confirm-btn-cls bg-amber-600 text-white font-bold py-2 px-6 rounded-lg opacity-50" disabled>${btnLabel}</button>`;
+               mobileAction.innerHTML = `<button onclick="prevStep()" class="text-zinc-400 mr-2">Voltar</button><button onclick="nextStep()" class="confirm-btn-cls bg-amber-600 text-white font-bold py-2 px-6 rounded-lg opacity-50" disabled>Confirmar</button>`;
             } else {
                desktopAction.innerHTML = ''; mobileAction.innerHTML = '';
             }
@@ -1268,7 +1044,6 @@
             document.getElementById('step-indicator').textContent = `Passo ${currentStep} de 5`;
             let html = '<div class="animate-fade-in-up pb-20 md:pb-0">';
 
-            // STEP 1, 2, 3 (Same as before)
             if (currentStep === 1) {
                 html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4><div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar"><button onclick="selectCategory('todos')" class="${selectedCategory==='todos'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Todos</button><button onclick="selectCategory('cabelo')" class="${selectedCategory==='cabelo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Cabelo</button><button onclick="selectCategory('barba')" class="${selectedCategory==='barba'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Barba</button><button onclick="selectCategory('combo')" class="${selectedCategory==='combo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Combos</button></div><div class="grid grid-cols-1 gap-3">`;
                 const filtered = SERVICES.filter(s => selectedCategory === 'todos' || s.category === selectedCategory);
@@ -1308,7 +1083,7 @@
                 html += '</div>';
             }
             
-            // STEP 4: DATA & PAYMENT
+            // STEP 4: DATA & PAYMENT (RESTORED CARD MOCK)
             else if (currentStep === 4) {
                 if(currentUser && !bookingData.clientName) bookingData.clientName = currentUser.name;
                 html += `<h4 class="text-2xl font-bold text-white mb-6">Confirmação</h4><div class="space-y-6 max-w-lg">`;
@@ -1326,51 +1101,47 @@
                         </div>
                         <div onclick="selectPayment('online')" class="cursor-pointer rounded-xl p-4 border transition-all flex flex-col items-center justify-center gap-2 ${bookingData.paymentMethod === 'online' ? 'bg-amber-600 border-amber-500 text-white shadow-lg' : 'glass-card border-white/5 text-zinc-400 hover:bg-zinc-800'}">
                             <div class="flex items-center gap-1">
-                                <i data-lucide="qr-code" class="w-6 h-6"></i>
+                                <i data-lucide="credit-card" class="w-6 h-6"></i>
                             </div>
-                            <span class="font-bold text-sm">PIX (AbacatePay)</span>
+                            <span class="font-bold text-sm">Pagar Agora</span>
                         </div>
                     </div>
                 </div>`;
 
-                // Online Info with CPF
+                // Online Fields (Restored Card Mock)
                 if(bookingData.paymentMethod === 'online') {
-                    html += `<div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 space-y-4 animate-fade-in-up">
-                        <div class="flex items-center gap-2 text-green-500 text-xs font-bold uppercase tracking-wider"><i data-lucide="shield-check" class="w-3 h-3"></i> Pagamento Seguro via AbacatePay</div>
+                    html += `<div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 space-y-3 animate-fade-in-up">
+                        <div class="flex items-center gap-2 mb-2 text-amber-500 text-xs font-bold uppercase tracking-wider"><i data-lucide="lock" class="w-3 h-3"></i> Pagamento Seguro</div>
                         <div class="space-y-2">
-                            <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">CPF (Obrigatório para PIX)</label>
-                            <div class="relative"><i data-lucide="file-text" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input name="cpf" type="text" oninput="updateClientData('clientCpf', this.value)" value="${bookingData.clientCpf || ''}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="000.000.000-00" maxlength="14"></div>
+                            <input id="card-number" type="text" maxlength="19" oninput="this.value = maskCard(this.value); updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="Número do Cartão">
                         </div>
-                        <p class="text-sm text-zinc-400">Ao confirmar, geraremos um <strong>QR Code PIX</strong> para você realizar o pagamento instantâneo e garantir seu horário.</p>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input id="card-date" type="text" maxlength="5" oninput="this.value = maskDate(this.value); updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="MM/AA">
+                            <input id="card-cvc" type="text" maxlength="3" oninput="updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="CVC">
+                        </div>
                     </div>`;
                 }
 
                 // Notes
                 html += `<div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Observações (Opcional)</label><textarea oninput="bookingData.notes = this.value" class="w-full glass-input rounded-xl py-3 px-4 text-sm h-20 resize-none" placeholder="Ex: Tenho alergia a loção pós-barba...">${bookingData.notes}</textarea></div></div>`;
             }
+            
+            // STEP 5: SUCCESS
             else if (currentStep === 5) {
-                html += `<div class="h-full flex flex-col items-center justify-center text-center">`;
-                
-                if (bookingData.paymentMethod === 'online' && bookingData.pixData) {
-                    // This block is actually handled by the new showPaymentLayout overlay, 
-                    // but kept as fallback just in case or for future modal use.
-                    // The logic in saveAppointment now redirects to overlay instead of showing step 5 here for online payments.
-                } else {
-                    html += `
-                        <div class="relative w-24 h-24 mb-6">
-                            <div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
-                            <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div>
-                        </div>
-                        <h3 class="text-4xl font-bold text-white mb-2">Confirmado!</h3>
-                        <p class="text-zinc-400 text-lg mb-8 max-w-sm">Pagamento será feito no local. Seu horário está garantido.</p>
-                    `;
-                }
-                
-                html += `<div class="flex flex-col gap-3 w-full max-w-xs">
-                            <button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button>
-                            <button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button>
-                         </div>
-                         </div>`;
+                html += `<div class="h-full flex flex-col items-center justify-center text-center">
+                    <div class="relative w-24 h-24 mb-6">
+                        <div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
+                        <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div>
+                    </div>
+                    <h3 class="text-4xl font-bold text-white mb-2">Confirmado!</h3>
+                    <p class="text-zinc-400 text-lg mb-8 max-w-sm">
+                        ${bookingData.paymentMethod === 'online' ? 'Pagamento processado com sucesso. Seu horário está garantido.' : 'Pagamento será feito no local. Seu horário está garantido.'}
+                    </p>
+                    <div class="flex flex-col gap-3 w-full max-w-xs">
+                        <button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button>
+                        <button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button>
+                    </div>
+                </div>`;
             }
             content.innerHTML = html;
             lucide.createIcons();
