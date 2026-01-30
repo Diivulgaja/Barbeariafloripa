@@ -559,7 +559,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // --- SUPABASE CONFIGURATION (Keys restored) ---
+        // --- SUPABASE CONFIGURATION ---
         const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
         
@@ -598,7 +598,7 @@
         let currentStep = 1;
         let selectedCategory = 'todos';
         let pendingBooking = false; 
-        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null };
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
         let appointments = [];
         let unavailableSlots = []; 
 
@@ -741,14 +741,13 @@
                 customer: {
                     name: appointmentData.clientName,
                     cellphone: appointmentData.clientPhone.replace(/\D/g, ''),
-                    email: currentUser ? currentUser.email : "cliente@exemplo.com"
+                    email: currentUser ? currentUser.email : "cliente@exemplo.com",
+                    taxId: appointmentData.clientCpf.replace(/\D/g, '') // CPF Required for PIX
                 }
             };
 
             console.log("Iniciando transação AbacatePay:", payload);
 
-            // In production, uncomment the fetch block below
-            /*
             try {
                 const response = await fetch(`${ABACATEPAY_API_URL}/billing/create`, {
                     method: 'POST',
@@ -758,26 +757,30 @@
                     },
                     body: JSON.stringify(payload)
                 });
-                const data = await response.json();
-                return data.data; 
+                
+                const json = await response.json();
+                
+                if (!response.ok) {
+                    console.error("AbacatePay Error:", json);
+                    alert("Erro ao criar cobrança: " + (json.error || "Verifique o console"));
+                    return null;
+                }
+                
+                const result = json.data;
+                
+                return {
+                    pix: {
+                        code: result.pix.code || result.pix, // Adjust based on actual API
+                        qrcode_url: `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(result.pix.code || result.pix)}`
+                    },
+                    billingUrl: result.billingUrl || result.url
+                };
+
             } catch (error) {
-                console.error("Erro AbacatePay:", error);
+                console.error("Network Error AbacatePay:", error);
+                alert("Erro de conexão com o pagamento.");
                 return null;
             }
-            */
-
-            // SIMULATION
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    resolve({
-                        pix: {
-                            code: "00020126360014BR.GOV.BCB.PIX0114+5548999999999520400005303986540510.005802BR5925Ricardo Barbershop6009Floripa62070503***63041D3D",
-                            qrcode_url: "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=ExemploPixAbacatePay"
-                        },
-                        billingUrl: "https://abacatepay.com/pay/demo123"
-                    });
-                }, 1000);
-            });
         }
 
         // --- DATABASE LOGIC (Supabase) ---
@@ -860,9 +863,18 @@
             return value.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d)(\d{4})$/, '$1-$2').slice(0, 15);
         }
 
+        function maskCpf(value) {
+            return value
+                .replace(/\D/g, '')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d)/, '$1.$2')
+                .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+                .slice(0, 14);
+        }
+
         // --- BOOKING LOGIC ---
         window.startBooking = () => {
-            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null };
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
             currentStep = 1;
             window.openBooking();
         };
@@ -921,10 +933,15 @@
 
         window.updateClientData = (field, value) => { 
             if(field === 'clientPhone') value = maskPhone(value);
+            if(field === 'clientCpf') value = maskCpf(value);
+            
             bookingData[field] = value; 
+            
             if(field === 'clientPhone') { const input = document.querySelector('input[name="phone"]'); if(input) input.value = value; }
+            if(field === 'clientCpf') { const input = document.querySelector('input[name="cpf"]'); if(input) input.value = value; }
 
-            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14;
+            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14 && (bookingData.paymentMethod !== 'online' || (bookingData.clientCpf && bookingData.clientCpf.length === 14));
+            
             document.querySelectorAll('.confirm-btn-cls').forEach(btn => {
                 btn.disabled = !isValid;
                 btn.classList.toggle('opacity-50', !isValid);
@@ -976,6 +993,7 @@
             document.getElementById('step-indicator').textContent = `Passo ${currentStep} de 5`;
             let html = '<div class="animate-fade-in-up pb-20 md:pb-0">';
 
+            // STEP 1, 2, 3 (Same as before)
             if (currentStep === 1) {
                 html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4><div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar"><button onclick="selectCategory('todos')" class="${selectedCategory==='todos'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Todos</button><button onclick="selectCategory('cabelo')" class="${selectedCategory==='cabelo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Cabelo</button><button onclick="selectCategory('barba')" class="${selectedCategory==='barba'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Barba</button><button onclick="selectCategory('combo')" class="${selectedCategory==='combo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Combos</button></div><div class="grid grid-cols-1 gap-3">`;
                 const filtered = SERVICES.filter(s => selectedCategory === 'todos' || s.category === selectedCategory);
@@ -1014,6 +1032,8 @@
                 }
                 html += '</div>';
             }
+            
+            // STEP 4: DATA & PAYMENT
             else if (currentStep === 4) {
                 if(currentUser && !bookingData.clientName) bookingData.clientName = currentUser.name;
                 html += `<h4 class="text-2xl font-bold text-white mb-6">Confirmação</h4><div class="space-y-6 max-w-lg">`;
@@ -1038,9 +1058,16 @@
                     </div>
                 </div>`;
 
-                // Online Info
+                // Online Info with CPF
                 if(bookingData.paymentMethod === 'online') {
-                    html += `<div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 space-y-2 animate-fade-in-up"><div class="flex items-center gap-2 text-green-500 text-xs font-bold uppercase tracking-wider"><i data-lucide="shield-check" class="w-3 h-3"></i> Pagamento Seguro via AbacatePay</div><p class="text-sm text-zinc-400">Ao confirmar, geraremos um <strong>QR Code PIX</strong> para você realizar o pagamento instantâneo e garantir seu horário.</p></div>`;
+                    html += `<div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 space-y-4 animate-fade-in-up">
+                        <div class="flex items-center gap-2 text-green-500 text-xs font-bold uppercase tracking-wider"><i data-lucide="shield-check" class="w-3 h-3"></i> Pagamento Seguro via AbacatePay</div>
+                        <div class="space-y-2">
+                            <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">CPF (Obrigatório para PIX)</label>
+                            <div class="relative"><i data-lucide="file-text" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input name="cpf" type="text" oninput="updateClientData('clientCpf', this.value)" value="${bookingData.clientCpf || ''}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="000.000.000-00" maxlength="14"></div>
+                        </div>
+                        <p class="text-sm text-zinc-400">Ao confirmar, geraremos um <strong>QR Code PIX</strong> para você realizar o pagamento instantâneo e garantir seu horário.</p>
+                    </div>`;
                 }
 
                 // Notes
@@ -1050,12 +1077,38 @@
                 html += `<div class="h-full flex flex-col items-center justify-center text-center">`;
                 
                 if (bookingData.paymentMethod === 'online' && bookingData.pixData) {
-                    html += `<h3 class="text-3xl font-bold text-white mb-2">Agendamento Realizado!</h3><p class="text-zinc-400 text-sm mb-6">Escaneie o QR Code abaixo para pagar via AbacatePay.</p><div class="bg-white p-4 rounded-xl mb-6 shadow-xl"><img src="${bookingData.pixData.pix.qrcode_url}" alt="QR Code PIX" class="w-48 h-48 object-contain"></div><div class="w-full max-w-xs mb-8"><p class="text-xs text-zinc-500 mb-2 uppercase font-bold">Ou copie o código</p><div class="flex gap-2"><input readonly value="${bookingData.pixData.pix.code}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-300 font-mono truncate"><button onclick="navigator.clipboard.writeText('${bookingData.pixData.pix.code}'); alert('Código PIX copiado!')" class="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-3 flex items-center justify-center"><i data-lucide="copy" class="w-4 h-4"></i></button></div></div>`;
+                    html += `
+                        <h3 class="text-3xl font-bold text-white mb-2">Agendamento Realizado!</h3>
+                        <p class="text-zinc-400 text-sm mb-6">Escaneie o QR Code abaixo para pagar via AbacatePay.</p>
+                        
+                        <div class="bg-white p-4 rounded-xl mb-6 shadow-xl">
+                            <img src="${bookingData.pixData.pix.qrcode_url}" alt="QR Code PIX" class="w-48 h-48 object-contain">
+                        </div>
+                        
+                        <div class="w-full max-w-xs mb-8">
+                            <p class="text-xs text-zinc-500 mb-2 uppercase font-bold">Ou copie o código</p>
+                            <div class="flex gap-2">
+                                <input readonly value="${bookingData.pixData.pix.code}" class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2 text-xs text-zinc-300 font-mono truncate">
+                                <button onclick="navigator.clipboard.writeText('${bookingData.pixData.pix.code}'); alert('Código PIX copiado!')" class="bg-amber-600 hover:bg-amber-700 text-white rounded-lg px-3 flex items-center justify-center"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                    `;
                 } else {
-                    html += `<div class="relative w-24 h-24 mb-6"><div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div><div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div></div><h3 class="text-4xl font-bold text-white mb-2">Confirmado!</h3><p class="text-zinc-400 text-lg mb-8 max-w-sm">Pagamento será feito no local. Seu horário está garantido.</p>`;
+                    html += `
+                        <div class="relative w-24 h-24 mb-6">
+                            <div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div>
+                            <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div>
+                        </div>
+                        <h3 class="text-4xl font-bold text-white mb-2">Confirmado!</h3>
+                        <p class="text-zinc-400 text-lg mb-8 max-w-sm">Pagamento será feito no local. Seu horário está garantido.</p>
+                    `;
                 }
                 
-                html += `<div class="flex flex-col gap-3 w-full max-w-xs"><button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button><button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button></div></div>`;
+                html += `<div class="flex flex-col gap-3 w-full max-w-xs">
+                            <button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button>
+                            <button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button>
+                         </div>
+                         </div>`;
             }
             content.innerHTML = html;
             lucide.createIcons();
