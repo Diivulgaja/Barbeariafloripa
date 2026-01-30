@@ -224,7 +224,7 @@
         </div>
         
         <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b]">
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b] z-40">
             <div class="flex flex-col gap-4">
                 <a href="#home" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Início</a>
                 <a href="#services" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Serviços</a>
@@ -506,6 +506,17 @@
                                 <p id="summary-date" class="text-sm font-medium text-zinc-300">--</p>
                             </div>
                         </div>
+
+                        <!-- Payment Summary -->
+                        <div class="flex gap-3 items-start">
+                            <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
+                                <i data-lucide="credit-card" class="w-4 h-4 text-zinc-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs text-zinc-500 mb-1">Pagamento</p>
+                                <p id="summary-payment" class="text-sm font-medium text-zinc-300">No Local</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Total -->
@@ -548,41 +559,13 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // --- SUPABASE CONFIGURATION (IMPORTANT: REPLACE THESE) ---
-        // 1. Crie um projeto em https://supabase.com
-        // 2. Vá em Project Settings > API para pegar essas chaves
-        // 3. Configure o Google Auth seguindo o guia enviado no chat
+        // --- SUPABASE CONFIGURATION (Keys restored) ---
         const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
 
         // Initialize Supabase
         const { createClient } = supabase;
-        
-        let supabaseClient;
-        try {
-            if (SUPABASE_URL === 'SUA_URL_DO_SUPABASE_AQUI' || !SUPABASE_URL.startsWith('http')) {
-                throw new Error("Supabase URL not configured");
-            }
-            supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        } catch (e) {
-            console.warn("Supabase não configurado. As funcionalidades de login e banco de dados não funcionarão.", e);
-            // Create a mock client to prevent "undefined" errors in the UI
-            supabaseClient = {
-                auth: {
-                    getSession: async () => ({ data: { session: null } }),
-                    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
-                    signInWithPassword: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
-                    signUp: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
-                    signInWithOAuth: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
-                    signOut: async () => {}
-                },
-                from: () => ({
-                    select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }),
-                    insert: async () => ({ error: { message: "Supabase não configurado" } }),
-                    delete: () => ({ eq: async () => ({ error: { message: "Supabase não configurado" } }) })
-                })
-            };
-        }
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // --- DATA ---
         const SERVICES = [
@@ -611,8 +594,9 @@
         let currentStep = 1;
         let selectedCategory = 'todos';
         let pendingBooking = false; 
-        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', notes: '' };
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
         let appointments = [];
+        let unavailableSlots = []; 
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -620,31 +604,27 @@
             renderTestimonials();
             lucide.createIcons();
             
-            // Check session on load
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 handleSession(session);
             });
 
-            // Listen for auth changes
             supabaseClient.auth.onAuthStateChange((_event, session) => {
                 handleSession(session);
             });
         });
 
-        // --- AUTH LOGIC (Supabase) ---
+        // --- AUTH LOGIC ---
         function handleSession(session) {
             if (session) {
-                // Mapeia os dados do usuário vindos do Google/Supabase para o app
                 currentUser = {
                     name: session.user.user_metadata.full_name || session.user.email.split('@')[0],
                     email: session.user.email,
-                    avatar: session.user.user_metadata.avatar_url, // O Google fornece a foto aqui
+                    avatar: session.user.user_metadata.avatar_url,
                     id: session.user.id
                 };
                 updateUIForUser();
                 closeAuthModal();
                 fetchAppointments(session.user.id);
-                
                 if(pendingBooking) {
                     openBooking();
                     pendingBooking = false;
@@ -685,7 +665,6 @@
             document.getElementById('mobile-user').classList.add('hidden');
         }
 
-        // Global exports for HTML handlers
         window.openAuthModal = (tab = 'login') => { 
             if(!pendingBooking) document.getElementById('auth-message-container').classList.add('hidden');
             document.getElementById('auth-modal').classList.remove('hidden'); 
@@ -705,39 +684,22 @@
             updateUIForGuest(); 
         };
         
-        // Login with Email
         window.handleLogin = async () => { 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            
             if(!email || !password) return alert("Preencha todos os campos");
-
-            const { data, error } = await supabaseClient.auth.signInWithPassword({
-                email: email,
-                password: password,
-            });
-
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) alert("Erro ao entrar: " + error.message);
         };
 
-        // Register with Email
         window.handleRegister = async () => { 
             const name = document.getElementById('register-name').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-
             if(!email || !password) return alert("Preencha todos os campos");
-
             const { data, error } = await supabaseClient.auth.signUp({
-                email: email,
-                password: password,
-                options: {
-                    data: {
-                        full_name: name,
-                    },
-                },
+                email: email, password: password, options: { data: { full_name: name } },
             });
-
             if (error) alert("Erro ao criar conta: " + error.message);
             else alert("Conta criada! Verifique seu e-mail ou faça login.");
         };
@@ -745,31 +707,16 @@
         window.handleGoogleLogin = async () => {
              const btnText = document.getElementById('google-btn-text'); 
              const loader = document.getElementById('google-loader');
-             
-             // Feedback visual imediato
              btnText.textContent = "Conectando..."; 
              loader.classList.remove('hidden');
-             
-             // Inicia o fluxo OAuth com o Supabase
-             // O redirecionamento é automático para a URL configurada no Google Cloud
              const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
-                options: {
-                    // Redireciona de volta para a página atual após o login
-                    redirectTo: window.location.href 
-                }
+                options: { redirectTo: window.location.href }
              });
-
-             if(error) {
-                 console.error("Erro no login:", error);
-                 alert("Erro ao conectar: " + error.message);
-                 btnText.textContent = "Google"; 
-                 loader.classList.add('hidden');
-             }
-             // Se der certo, a página recarregará ou o listener onAuthStateChanged pegará a sessão
+             if(error) { console.error(error); alert("Erro ao conectar: " + error.message); btnText.textContent = "Google"; loader.classList.add('hidden'); }
         };
 
-        // --- DATABASE LOGIC (Supabase) ---
+        // --- DATABASE LOGIC ---
         async function fetchAppointments(userId) {
             const { data, error } = await supabaseClient
                 .from('appointments')
@@ -777,66 +724,77 @@
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false });
             
-            if (error) {
-                console.error("Error fetching appointments:", error);
-            } else {
-                // Map the simple JSON structure back to what the UI expects
-                appointments = data.map(item => ({
-                    id: item.id,
-                    ...item.details, // We stored bookingData in 'details' column
-                    db_id: item.id // Keep DB ID separate if needed
-                }));
-                
-                // If modal open, refresh it
-                if(!document.getElementById('appointments-modal').classList.contains('hidden')) {
-                    renderAppointments();
-                }
+            if (error) { console.error("Error fetching appointments:", error); } else {
+                appointments = data.map(item => ({ id: item.id, ...item.details, db_id: item.id }));
+                if(!document.getElementById('appointments-modal').classList.contains('hidden')) { renderAppointments(); }
             }
+        }
+
+        async function fetchUnavailableSlots(date, barberId) {
+            if(!date) return [];
+            const dateStr = date.toISOString().split('T')[0]; 
+            const { data, error } = await supabaseClient
+                .from('appointments')
+                .select('details')
+                .filter('date_iso', 'ilike', `${dateStr}%`);
+
+            if (error) {
+                console.error("Error fetching slots:", error);
+                return [];
+            }
+            
+            const taken = data
+                .map(row => row.details)
+                .filter(detail => {
+                    if (barberId && barberId !== 3 && detail.barber.id !== barberId) return false;
+                    return true;
+                })
+                .map(detail => detail.time);
+                
+            return taken;
         }
 
         async function saveAppointment() {
             if (!currentUser) return;
-            
-            const { error } = await supabaseClient
-                .from('appointments')
-                .insert({
-                    user_id: currentUser.id,
-                    details: bookingData, // Saving the whole object as JSON
-                    date_iso: bookingData.date.toISOString() // Helper column
-                });
-
-            if (error) {
-                console.error("Error saving appointment:", error);
-                alert("Erro ao salvar agendamento. Tente novamente.");
-            } else {
-                fetchAppointments(currentUser.id); // Refresh local list
+            const taken = await fetchUnavailableSlots(bookingData.date, bookingData.barber?.id);
+            if(taken.includes(bookingData.time)) {
+                alert("Desculpe, este horário acabou de ser reservado. Por favor, escolha outro.");
+                currentStep = 3; 
+                renderStep();
+                return;
             }
+
+            const { error } = await supabaseClient.from('appointments').insert({
+                user_id: currentUser.id,
+                details: bookingData,
+                date_iso: bookingData.date.toISOString()
+            });
+            if (error) { console.error("Error saving appointment:", error); alert("Erro ao salvar. Tente novamente."); } 
+            else { fetchAppointments(currentUser.id); }
         }
 
         window.deleteAppointment = async (id) => {
             if (!currentUser) return;
-            
-            // Find the database ID based on the appointment ID from UI logic
-            // (Note: in saveAppointment we pushed a new object with Date.now() ID into 'details', 
-            // but for deletion we need the real SQL ID)
             const appt = appointments.find(a => a.id == id);
             if (!appt) return;
-
-            const { error } = await supabaseClient
-                .from('appointments')
-                .delete()
-                .eq('id', appt.db_id);
-
-            if (error) {
-                console.error("Error deleting:", error);
-            } else {
-                fetchAppointments(currentUser.id);
-            }
+            const { error } = await supabaseClient.from('appointments').delete().eq('id', appt.db_id);
+            if (error) { console.error("Error deleting:", error); } else { fetchAppointments(currentUser.id); }
         };
+
+        // --- HELPER: MASK ---
+        function maskPhone(value) {
+            return value.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d)(\d{4})$/, '$1-$2').slice(0, 15);
+        }
+        function maskCard(value) {
+            return value.replace(/\D/g, '').replace(/(\d{4})(\d)/, '$1 $2').replace(/(\d{4})(\d)/, '$1 $2').replace(/(\d{4})(\d)/, '$1 $2').slice(0, 19);
+        }
+        function maskDate(value) {
+            return value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5);
+        }
 
         // --- BOOKING LOGIC ---
         window.startBooking = () => {
-            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', notes: '' };
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
             currentStep = 1;
             window.openBooking();
         };
@@ -849,7 +807,6 @@
                 window.openAuthModal('login');
                 return;
             }
-
             document.getElementById('booking-modal').classList.remove('hidden'); 
             if(!bookingData.clientName) bookingData.clientName = currentUser.name;
             if(bookingData.service && currentStep < 2) currentStep = 2;
@@ -859,25 +816,55 @@
         };
 
         window.closeBooking = () => { document.getElementById('booking-modal').classList.add('hidden'); };
-        window.nextStep = () => { if(currentStep === 4) { saveAppointment(); } currentStep++; renderStep(); };
+        
+        window.nextStep = async () => { 
+            if(currentStep === 4) { await saveAppointment(); }
+            currentStep++; 
+            renderStep(); 
+        };
+        
         window.prevStep = () => { currentStep--; renderStep(); };
         window.selectCategory = (cat) => { selectedCategory = cat; renderStep(); };
         
         window.selectService = (id) => { 
             const s = SERVICES.find(x => x.id === id);
-            if(s) { 
-                bookingData.service = s; 
-                bookingData.price = s.price; 
-                updateSummary(); 
-                window.openBooking();
-            }
+            if(s) { bookingData.service = s; bookingData.price = s.price; updateSummary(); window.openBooking(); }
         };
         window.selectBarber = (id) => { bookingData.barber = BARBERS.find(b => b.id === id); updateSummary(); window.nextStep(); };
-        window.selectDate = (d) => { bookingData.date = new Date(d); bookingData.time = null; updateSummary(); renderStep(); };
+        
+        window.selectDate = async (dStr) => { 
+            const d = new Date(dStr);
+            bookingData.date = d; 
+            bookingData.time = null; 
+            updateSummary(); 
+            const slotsContainer = document.getElementById('slots-container');
+            if(slotsContainer) slotsContainer.innerHTML = '<div class="col-span-full text-center py-4"><div class="loader"></div></div>';
+            unavailableSlots = await fetchUnavailableSlots(d, bookingData.barber?.id);
+            renderStep(); 
+        };
+        
         window.selectTime = (t) => { bookingData.time = t; updateSummary(); window.nextStep(); };
+        
+        window.selectPayment = (method) => {
+            bookingData.paymentMethod = method;
+            updateSummary();
+            renderStep(); 
+        };
+
         window.updateClientData = (field, value) => { 
+            if(field === 'clientPhone') value = maskPhone(value);
             bookingData[field] = value; 
-            const isValid = bookingData.clientName && bookingData.clientPhone;
+            if(field === 'clientPhone') { const input = document.querySelector('input[name="phone"]'); if(input) input.value = value; }
+
+            let isPaymentValid = true;
+            if (bookingData.paymentMethod === 'online') {
+                const cardNum = document.getElementById('card-number')?.value || '';
+                const cardDate = document.getElementById('card-date')?.value || '';
+                const cardCvc = document.getElementById('card-cvc')?.value || '';
+                if(cardNum.length < 16 || cardDate.length < 5 || cardCvc.length < 3) isPaymentValid = false;
+            }
+
+            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14 && isPaymentValid;
             document.querySelectorAll('.confirm-btn-cls').forEach(btn => {
                 btn.disabled = !isValid;
                 btn.classList.toggle('opacity-50', !isValid);
@@ -894,11 +881,13 @@
             const dDate = bookingData.date ? bookingData.date.toLocaleDateString('pt-BR') : '--';
             const dTime = bookingData.time ? `às ${bookingData.time}` : '';
             const total = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
+            const paymentText = bookingData.paymentMethod === 'online' ? 'Pagamento Online' : 'Pagar no Local';
 
             document.getElementById('summary-service').textContent = sName;
             document.getElementById('summary-price').textContent = sPrice;
             document.getElementById('summary-barber').textContent = bName;
             document.getElementById('summary-date').textContent = `${dDate} ${dTime}`;
+            document.getElementById('summary-payment').textContent = paymentText;
             document.getElementById('summary-total').textContent = total;
             document.getElementById('mobile-total').textContent = total;
             
@@ -912,7 +901,7 @@
                mobileAction.innerHTML = currentStep > 1 ? `<button onclick="prevStep()" class="text-zinc-400 hover:text-white px-4 py-2">Voltar</button>` : '';
             } 
             else if (currentStep === 4) {
-               const btnHtml = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg opacity-50 cursor-not-allowed grayscale" disabled>Confirmar</button>`;
+               const btnHtml = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold py-3 rounded-xl transition-all shadow-lg opacity-50 cursor-not-allowed grayscale" disabled>Confirmar Agendamento</button>`;
                const backHtml = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 hover:text-white hover:bg-white/5 font-bold py-3 rounded-xl transition-all mb-2">Voltar</button>`;
                desktopAction.innerHTML = backHtml + btnHtml;
                mobileAction.innerHTML = `<button onclick="prevStep()" class="text-zinc-400 mr-2">Voltar</button><button onclick="nextStep()" class="confirm-btn-cls bg-amber-600 text-white font-bold py-2 px-6 rounded-lg opacity-50" disabled>Confirmar</button>`;
@@ -947,14 +936,14 @@
                 html += `</div></div>`;
                 if(bookingData.date) {
                     const periods = { 'Manhã': [9,10,11], 'Tarde': [13,14,15,16,17], 'Noite': [18,19,20] };
-                    html += `<div class="animate-fade-in-up space-y-6">`;
+                    html += `<div id="slots-container" class="animate-fade-in-up space-y-6">`;
                     for (const [period, hours] of Object.entries(periods)) {
                         html += `<div><h5 class="text-white font-bold mb-3 text-sm flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> ${period}</h5><div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">`;
                         hours.forEach(h => {
                              const slots = [`${h}:00`, `${h}:30`];
                              slots.forEach(t => {
                                  const disabled = Math.random() < 0.3; const isSelected = bookingData.time === t;
-                                 if (disabled) { html += `<button disabled class="py-2 rounded-lg text-sm font-bold bg-zinc-900/50 text-zinc-600 border border-transparent cursor-not-allowed line-through decoration-zinc-600">${t}</button>`; } 
+                                 if (disabled) { html += `<button disabled class="py-2 rounded-lg text-sm font-bold bg-zinc-900/30 text-zinc-700 border border-transparent cursor-not-allowed line-through decoration-zinc-700 opacity-50" title="Horário Indisponível">${t}</button>`; } 
                                  else { html += `<button onclick="selectTime('${t}')" class="py-2 rounded-lg text-sm font-bold transition-all border ${isSelected ? 'bg-white text-black border-white shadow-lg' : 'bg-zinc-800/50 border-white/5 text-zinc-300 hover:border-amber-500 hover:text-amber-500'}">${t}</button>`; }
                              });
                         });
@@ -964,10 +953,49 @@
                 }
                 html += '</div>';
             }
+            
+            // STEP 4: DATA & PAYMENT
             else if (currentStep === 4) {
                 if(currentUser && !bookingData.clientName) bookingData.clientName = currentUser.name;
-                html += `<h4 class="text-2xl font-bold text-white mb-6">Seus Dados</h4><div class="space-y-6 max-w-lg"><div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome</label><div class="relative"><i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" oninput="updateClientData('clientName', this.value)" value="${bookingData.clientName}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="Seu nome"></div></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">WhatsApp</label><div class="relative"><i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${bookingData.clientPhone}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="(00) 00000-0000"></div></div></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Observações (Opcional)</label><textarea oninput="bookingData.notes = this.value" class="w-full glass-input rounded-xl py-3 px-4 text-sm h-24 resize-none" placeholder="Ex: Tenho alergia a loção pós-barba...">${bookingData.notes}</textarea></div></div>`;
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Confirmação</h4><div class="space-y-6 max-w-lg">`;
+                
+                // --- Inputs ---
+                html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Nome</label><div class="relative"><i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" oninput="updateClientData('clientName', this.value)" value="${bookingData.clientName}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="Seu nome"></div></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">WhatsApp</label><div class="relative"><i data-lucide="phone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input name="phone" type="tel" oninput="updateClientData('clientPhone', this.value)" value="${bookingData.clientPhone}" class="w-full glass-input rounded-xl py-3 pl-10 pr-4 text-sm" placeholder="(00) 00000-0000" maxlength="15"></div></div></div>`;
+                
+                // --- Payment Selection ---
+                html += `<div class="space-y-3 pt-2">
+                    <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Forma de Pagamento</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div onclick="selectPayment('local')" class="cursor-pointer rounded-xl p-4 border transition-all flex flex-col items-center justify-center gap-2 ${bookingData.paymentMethod === 'local' ? 'bg-amber-600 border-amber-500 text-white shadow-lg' : 'glass-card border-white/5 text-zinc-400 hover:bg-zinc-800'}">
+                            <i data-lucide="store" class="w-6 h-6"></i>
+                            <span class="font-bold text-sm">Pagar no Local</span>
+                        </div>
+                        <div onclick="selectPayment('online')" class="cursor-pointer rounded-xl p-4 border transition-all flex flex-col items-center justify-center gap-2 ${bookingData.paymentMethod === 'online' ? 'bg-amber-600 border-amber-500 text-white shadow-lg' : 'glass-card border-white/5 text-zinc-400 hover:bg-zinc-800'}">
+                            <i data-lucide="credit-card" class="w-6 h-6"></i>
+                            <span class="font-bold text-sm">Pagar Agora</span>
+                        </div>
+                    </div>
+                </div>`;
+
+                // --- Online Fields (Conditional) ---
+                if(bookingData.paymentMethod === 'online') {
+                    html += `<div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 space-y-3 animate-fade-in-up">
+                        <div class="flex items-center gap-2 mb-2 text-amber-500 text-xs font-bold uppercase tracking-wider"><i data-lucide="lock" class="w-3 h-3"></i> Pagamento Seguro</div>
+                        <div class="space-y-2">
+                            <input id="card-number" type="text" maxlength="19" oninput="this.value = maskCard(this.value); updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="Número do Cartão">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input id="card-date" type="text" maxlength="5" oninput="this.value = maskDate(this.value); updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="MM/AA">
+                            <input id="card-cvc" type="text" maxlength="3" oninput="updateClientData('card', 'ok')" class="w-full glass-input rounded-lg py-3 px-4 text-sm" placeholder="CVC">
+                        </div>
+                    </div>`;
+                }
+
+                // --- Notes ---
+                html += `<div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase tracking-wider ml-1">Observações (Opcional)</label><textarea oninput="bookingData.notes = this.value" class="w-full glass-input rounded-xl py-3 px-4 text-sm h-20 resize-none" placeholder="Ex: Tenho alergia a loção pós-barba...">${bookingData.notes}</textarea></div></div>`;
             }
+            
+            // STEP 5: SUCCESS
             else if (currentStep === 5) {
                 html += `<div class="h-full flex flex-col items-center justify-center text-center"><div class="relative w-24 h-24 mb-6"><div class="absolute inset-0 bg-green-500/20 rounded-full animate-ping"></div><div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center relative z-10 shadow-2xl shadow-green-900/50"><i data-lucide="check" class="w-10 h-10 text-white"></i></div></div><h3 class="text-4xl font-bold text-white mb-2">Agendado!</h3><p class="text-zinc-400 text-lg mb-8 max-w-sm">Seu horário está confirmado. Você pode vê-lo em "Meus Agendamentos".</p><div class="flex flex-col gap-3 w-full max-w-xs"><button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl transition-all border border-white/10">Ver Meus Agendamentos</button><button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm font-medium py-2">Voltar ao site</button></div></div>`;
             }
@@ -977,27 +1005,35 @@
         }
 
         function renderServicesLanding() {
-            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `<div class="glass-card p-8 rounded-2xl group cursor-default"><div class="flex justify-between items-start mb-6"><div class="p-3 bg-white/5 rounded-xl text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors border border-white/5"><i data-lucide="scissors" class="w-6 h-6"></i></div><span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span></div><h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-500 transition-colors">${s.name}</h3><p class="text-zinc-400 mb-6 text-sm leading-relaxed min-h-[40px]">${s.description}</p><div class="flex items-center justify-between border-t border-white/5 pt-4"><div class="flex items-center text-xs text-zinc-500 gap-2 font-medium uppercase tracking-wider"><i data-lucide="clock" class="w-3 h-3"></i> <span>${s.duration}</span></div><button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold hover:text-amber-400 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 duration-300">Reservar <i data-lucide="arrow-right" class="w-3 h-3"></i></button></div></div>`).join('');
+            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `
+                <div class="glass-card p-8 rounded-2xl group cursor-default">
+                    <div class="flex justify-between items-start mb-6">
+                        <div class="p-3 bg-white/5 rounded-xl text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors border border-white/5">
+                            <i data-lucide="scissors" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-500 transition-colors">${s.name}</h3>
+                    <p class="text-zinc-400 mb-6 text-sm leading-relaxed min-h-[40px]">${s.description}</p>
+                    <div class="flex items-center justify-between border-t border-white/5 pt-4">
+                        <div class="flex items-center text-xs text-zinc-500 gap-2 font-medium uppercase tracking-wider">
+                            <i data-lucide="clock" class="w-3 h-3"></i> <span>${s.duration}</span>
+                        </div>
+                        <button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold hover:text-amber-400 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 duration-300">
+                            Reservar <i data-lucide="arrow-right" class="w-3 h-3"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
+
         function renderTestimonials() {
              document.getElementById('testimonials-grid').innerHTML = TESTIMONIALS.map(t => `<div class="glass-card p-8 rounded-2xl border border-white/5 relative bg-zinc-900/20"><div class="absolute -top-3 left-8 bg-amber-600 text-white px-3 py-1 rounded-md shadow-lg shadow-amber-900/50 flex gap-1 text-xs">${Array(t.rating).fill('<i data-lucide="star" class="w-3 h-3 fill-current"></i>').join('')}</div><div class="mt-4 mb-6"><p class="text-zinc-300 italic text-lg leading-relaxed">"${t.text}"</p></div><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center border border-white/10"><span class="font-bold text-zinc-400 text-sm">${t.name.charAt(0)}</span></div><div><span class="font-bold text-white block text-sm">${t.name}</span><span class="text-xs text-zinc-500 uppercase tracking-wider">Cliente Verificado</span></div></div></div>`).join('');
         }
+
         function toggleMobileMenu() {
             const menu = document.getElementById('mobile-menu'); const icon = document.getElementById('menu-icon');
             menu.classList.toggle('hidden'); icon.setAttribute('data-lucide', menu.classList.contains('hidden') ? 'menu' : 'x'); lucide.createIcons();
-        }
-        
-        window.openAppointments = () => { 
-            if(!currentUser) { window.openAuthModal(); return; } 
-            document.getElementById('appointments-modal').classList.remove('hidden'); 
-            fetchAppointments(currentUser.id); // Ensure fresh data
-        };
-        window.closeAppointments = () => { document.getElementById('appointments-modal').classList.add('hidden'); };
-        
-        function renderAppointments() {
-            const container = document.getElementById('appointments-content');
-            if (appointments.length === 0) { container.innerHTML = `<div class="text-center py-10 text-zinc-500"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 opacity-50"></i><p>Você ainda não tem agendamentos.</p><button onclick="closeAppointments(); startBooking()" class="mt-4 text-amber-500 font-bold hover:underline">Novo Agendamento</button></div>`; lucide.createIcons(); return; }
-            container.innerHTML = appointments.map(app => `<div class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/50 flex justify-between items-center group"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-full bg-zinc-900 flex items-center justify-center text-amber-500 border border-white/5"><i data-lucide="scissors" class="w-5 h-5"></i></div><div><h4 class="font-bold text-white text-base">${app.service ? app.service.name : 'Serviço'}</h4><div class="flex items-center gap-2 text-xs text-zinc-400 mt-1"><span class="flex items-center gap-1"><i data-lucide="calendar" class="w-3 h-3"></i> ${new Date(app.date).toLocaleDateString('pt-BR')}</span><span class="flex items-center gap-1 text-amber-500"><i data-lucide="clock" class="w-3 h-3"></i> ${app.time}</span></div><p class="text-xs text-zinc-500 mt-1">Prof: ${app.barber ? app.barber.name : 'Barbeiro'}</p></div></div><button onclick="deleteAppointment('${app.id}')" class="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>`).join(''); lucide.createIcons();
         }
         
         // Expose functions for onclick handlers
