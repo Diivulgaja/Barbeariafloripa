@@ -725,10 +725,10 @@
             const amountInCents = Math.round(appointmentData.price * 100); 
             
             // Check if environment is local file to use fallback
-            let returnUrl = window.location.href;
-            if (!returnUrl.startsWith('http')) {
+            let url = window.location.href;
+            if (!url.startsWith('http')) {
                 console.warn("Ambiente local detectado (file://). Usando URL de fallback para o pagamento.");
-                returnUrl = "https://google.com"; // Fallback for validation only
+                url = "https://google.com"; // Fallback for validation only
             }
             
             const payload = {
@@ -743,7 +743,8 @@
                         description: `Agendamento com ${appointmentData.barber.name} em ${appointmentData.date.toLocaleDateString()}`
                     }
                 ],
-                returnUrl: returnUrl,
+                completionUrl: url, // Fix based on specific error message
+                returnUrl: url, // Keep for backward compatibility/safety
                 customer: {
                     name: appointmentData.clientName,
                     cellphone: appointmentData.clientPhone.replace(/\D/g, ''),
@@ -999,7 +1000,6 @@
             document.getElementById('step-indicator').textContent = `Passo ${currentStep} de 5`;
             let html = '<div class="animate-fade-in-up pb-20 md:pb-0">';
 
-            // STEP 1, 2, 3 (Same as before)
             if (currentStep === 1) {
                 html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4><div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar"><button onclick="selectCategory('todos')" class="${selectedCategory==='todos'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Todos</button><button onclick="selectCategory('cabelo')" class="${selectedCategory==='cabelo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Cabelo</button><button onclick="selectCategory('barba')" class="${selectedCategory==='barba'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Barba</button><button onclick="selectCategory('combo')" class="${selectedCategory==='combo'?'bg-white text-black':'bg-white/5 text-zinc-400 hover:bg-white/10'} px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap">Combos</button></div><div class="grid grid-cols-1 gap-3">`;
                 const filtered = SERVICES.filter(s => selectedCategory === 'todos' || s.category === selectedCategory);
