@@ -559,7 +559,7 @@
 
     <!-- JAVASCRIPT -->
     <script>
-        // --- SUPABASE CONFIGURATION ---
+        // --- SUPABASE CONFIGURATION (Keys restored) ---
         const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
         
@@ -723,7 +723,7 @@
         // --- ABACATEPAY INTEGRATION ---
         async function createAbacatePayCharge(appointmentData) {
             const amountInCents = appointmentData.price * 100; // API generally uses cents
-            const returnUrl = window.location.href; 
+            const completionUrl = window.location.href; 
             
             const payload = {
                 frequency: "ONE_TIME",
@@ -737,7 +737,7 @@
                         description: `Agendamento com ${appointmentData.barber.name} em ${appointmentData.date.toLocaleDateString()}`
                     }
                 ],
-                returnUrl: returnUrl,
+                completionUrl: completionUrl,
                 customer: {
                     name: appointmentData.clientName,
                     cellphone: appointmentData.clientPhone.replace(/\D/g, ''),
