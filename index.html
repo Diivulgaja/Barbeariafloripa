@@ -2,7 +2,7 @@
 <html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ricardo Barbershop | Premium Cuts</title>
     
     <!-- Tailwind CSS -->
@@ -21,6 +21,9 @@
                     backgroundImage: {
                         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
                         'hero-pattern': "url('https://images.unsplash.com/photo-1503951914875-452162b7f30a?auto=format&fit=crop&q=80&w=2070')",
+                    },
+                    screens: {
+                        'xs': '375px',
                     }
                 }
             }
@@ -93,6 +96,7 @@
         /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #18181b; 
@@ -220,7 +224,7 @@
         </div>
         
         <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up">
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b]">
             <div class="flex flex-col gap-4">
                 <a href="#home" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Início</a>
                 <a href="#services" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Serviços</a>
@@ -269,19 +273,19 @@
             <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
         </div>
 
-        <div class="container mx-auto px-6 relative z-10 pt-20">
-            <div class="max-w-3xl animate-fade-in-up">
+        <div class="container mx-auto px-6 relative z-10 pt-24 md:pt-20">
+            <div class="max-w-3xl animate-fade-in-up text-center md:text-left">
                 <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
                     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                     <span class="text-xs font-medium text-amber-200 uppercase tracking-wider">Aberto hoje até as 20h</span>
                 </div>
-                <h1 class="text-5xl md:text-8xl font-bold text-white leading-[0.9] mb-8 tracking-tight">
+                <h1 class="text-4xl sm:text-5xl md:text-8xl font-bold text-white leading-[1.1] md:leading-[0.9] mb-6 md:mb-8 tracking-tight">
                     Domine <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu Estilo.</span>
                 </h1>
-                <p class="text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed max-w-lg font-light">
+                <p class="text-zinc-400 text-base md:text-xl mb-8 md:mb-10 leading-relaxed max-w-lg font-light mx-auto md:mx-0">
                     Não é apenas um corte, é a sua assinatura. Experimente o atendimento premium que transformou a Ricardo Barbershop em referência.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-5">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
                     <button onclick="startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
                         Agendar Agora <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                     </button>
@@ -294,15 +298,15 @@
     </section>
 
     <!-- SERVICES SECTION -->
-    <section id="services" class="py-32 relative">
+    <section id="services" class="py-16 md:py-32 relative">
         <div class="absolute top-1/2 left-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[128px] pointer-events-none"></div>
         <div class="container mx-auto px-6 relative">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-16 gap-6">
                 <div>
                     <h3 class="text-amber-500 font-bold uppercase tracking-widest text-xs mb-3">Nossa Expertise</h3>
-                    <h2 class="text-4xl md:text-5xl font-bold text-white">Menu de Serviços</h2>
+                    <h2 class="text-3xl md:text-5xl font-bold text-white">Menu de Serviços</h2>
                 </div>
-                <p class="text-zinc-400 max-w-sm text-right md:text-left">
+                <p class="text-zinc-400 max-w-sm text-left md:text-left text-sm md:text-base">
                     Técnicas clássicas combinadas com tendências modernas para entregar o visual que você merece.
                 </p>
             </div>
@@ -311,25 +315,25 @@
     </section>
 
     <!-- ABOUT SECTION -->
-    <section id="about" class="py-24 relative overflow-hidden">
+    <section id="about" class="py-16 md:py-24 relative overflow-hidden">
         <div class="container mx-auto px-6">
-            <div class="glass-panel p-8 md:p-12 rounded-3xl border border-white/5 bg-zinc-900/40">
-                <div class="flex flex-col lg:flex-row items-center gap-16">
-                    <div class="lg:w-1/2 relative group">
+            <div class="glass-panel p-6 md:p-12 rounded-3xl border border-white/5 bg-zinc-900/40">
+                <div class="flex flex-col lg:flex-row items-center gap-8 md:gap-16">
+                    <div class="lg:w-1/2 relative group w-full">
                         <div class="absolute inset-0 bg-amber-600/20 rounded-2xl rotate-3 group-hover:rotate-6 transition-transform duration-500"></div>
                         <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=1000" alt="Barber working" class="relative w-full rounded-2xl shadow-2xl grayscale group-hover:grayscale-0 transition-all duration-700 object-cover aspect-[4/3]"/>
                     </div>
                     <div class="lg:w-1/2">
                         <div class="mb-8">
                             <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Mais que uma barbearia, <br/>um <span class="text-amber-500">Lifestyle.</span></h2>
-                            <p class="text-zinc-400 text-lg leading-relaxed">
+                            <p class="text-zinc-400 text-base md:text-lg leading-relaxed">
                                 Fundada em 2018, a Ricardo Barbershop nasceu para redefinir o conceito de cuidado masculino. 
                                 Nosso espaço é um refúgio onde a navalha afiada encontra a conversa boa e a cerveja gelada.
                             </p>
                         </div>
                         <div class="grid grid-cols-2 gap-8 border-t border-white/10 pt-8">
-                            <div><h4 class="text-4xl font-bold text-white mb-1">5+</h4><span class="text-zinc-500 text-sm uppercase tracking-wider">Anos de História</span></div>
-                            <div><h4 class="text-4xl font-bold text-white mb-1">12k+</h4><span class="text-zinc-500 text-sm uppercase tracking-wider">Cortes Realizados</span></div>
+                            <div><h4 class="text-3xl md:text-4xl font-bold text-white mb-1">5+</h4><span class="text-zinc-500 text-xs md:text-sm uppercase tracking-wider">Anos de História</span></div>
+                            <div><h4 class="text-3xl md:text-4xl font-bold text-white mb-1">12k+</h4><span class="text-zinc-500 text-xs md:text-sm uppercase tracking-wider">Cortes Realizados</span></div>
                         </div>
                     </div>
                 </div>
@@ -338,9 +342,9 @@
     </section>
 
     <!-- TESTIMONIALS SECTION -->
-    <section class="py-24 bg-gradient-to-b from-transparent to-zinc-950/50">
+    <section class="py-16 md:py-24 bg-gradient-to-b from-transparent to-zinc-950/50">
         <div class="container mx-auto px-6">
-            <div class="text-center mb-16">
+            <div class="text-center mb-10 md:mb-16">
                 <h2 class="text-3xl md:text-4xl font-bold text-white">O Que Dizem</h2>
             </div>
             <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
@@ -348,7 +352,7 @@
     </section>
 
     <!-- CONTACT SECTION -->
-    <section id="contact" class="pt-24 pb-12 border-t border-white/5 relative bg-[#0c0c0e]">
+    <section id="contact" class="pt-16 md:pt-24 pb-12 border-t border-white/5 relative bg-[#0c0c0e]">
         <div class="container mx-auto px-6">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-12 mb-16">
                 <div class="lg:col-span-2 space-y-6">
@@ -396,7 +400,7 @@
                     </ul>
                 </div>
             </div>
-            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-sm gap-4">
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-sm gap-4 text-center md:text-left">
                 <p>&copy; 2024 Ricardo Barbershop. Todos os direitos reservados.</p>
             </div>
         </div>
@@ -441,10 +445,10 @@
     </div>
 
     <!-- IMPROVED BOOKING MODAL -->
-    <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+    <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-0 md:p-4">
         <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeBooking()"></div>
         <!-- Increased width to max-w-4xl for split view -->
-        <div class="glass-panel w-full max-w-4xl rounded-2xl shadow-2xl relative z-10 flex flex-col h-[90vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+        <div class="glass-panel w-full h-full md:h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
             <!-- Header -->
             <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
                 <div>
@@ -458,9 +462,9 @@
                 </button>
             </div>
 
-            <div class="flex flex-1 overflow-hidden">
+            <div class="flex flex-1 overflow-hidden relative">
                 <!-- MAIN CONTENT (LEFT SIDE) -->
-                <div id="booking-content" class="flex-1 p-6 overflow-y-auto custom-scrollbar border-r border-white/5">
+                <div id="booking-content" class="flex-1 p-6 overflow-y-auto custom-scrollbar border-r border-white/5 pb-24 md:pb-6">
                     <!-- Dynamic Step Content -->
                 </div>
 
@@ -518,12 +522,12 @@
             </div>
             
             <!-- Mobile Footer (Visible only on mobile) -->
-            <div class="md:hidden p-4 border-t border-white/5 bg-zinc-900/80 backdrop-blur flex justify-between items-center">
+            <div class="md:hidden p-4 border-t border-white/5 bg-zinc-900/90 backdrop-blur flex justify-between items-center absolute bottom-0 w-full z-20">
                  <div class="text-left">
                     <p class="text-xs text-zinc-500">Total</p>
-                    <p id="mobile-total" class="font-bold text-white">R$ 0,00</p>
+                    <p id="mobile-total" class="font-bold text-white text-lg">R$ 0,00</p>
                  </div>
-                 <div id="mobile-footer-action"></div>
+                 <div id="mobile-footer-action" class="flex items-center"></div>
             </div>
         </div>
     </div>
@@ -548,12 +552,37 @@
         // 1. Crie um projeto em https://supabase.com
         // 2. Vá em Project Settings > API para pegar essas chaves
         // 3. Configure o Google Auth seguindo o guia enviado no chat
-        const SUPABASE_URL = 'SUA_URL_DO_SUPABASE_AQUI'; 
-        const SUPABASE_ANON_KEY = 'SUA_CHAVE_ANON_AQUI';
+        const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
 
         // Initialize Supabase
         const { createClient } = supabase;
-        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let supabaseClient;
+        try {
+            if (SUPABASE_URL === 'SUA_URL_DO_SUPABASE_AQUI' || !SUPABASE_URL.startsWith('http')) {
+                throw new Error("Supabase URL not configured");
+            }
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.warn("Supabase não configurado. As funcionalidades de login e banco de dados não funcionarão.", e);
+            // Create a mock client to prevent "undefined" errors in the UI
+            supabaseClient = {
+                auth: {
+                    getSession: async () => ({ data: { session: null } }),
+                    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+                    signInWithPassword: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
+                    signUp: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
+                    signInWithOAuth: async () => ({ error: { message: "Supabase não configurado (ver console)" } }),
+                    signOut: async () => {}
+                },
+                from: () => ({
+                    select: () => ({ eq: () => ({ order: async () => ({ data: [], error: null }) }) }),
+                    insert: async () => ({ error: { message: "Supabase não configurado" } }),
+                    delete: () => ({ eq: async () => ({ error: { message: "Supabase não configurado" } }) })
+                })
+            };
+        }
 
         // --- DATA ---
         const SERVICES = [
@@ -605,10 +634,11 @@
         // --- AUTH LOGIC (Supabase) ---
         function handleSession(session) {
             if (session) {
+                // Mapeia os dados do usuário vindos do Google/Supabase para o app
                 currentUser = {
                     name: session.user.user_metadata.full_name || session.user.email.split('@')[0],
                     email: session.user.email,
-                    avatar: session.user.user_metadata.avatar_url,
+                    avatar: session.user.user_metadata.avatar_url, // O Google fornece a foto aqui
                     id: session.user.id
                 };
                 updateUIForUser();
@@ -669,14 +699,24 @@
             if (tab === 'login') { document.getElementById('form-login').classList.remove('hidden'); document.getElementById('form-register').classList.add('hidden'); document.getElementById('tab-login').classList.add('text-amber-500','border-amber-500'); document.getElementById('tab-register').classList.remove('text-amber-500','border-amber-500'); }
             else { document.getElementById('form-register').classList.remove('hidden'); document.getElementById('form-login').classList.add('hidden'); document.getElementById('tab-register').classList.add('text-amber-500','border-amber-500'); document.getElementById('tab-login').classList.remove('text-amber-500','border-amber-500'); }
         };
-        window.logout = () => supabaseClient.auth.signOut();
+        
+        window.logout = async () => { 
+            await supabaseClient.auth.signOut();
+            updateUIForGuest(); 
+        };
         
         // Login with Email
         window.handleLogin = async () => { 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            
             if(!email || !password) return alert("Preencha todos os campos");
-            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email: email,
+                password: password,
+            });
+
             if (error) alert("Erro ao entrar: " + error.message);
         };
 
@@ -685,11 +725,19 @@
             const name = document.getElementById('register-name').value;
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
+
             if(!email || !password) return alert("Preencha todos os campos");
+
             const { data, error } = await supabaseClient.auth.signUp({
-                email: email, password: password,
-                options: { data: { full_name: name } },
+                email: email,
+                password: password,
+                options: {
+                    data: {
+                        full_name: name,
+                    },
+                },
             });
+
             if (error) alert("Erro ao criar conta: " + error.message);
             else alert("Conta criada! Verifique seu e-mail ou faça login.");
         };
@@ -697,13 +745,28 @@
         window.handleGoogleLogin = async () => {
              const btnText = document.getElementById('google-btn-text'); 
              const loader = document.getElementById('google-loader');
+             
+             // Feedback visual imediato
              btnText.textContent = "Conectando..."; 
              loader.classList.remove('hidden');
+             
+             // Inicia o fluxo OAuth com o Supabase
+             // O redirecionamento é automático para a URL configurada no Google Cloud
              const { data, error } = await supabaseClient.auth.signInWithOAuth({
                 provider: 'google',
-                options: { redirectTo: window.location.href }
+                options: {
+                    // Redireciona de volta para a página atual após o login
+                    redirectTo: window.location.href 
+                }
              });
-             if(error) { console.error(error); alert("Erro ao conectar: " + error.message); btnText.textContent = "Google"; loader.classList.add('hidden'); }
+
+             if(error) {
+                 console.error("Erro no login:", error);
+                 alert("Erro ao conectar: " + error.message);
+                 btnText.textContent = "Google"; 
+                 loader.classList.add('hidden');
+             }
+             // Se der certo, a página recarregará ou o listener onAuthStateChanged pegará a sessão
         };
 
         // --- DATABASE LOGIC (Supabase) ---
@@ -717,32 +780,58 @@
             if (error) {
                 console.error("Error fetching appointments:", error);
             } else {
+                // Map the simple JSON structure back to what the UI expects
                 appointments = data.map(item => ({
                     id: item.id,
                     ...item.details, // We stored bookingData in 'details' column
                     db_id: item.id // Keep DB ID separate if needed
                 }));
-                if(!document.getElementById('appointments-modal').classList.contains('hidden')) { renderAppointments(); }
+                
+                // If modal open, refresh it
+                if(!document.getElementById('appointments-modal').classList.contains('hidden')) {
+                    renderAppointments();
+                }
             }
         }
 
         async function saveAppointment() {
             if (!currentUser) return;
-            const { error } = await supabaseClient.from('appointments').insert({
-                user_id: currentUser.id,
-                details: bookingData,
-                date_iso: bookingData.date.toISOString()
-            });
-            if (error) { console.error("Error saving appointment:", error); alert("Erro ao salvar agendamento. Tente novamente."); } 
-            else { fetchAppointments(currentUser.id); }
+            
+            const { error } = await supabaseClient
+                .from('appointments')
+                .insert({
+                    user_id: currentUser.id,
+                    details: bookingData, // Saving the whole object as JSON
+                    date_iso: bookingData.date.toISOString() // Helper column
+                });
+
+            if (error) {
+                console.error("Error saving appointment:", error);
+                alert("Erro ao salvar agendamento. Tente novamente.");
+            } else {
+                fetchAppointments(currentUser.id); // Refresh local list
+            }
         }
 
         window.deleteAppointment = async (id) => {
             if (!currentUser) return;
+            
+            // Find the database ID based on the appointment ID from UI logic
+            // (Note: in saveAppointment we pushed a new object with Date.now() ID into 'details', 
+            // but for deletion we need the real SQL ID)
             const appt = appointments.find(a => a.id == id);
             if (!appt) return;
-            const { error } = await supabaseClient.from('appointments').delete().eq('id', appt.db_id);
-            if (error) { console.error("Error deleting:", error); } else { fetchAppointments(currentUser.id); }
+
+            const { error } = await supabaseClient
+                .from('appointments')
+                .delete()
+                .eq('id', appt.db_id);
+
+            if (error) {
+                console.error("Error deleting:", error);
+            } else {
+                fetchAppointments(currentUser.id);
+            }
         };
 
         // --- BOOKING LOGIC ---
@@ -760,6 +849,7 @@
                 window.openAuthModal('login');
                 return;
             }
+
             document.getElementById('booking-modal').classList.remove('hidden'); 
             if(!bookingData.clientName) bookingData.clientName = currentUser.name;
             if(bookingData.service && currentStep < 2) currentStep = 2;
@@ -859,7 +949,7 @@
                     const periods = { 'Manhã': [9,10,11], 'Tarde': [13,14,15,16,17], 'Noite': [18,19,20] };
                     html += `<div class="animate-fade-in-up space-y-6">`;
                     for (const [period, hours] of Object.entries(periods)) {
-                        html += `<div><h5 class="text-white font-bold mb-3 text-sm flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> ${period}</h5><div class="grid grid-cols-4 sm:grid-cols-5 gap-3">`;
+                        html += `<div><h5 class="text-white font-bold mb-3 text-sm flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> ${period}</h5><div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">`;
                         hours.forEach(h => {
                              const slots = [`${h}:00`, `${h}:30`];
                              slots.forEach(t => {
