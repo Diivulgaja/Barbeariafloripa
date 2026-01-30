@@ -722,8 +722,14 @@
 
         // --- ABACATEPAY INTEGRATION ---
         async function createAbacatePayCharge(appointmentData) {
-            const amountInCents = appointmentData.price * 100; // API generally uses cents
-            const returnUrl = window.location.href; // Changed back to returnUrl as requested
+            const amountInCents = Math.round(appointmentData.price * 100); 
+            
+            // Check if environment is local file to use fallback
+            let returnUrl = window.location.href;
+            if (!returnUrl.startsWith('http')) {
+                console.warn("Ambiente local detectado (file://). Usando URL de fallback para o pagamento.");
+                returnUrl = "https://google.com"; // Fallback for validation only
+            }
             
             const payload = {
                 frequency: "ONE_TIME",
