@@ -200,8 +200,8 @@
                             <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
                         </div>
                         
-                        <!-- Dropdown -->
-                        <div class="absolute top-full right-0 mt-4 w-48 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0">
+                        <!-- Dropdown Fixed: reduced margin and added padding to bridge gap -->
+                        <div class="absolute top-full right-0 mt-2 w-48 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
                             <!-- Fixed Button Link -->
                             <button onclick="openAppointments()" class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
                                 <i data-lucide="calendar-check" class="w-4 h-4"></i> Meus Agendamentos
@@ -545,7 +545,7 @@
     </div>
 
     <!-- MY APPOINTMENTS MODAL -->
-    <div id="appointments-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-4">
+    <div id="appointments-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
         <div class="glass-panel w-full max-w-lg rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
             <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
@@ -561,9 +561,6 @@
     <!-- JAVASCRIPT -->
     <script>
         // --- SUPABASE CONFIGURATION ---
-        // 1. Crie um projeto em https://supabase.com
-        // 2. Vá em Project Settings > API para pegar essas chaves
-        // 3. Configure o Google Auth seguindo o guia enviado no chat
         const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
         
@@ -579,13 +576,12 @@
             }
             supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         } catch (e) {
-            console.warn("Modo de Demonstração Ativado: Supabase não configurado. As funcionalidades de login e banco de dados não funcionarão.", e);
-            // Create a mock client to prevent "undefined" errors in the UI
+            console.warn("Modo de Demonstração Ativado: Supabase não configurado.", e);
             USE_MOCK = true;
             supabaseClient = createMockClient();
         }
 
-        // --- MOCK CLIENT FACTORY ---
+        // --- MOCK CLIENT ---
         function createMockClient() {
             return {
                 auth: {
@@ -594,33 +590,32 @@
                         return { data: { session: session ? JSON.parse(session) : null } };
                     },
                     onAuthStateChange: (callback) => {
-                        // In mock mode, we manually trigger handleSession on login/logout
                         return { data: { subscription: { unsubscribe: () => {} } } };
                     },
                     signInWithPassword: async ({ email }) => {
                         const user = { id: 'mock_user_id', email, user_metadata: { full_name: email.split('@')[0] } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        handleSession(session); // Manual Trigger
+                        handleSession(session);
                         return { data: { session }, error: null };
                     },
                     signUp: async ({ email, options }) => {
                         const user = { id: 'mock_user_id', email, user_metadata: { full_name: options.data.full_name } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        handleSession(session); // Manual Trigger
+                        handleSession(session);
                         return { data: { session }, error: null };
                     },
                     signInWithOAuth: async () => {
                         const user = { id: 'mock_user_id', email: 'demo@gmail.com', user_metadata: { full_name: 'Usuário Demo', avatar_url: null } };
                         const session = { user };
                         localStorage.setItem('mock_session', JSON.stringify(session));
-                        handleSession(session); // Manual Trigger
+                        handleSession(session);
                         return { data: { session }, error: null };
                     },
                     signOut: async () => {
                         localStorage.removeItem('mock_session');
-                        handleSession(null); // Manual Trigger
+                        handleSession(null);
                         return { error: null };
                     }
                 },
@@ -836,7 +831,7 @@
              }
         };
 
-        // --- DATABASE LOGIC (Supabase) ---
+        // --- DATABASE LOGIC ---
         async function fetchAppointments(userId) {
             const { data, error } = await supabaseClient
                 .from('appointments')
@@ -849,7 +844,6 @@
                     const details = typeof item.details === 'string' ? JSON.parse(item.details) : item.details;
                     return { id: item.id, ...details, db_id: item.id };
                 });
-                // Force re-render if modal open
                 if(!document.getElementById('appointments-modal').classList.contains('hidden')) { renderAppointments(); }
             }
         }
@@ -908,7 +902,6 @@
 
         window.deleteAppointment = async (id) => {
             if (!currentUser) return;
-            // CONFIRMATION DIALOG ADDED
             if(!confirm("Tem certeza que deseja cancelar este agendamento?")) return;
 
             const appt = appointments.find(a => a.id == id);
@@ -933,7 +926,7 @@
 
         // --- BOOKING LOGIC ---
         window.startBooking = () => {
-            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '', pixData: null, clientCpf: '' };
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
             currentStep = 1;
             window.openBooking();
         };
@@ -986,7 +979,7 @@
         
         window.selectTime = (t) => { bookingData.time = t; updateSummary(); window.nextStep(); };
         
-        // Removed selectPayment as it's no longer used (defaults to local)
+        // Removed selectPayment as it's no longer used
 
         window.updateClientData = (field, value) => { 
             if(field === 'clientPhone') value = maskPhone(value);
