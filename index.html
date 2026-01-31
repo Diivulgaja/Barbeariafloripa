@@ -16,11 +16,17 @@
                             450: '#F59E0B',
                             550: '#D97706',
                         },
-                        google: '#DB4437'
+                        zinc: {
+                            850: '#1f1f22',
+                            925: '#121214', 
+                        }
                     },
                     backgroundImage: {
                         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-                        'hero-pattern': "url('https://images.unsplash.com/photo-1503951914875-452162b7f30a?auto=format&fit=crop&q=80&w=2070')",
+                    },
+                    fontFamily: {
+                        'display': ['Playfair Display', 'serif'],
+                        'body': ['Outfit', 'sans-serif'],
                     },
                     screens: {
                         'xs': '375px',
@@ -39,159 +45,919 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #09090b;
-            color: #f4f4f5;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(217, 119, 6, 0.15), transparent 40%),
-                radial-gradient(circle at 0% 50%, rgba(24, 24, 27, 1), transparent 100%);
-            background-attachment: fixed;
+        .bg-noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.05;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Glassmorphism Utilities */
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0c0c0e;
+            color: #e4e4e7;
+        }
+
+        .ambient-light {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% -20%, rgba(217, 119, 6, 0.15), transparent 60%);
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Playfair Display', serif;
+        }
+
         .glass-panel {
-            background: rgba(24, 24, 27, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(20, 20, 22, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .glass-card {
-            background: rgba(39, 39, 42, 0.4);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+            background: rgba(30, 30, 33, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .glass-card:hover {
-            background: rgba(39, 39, 42, 0.6);
-            border-color: rgba(217, 119, 6, 0.5);
+            background: rgba(40, 40, 44, 0.6);
+            border-color: rgba(217, 119, 6, 0.3);
             transform: translateY(-4px);
-            box-shadow: 0 10px 30px -10px rgba(217, 119, 6, 0.15);
         }
 
         .glass-card.selected {
-            background: rgba(217, 119, 6, 0.15);
+            background: rgba(217, 119, 6, 0.08);
             border-color: #d97706;
-            box-shadow: 0 0 20px -5px rgba(217, 119, 6, 0.3);
         }
 
         .glass-input {
-            background: rgba(24, 24, 27, 0.5);
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.3s ease;
         }
         .glass-input:focus {
-            background: rgba(24, 24, 27, 0.8);
+            background: rgba(0, 0, 0, 0.5);
             border-color: #d97706;
             outline: none;
-            box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.2);
         }
 
-        /* Custom Scrollbar */
+        .photo-cinematic {
+            filter: sepia(20%) contrast(1.1) brightness(0.9);
+            transition: filter 0.5s ease;
+        }
+        .photo-cinematic:hover {
+            filter: sepia(0%) contrast(1) brightness(1);
+        }
+
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #18181b; 
+            background: #0c0c0e; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #3f3f46; 
+            background: #27272a; 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #d97706; 
         }
 
-        /* Animations */
         @keyframes fade-in-up {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(15px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up {
-            animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
         @keyframes scale-up-modal {
-            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            from { opacity: 0; transform: scale(0.96) translateY(10px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .animate-scale-up {
-            animation: scale-up-modal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: scale-up-modal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        .btn-glow {
-            position: relative;
-            overflow: hidden;
+        .btn-primary {
+            background-color: #d97706;
+            color: white;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px -8px rgba(217, 119, 6, 0.5);
         }
-        .btn-glow::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: 0.5s;
+        .btn-primary:hover {
+            background-color: #b45309;
+            transform: translateY(-1px);
         }
-        .btn-glow:hover::after {
-            left: 100%;
-        }
-
-        /* Spinner */
+        
         .loader {
-            border: 3px solid rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
             border-radius: 50%;
-            border-top: 3px solid #d97706;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
+            border-top: 2px solid #d97706;
+            width: 24px;
+            height: 24px;
+            animation: spin 0.8s linear infinite;
             display: inline-block;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="antialiased selection:bg-amber-600 selection:text-white">
+<body class="antialiased selection:bg-amber-800 selection:text-white relative">
+
+    <div class="bg-noise"></div>
+    <div class="ambient-light"></div>
 
     <!-- NAVIGATION -->
     <nav class="fixed w-full z-50 glass-panel border-b-0">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="container mx-auto px-6 py-5 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
-                    <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
-                </div>
+                <i data-lucide="scissors" class="w-6 h-6 text-amber-500"></i>
                 <div>
-                    <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
-                    <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
+                    <h1 class="text-lg font-bold leading-none tracking-tight text-white font-display">RICARDO</h1>
+                    <span class="text-[0.6rem] text-zinc-500 tracking-[0.2em] font-medium uppercase font-body">Barbershop</span>
                 </div>
             </div>
 
             <!-- Desktop Menu -->
-            <div class="hidden md:flex items-center gap-8">
+            <div class="hidden md:flex items-center gap-10">
                 <a href="#home" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
                 <a href="#services" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
-                <a href="#about" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
+                <a href="#about" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">A Casa</a>
                 
                 <!-- Auth State: Guest -->
-                <div id="nav-guest" class="flex items-center gap-4">
-                    <button onclick="openAuthModal('login')" class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
-                        Entrar
+                <div id="nav-guest" class="flex items-center gap-6">
+                    <button onclick="openAuthModal('login')" class="text-zinc-300 hover:text-amber-500 transition-colors text-sm font-medium tracking-wide">
+                        Entrar na conta
                     </button>
-                    <button onclick="startBooking()" class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
-                        Agendar Horário
+                    <button onclick="startBooking()" class="btn-primary font-bold py-2.5 px-6 rounded-lg text-sm">
+                        Agendar
                     </button>
                 </div>
 
                 <!-- Auth State: Logged In -->
                 <div id="nav-user" class="hidden items-center gap-4 relative">
-                    <!-- Profile Button (Toggle) -->
-                    <div onclick="toggleProfileDropdown()" class="flex items-center gap-3 cursor-pointer select-none">
+                    <div onclick="toggleProfileDropdown()" class="flex items-center gap-3 cursor-pointer select-none group">
                         <div class="text-right hidden lg:block">
-                            <p class="text-xs text-zinc-400">Olá,</p>
-                            <p id="user-name-display" class="text-sm font-bold
+                            <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold">Fala,</p>
+                            <p id="user-name-display" class="text-sm font-bold text-zinc-200 group-hover:text-amber-500 transition-colors font-display">Usuário</p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-zinc-800 border border-zinc-700 overflow-hidden ring-2 ring-transparent group-hover:ring-amber-500/30 transition-all">
+                            <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                            <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500 font-display text-lg">U</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Dropdown -->
+                    <div id="profile-dropdown" class="absolute top-full right-0 mt-4 w-56 bg-[#18181b] border border-white/5 rounded-xl shadow-2xl py-2 opacity-0 invisible transition-all duration-200 transform translate-y-2 z-50">
+                        <button onclick="openAppointments()" class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors">
+                            <i data-lucide="calendar" class="w-4 h-4 text-amber-500"></i> Meus Horários
+                        </button>
+                        <div class="h-px bg-white/5 my-1 mx-4"></div>
+                        <button onclick="logout()" class="w-full text-left px-4 py-3 text-sm text-zinc-400 hover:bg-white/5 hover:text-red-400 flex items-center gap-3 transition-colors">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Sair da conta
+                        </button>
+                    </div>
+                    
+                    <button onclick="startBooking()" class="bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 px-5 rounded-lg border border-white/5 text-sm ml-2">
+                        Novo Corte
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button class="md:hidden text-zinc-400 hover:text-white p-2" onclick="toggleMobileMenu()">
+                <i data-lucide="menu" id="menu-icon" class="w-6 h-6"></i>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#0c0c0e] h-screen z-40">
+            <div class="flex flex-col gap-6 pt-4">
+                <a href="#home" class="text-xl font-display text-zinc-200" onclick="toggleMobileMenu()">Início</a>
+                <a href="#services" class="text-xl font-display text-zinc-200" onclick="toggleMobileMenu()">Serviços</a>
+                <a href="#about" class="text-xl font-display text-zinc-200" onclick="toggleMobileMenu()">A Casa</a>
+                
+                <div class="h-px bg-white/10 my-2"></div>
+
+                <!-- Mobile Guest -->
+                <div id="mobile-guest" class="flex flex-col gap-4">
+                     <button onclick="toggleMobileMenu(); openAuthModal('login')" class="text-lg font-medium text-zinc-400 text-left flex items-center gap-2">
+                        <i data-lucide="log-in" class="w-5 h-5"></i> Fazer Login
+                    </button>
+                    <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-4 px-6 rounded-xl mt-2 text-center shadow-lg">
+                        Agendar Agora
+                    </button>
+                </div>
+
+                <!-- Mobile User -->
+                <div id="mobile-user" class="hidden flex-col gap-4">
+                    <div class="flex items-center gap-4 mb-2 bg-zinc-800/30 p-4 rounded-xl border border-white/5">
+                         <div class="w-12 h-12 rounded-full bg-zinc-700 border border-zinc-600 overflow-hidden flex-shrink-0">
+                            <div id="mobile-user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500 font-display text-xl">U</div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-zinc-500 uppercase tracking-wider font-bold">Logado como</p>
+                            <p id="mobile-user-name" class="font-bold text-white text-lg font-display">Usuário</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleMobileMenu(); openAppointments()" class="text-lg font-medium text-zinc-200 text-left flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg">
+                        <i data-lucide="calendar-check" class="w-5 h-5 text-amber-500"></i> Meus Horários
+                    </button>
+                    <button onclick="toggleMobileMenu(); logout()" class="text-lg font-medium text-red-400 text-left flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg">
+                        <i data-lucide="log-out" class="w-5 h-5"></i> Sair
+                    </button>
+                    <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-4 px-6 rounded-xl mt-4 shadow-lg shadow-amber-900/20">
+                        Novo Agendamento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section id="home" class="relative h-screen flex items-center overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <img src="https://images.unsplash.com/photo-1593702295094-aea8c59b29fe?auto=format&fit=crop&q=80&w=2070" alt="Barbershop Atmosphere" class="w-full h-full object-cover opacity-50 photo-cinematic"/>
+            <div class="absolute inset-0 bg-gradient-to-r from-[#0c0c0e] via-[#0c0c0e]/90 to-transparent"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-[#0c0c0e] via-transparent to-transparent"></div>
+        </div>
+
+        <div class="container mx-auto px-6 relative z-10 pt-20">
+            <div class="max-w-2xl animate-fade-in-up">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md border border-amber-500/20 bg-amber-500/5 mb-8">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                    <span class="text-xs font-bold text-amber-500 tracking-wider uppercase">Estilo & Tradição</span>
+                </div>
+                
+                <h1 class="text-5xl sm:text-6xl md:text-7xl font-bold text-white leading-[1.1] mb-8 font-display">
+                    Não é só cabelo.<br/>
+                    <span class="italic text-zinc-400">É sobre como você se sente.</span>
+                </h1>
+                
+                <p class="text-zinc-400 text-lg md:text-xl mb-10 leading-relaxed font-light border-l-2 border-white/10 pl-6">
+                    Aquele momento da semana pra relaxar, tomar uma gelada e sair com o visual na régua. Sem pressa, com a qualidade que você exige.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row gap-5">
+                    <button onclick="startBooking()" class="btn-primary text-white font-bold py-4 px-10 rounded-lg text-sm uppercase tracking-wide flex items-center justify-center gap-3">
+                        Bora agendar? <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="document.getElementById('services').scrollIntoView()" class="text-zinc-300 hover:text-white font-medium py-4 px-8 rounded-lg border border-white/10 hover:bg-white/5 transition-all text-sm uppercase tracking-wide">
+                        Ver Preços
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="py-24 relative">
+        <div class="container mx-auto px-6 relative">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 border-b border-white/5 pb-8">
+                <div>
+                    <h2 class="text-4xl font-bold text-white font-display mb-2">O que a gente domina</h2>
+                    <p class="text-zinc-500 text-sm">Serviços pensados para o homem moderno.</p>
+                </div>
+            </div>
+            
+            <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+    </section>
+
+    <!-- ABOUT SECTION -->
+    <section id="about" class="py-24 bg-zinc-900/20 border-y border-white/5">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="lg:w-1/2 relative w-full">
+                    <div class="relative rounded-lg overflow-hidden">
+                        <div class="absolute inset-0 bg-amber-500/10 mix-blend-overlay"></div>
+                        <img src="https://images.unsplash.com/photo-1503951914875-452162b7f30a?auto=format&fit=crop&q=80&w=1000" alt="Ricardo Barbearia" class="w-full grayscale hover:grayscale-0 transition-all duration-700 object-cover aspect-[4/5]"/>
+                    </div>
+                </div>
+                
+                <div class="lg:w-1/2">
+                    <h3 class="text-amber-500 font-bold uppercase tracking-[0.2em] text-xs mb-4">Nossa Resenha</h3>
+                    <h2 class="text-4xl md:text-5xl font-bold text-white mb-8 font-display">
+                        Muito prazer, <br/>sou o Ricardo.
+                    </h2>
+                    
+                    <div class="space-y-6 text-zinc-400 text-lg leading-relaxed font-light">
+                        <p>
+                            Comecei cortando cabelo na varanda de casa. A ideia nunca foi ser uma "fábrica de cortes", mas sim um lugar onde meus amigos pudessem se sentir bem.
+                        </p>
+                        <p>
+                            Hoje, a barbearia cresceu, mas a essência é a mesma: <strong>respeito pelo cliente e paixão pela tesoura.</strong>
+                        </p>
+                        <p>
+                            Aqui você não é um número. Você senta, toma uma cerveja, troca uma ideia e sai renovado. Simples assim.
+                        </p>
+                    </div>
+
+                    <div class="mt-10 flex gap-8">
+                        <div>
+                            <span class="block text-3xl font-bold text-white font-display">5+</span>
+                            <span class="text-xs text-zinc-500 uppercase tracking-wider">Anos de estrada</span>
+                        </div>
+                        <div>
+                            <span class="block text-3xl font-bold text-white font-display">∞</span>
+                            <span class="text-xs text-zinc-500 uppercase tracking-wider">Cafés & Conversas</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS SECTION -->
+    <section class="py-24">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white font-display mb-4">Quem passa por aqui</h2>
+                <p class="text-zinc-500">A opinião da galera que confia no nosso trabalho.</p>
+            </div>
+            <div id="testimonials-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+        </div>
+    </section>
+
+    <!-- CONTACT SECTION -->
+    <section id="contact" class="pt-20 pb-10 border-t border-white/5 bg-[#0e0e10]">
+        <div class="container mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-16 mb-20">
+                <div class="space-y-6">
+                    <h2 class="text-2xl font-bold text-white font-display">RICARDO</h2>
+                    <p class="text-zinc-400 font-light leading-relaxed">
+                        Cortes clássicos, barba feita na toalha quente e aquele ambiente que você respeita.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all"><i data-lucide="instagram" class="w-5 h-5"></i></a>
+                        <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-zinc-400 hover:text-white hover:border-white/30 transition-all"><i data-lucide="facebook" class="w-5 h-5"></i></a>
+                    </div>
+                </div>
+                
+                <div class="space-y-6">
+                    <h3 class="text-white font-bold uppercase text-sm tracking-wider">Contato</h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-4 text-zinc-400">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-amber-600 shrink-0"></i>
+                            <span class="text-sm">Rua das Pedras, 123 - Centro<br>Florianópolis, SC</span>
+                        </li>
+                        <li class="flex gap-4 text-zinc-400">
+                            <i data-lucide="phone" class="w-5 h-5 text-amber-600 shrink-0"></i>
+                            <span class="text-sm">(48) 99999-9999</span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="space-y-6">
+                    <h3 class="text-white font-bold uppercase text-sm tracking-wider">Funcionamento</h3>
+                    <ul class="space-y-2 text-zinc-400 text-sm">
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Seg - Sex</span><span class="text-white">09:00 - 20:00</span></li>
+                        <li class="flex justify-between border-b border-white/5 pb-2"><span>Sábado</span><span class="text-white">09:00 - 18:00</span></li>
+                        <li class="flex justify-between pt-1"><span>Domingo</span><span class="text-amber-600">Fechado</span></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-xs gap-4">
+                <p>&copy; 2024 Ricardo Barbershop.</p>
+                <p>Feito com navalha e código.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- AUTH MODAL -->
+    <div id="auth-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm transition-opacity" onclick="closeAuthModal()"></div>
+        <div class="w-full max-w-md bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-scale-up">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white transition-colors p-2"><i data-lucide="x" class="w-5 h-5"></i></button>
+            <div class="p-8">
+                <!-- Message -->
+                <div id="auth-message-container" class="hidden mb-6 p-4 rounded-lg bg-zinc-900 border border-amber-900/30 flex gap-3">
+                    <i data-lucide="user" class="w-5 h-5 text-amber-500 shrink-0"></i>
+                    <p id="auth-message-text" class="text-xs text-zinc-300">Precisa entrar na conta pra agendar, chefe.</p>
+                </div>
+
+                <h3 class="text-2xl font-display font-bold text-white mb-6 text-center">Acesse sua conta</h3>
+
+                <div class="flex border-b border-white/10 mb-8">
+                    <button onclick="switchAuthTab('login')" id="tab-login" class="flex-1 pb-3 text-amber-500 border-b-2 border-amber-500 font-bold text-sm tracking-wide transition-all">LOGIN</button>
+                    <button onclick="switchAuthTab('register')" id="tab-register" class="flex-1 pb-3 text-zinc-500 hover:text-white font-medium text-sm tracking-wide transition-all">CRIAR CONTA</button>
+                </div>
+
+                <!-- Login Form -->
+                <div id="form-login" class="space-y-5">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-zinc-500 uppercase">E-mail</label>
+                        <input type="email" id="login-email" class="w-full bg-zinc-900 border border-white/10 rounded-lg py-3 px-4 text-white focus:border-amber-600 focus:outline-none transition-colors" placeholder="seu@email.com">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-zinc-500 uppercase">Senha</label>
+                        <input type="password" id="login-password" class="w-full bg-zinc-900 border border-white/10 rounded-lg py-3 px-4 text-white focus:border-amber-600 focus:outline-none transition-colors" placeholder="••••••••">
+                    </div>
+                    <button onclick="handleLogin()" class="w-full bg-white hover:bg-zinc-200 text-black font-bold py-3.5 rounded-lg transition-all text-sm mt-2">
+                        ENTRAR
+                    </button>
+                </div>
+
+                <!-- Register Form -->
+                <div id="form-register" class="space-y-5 hidden">
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-zinc-500 uppercase">Nome</label>
+                        <input type="text" id="register-name" class="w-full bg-zinc-900 border border-white/10 rounded-lg py-3 px-4 text-white focus:border-amber-600 focus:outline-none transition-colors" placeholder="Como te chamam?">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-zinc-500 uppercase">E-mail</label>
+                        <input type="email" id="register-email" class="w-full bg-zinc-900 border border-white/10 rounded-lg py-3 px-4 text-white focus:border-amber-600 focus:outline-none transition-colors" placeholder="seu@email.com">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-xs font-bold text-zinc-500 uppercase">Senha</label>
+                        <input type="password" id="register-password" class="w-full bg-zinc-900 border border-white/10 rounded-lg py-3 px-4 text-white focus:border-amber-600 focus:outline-none transition-colors" placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <button onclick="handleRegister()" class="w-full bg-white hover:bg-zinc-200 text-black font-bold py-3.5 rounded-lg transition-all text-sm mt-2">
+                        CRIAR CONTA
+                    </button>
+                </div>
+
+                <div class="relative my-8">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/5"></div></div>
+                    <div class="relative flex justify-center text-[10px] uppercase tracking-widest"><span class="bg-[#18181b] px-4 text-zinc-600">Ou entre com</span></div>
+                </div>
+
+                <button onclick="handleGoogleLogin()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white border border-white/5 transition-all font-medium py-3 rounded-lg flex items-center justify-center gap-3 group text-sm">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                    <span id="google-btn-text">Google</span>
+                    <div id="google-loader" class="loader hidden w-4 h-4 border-2"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOOKING MODAL -->
+    <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-0 md:p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeBooking()"></div>
+        <div class="w-full h-full md:h-[85vh] md:max-w-5xl md:rounded-2xl bg-[#18181b] border border-white/10 shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up">
+            <!-- Header -->
+            <div class="p-5 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                <div>
+                    <h3 class="text-xl font-display font-bold text-white">Agendar</h3>
+                    <div class="flex items-center gap-3 mt-1">
+                        <span class="text-[10px] text-amber-500 font-bold uppercase tracking-widest" id="step-indicator">Passo 1 de 5</span>
+                    </div>
+                </div>
+                <button onclick="closeBooking()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-1 overflow-hidden relative flex-col md:flex-row">
+                <!-- MAIN CONTENT (LEFT SIDE) -->
+                <div id="booking-content" class="flex-1 p-6 md:p-10 overflow-y-auto custom-scrollbar md:border-r border-white/5 pb-32 md:pb-10">
+                    <!-- Dynamic Step Content -->
+                </div>
+
+                <!-- SUMMARY SIDEBAR (RIGHT SIDE) -->
+                <div class="hidden md:flex w-80 bg-zinc-900/30 flex-col p-8 border-l border-white/5">
+                    <h4 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-6">Resumo</h4>
+                    
+                    <div class="space-y-6 flex-1">
+                        <div class="flex gap-4">
+                            <i data-lucide="scissors" class="w-5 h-5 text-amber-600 mt-1"></i>
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase font-bold">Serviço</p>
+                                <p id="summary-service" class="text-sm font-bold text-white">Selecione...</p>
+                                <p id="summary-price" class="text-xs text-amber-500 mt-0.5">--</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <i data-lucide="user" class="w-5 h-5 text-zinc-600 mt-1"></i>
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase font-bold">Profissional</p>
+                                <p id="summary-barber" class="text-sm text-zinc-300">--</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4">
+                            <i data-lucide="calendar" class="w-5 h-5 text-zinc-600 mt-1"></i>
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase font-bold">Data e Hora</p>
+                                <p id="summary-date" class="text-sm text-zinc-300">--</p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-4 items-start">
+                             <div class="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5 text-zinc-400"><i data-lucide="store" class="w-5 h-5"></i></div>
+                            <div>
+                                <p class="text-[10px] text-zinc-500 uppercase tracking-wider font-bold mb-1">Pagamento</p>
+                                <p class="text-sm font-medium text-zinc-300">No Local</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-white/10">
+                        <div class="flex justify-between items-end mb-6">
+                            <span class="text-zinc-500 text-xs font-bold uppercase">Total</span>
+                            <span id="summary-total" class="text-3xl font-bold text-white font-display">R$ 0</span>
+                        </div>
+                        <div id="booking-footer-action"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mobile Footer -->
+            <div class="md:hidden p-4 border-t border-white/5 bg-[#18181b] flex justify-between items-center absolute bottom-0 w-full z-20 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+                 <div class="text-left">
+                    <p class="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Total</p>
+                    <p id="mobile-total" class="font-bold text-white text-xl font-display">R$ 0</p>
+                 </div>
+                 <div id="mobile-footer-action" class="flex items-center"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MY APPOINTMENTS MODAL -->
+    <div id="appointments-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/90 backdrop-blur-sm" onclick="closeAppointments()"></div>
+        <div class="w-full max-w-lg bg-[#18181b] border border-white/10 rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up">
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i data-lucide="calendar" class="text-amber-500 w-5 h-5"></i> Meus Horários
+                </h3>
+                <button onclick="closeAppointments()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div id="appointments-content" class="p-6 overflow-y-auto flex-1 custom-scrollbar space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script type="module">
+        import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = 'https://mfycmbbsijylwervuuwf.supabase.co'; 
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs';
+        
+        let supabaseClient;
+        let USE_MOCK = false;
+
+        try {
+            if (SUPABASE_URL.startsWith('SUA_URL') || !SUPABASE_URL.startsWith('http')) {
+                throw new Error("Supabase not configured");
+            }
+            supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        } catch (e) {
+            console.warn("Modo Demo Ativado", e);
+            USE_MOCK = true;
+            supabaseClient = createMockClient();
+        }
+
+        // --- GLOBAL EXPORTS ---
+        window.openAuthModal = (tab) => openAuthModalImpl(tab);
+        window.closeAuthModal = () => closeAuthModalImpl();
+        window.switchAuthTab = (tab) => switchAuthTabImpl(tab);
+        window.handleLogin = () => handleLoginImpl();
+        window.handleRegister = () => handleRegisterImpl();
+        window.handleGoogleLogin = () => handleGoogleLoginImpl();
+        window.logout = () => logoutImpl();
+        
+        window.startBooking = () => startBookingImpl();
+        window.openBooking = () => openBookingImpl();
+        window.closeBooking = () => closeBookingImpl();
+        window.nextStep = () => nextStepImpl();
+        window.prevStep = () => prevStepImpl();
+        
+        window.selectService = (id) => selectServiceImpl(id);
+        window.selectBarber = (id) => selectBarberImpl(id);
+        window.selectDate = (d) => selectDateImpl(d);
+        window.selectTime = (t) => selectTimeImpl(t);
+        window.selectCategory = (cat) => selectCategoryImpl(cat);
+        // window.selectPayment removed - only local payment
+        
+        window.updateClientData = (f, v) => updateClientDataImpl(f, v);
+        
+        window.openAppointments = () => openAppointmentsImpl();
+        window.closeAppointments = () => closeAppointmentsImpl();
+        window.deleteAppointment = (id) => deleteAppointmentImpl(id);
+        
+        window.toggleMobileMenu = () => toggleMobileMenuImpl();
+        window.toggleProfileDropdown = () => toggleProfileDropdownImpl();
+
+        // --- MOCK CLIENT ---
+        function createMockClient() {
+            return {
+                auth: {
+                    getSession: async () => { const s=localStorage.getItem('mock_s'); return { data: { session: s?JSON.parse(s):null } }; },
+                    onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+                    signInWithPassword: async ({email}) => { const s={user:{id:'mock',email,user_metadata:{full_name:email.split('@')[0]}}}; localStorage.setItem('mock_s',JSON.stringify(s)); handleSession(s); return {data:{session:s},error:null}; },
+                    signUp: async ({email,options}) => { const s={user:{id:'mock',email,user_metadata:{full_name:options.data.full_name}}}; localStorage.setItem('mock_s',JSON.stringify(s)); handleSession(s); return {data:{session:s},error:null}; },
+                    signInWithOAuth: async () => { const s={user:{id:'mock',email:'demo@gmail.com',user_metadata:{full_name:'Demo',avatar_url:null}}}; localStorage.setItem('mock_s',JSON.stringify(s)); handleSession(s); return {data:{session:s},error:null}; },
+                    signOut: async () => { localStorage.removeItem('mock_s'); handleSession(null); return {error:null}; }
+                },
+                from: (t) => ({
+                    select: () => ({ eq: (c,v) => ({ order: async () => { const d=JSON.parse(localStorage.getItem('mock_'+t)||'[]'); return {data:d.filter(x=>x[c]===v),error:null}; } }), filter: () => Promise.resolve({data:[],error:null}) }),
+                    insert: async (r) => { const d=JSON.parse(localStorage.getItem('mock_'+t)||'[]'); d.push({id:Date.now(),...r, details: r.details}); localStorage.setItem('mock_'+t,JSON.stringify(d)); return {data:[r],error:null}; },
+                    delete: () => ({ eq: async (c,v) => { let d=JSON.parse(localStorage.getItem('mock_'+t)||'[]'); d=d.filter(x=>x.id != v && x.db_id != v); localStorage.setItem('mock_'+t,JSON.stringify(d)); return {error:null}; } })
+                })
+            };
+        }
+
+        // --- DATA ---
+        const SERVICES = [
+            { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, duration: "45 min", description: "O tradicional na tesoura ou máquina." },
+            { id: 2, category: 'barba', name: "Ritual de Barba", price: 40, duration: "30 min", description: "Toalha quente e alinhamento." },
+            { id: 3, category: 'combo', name: "Cabelo & Barba", price: 80, duration: "75 min", description: "A experiência completa com desconto." },
+            { id: 4, category: 'cabelo', name: "Acabamento", price: 20, duration: "15 min", description: "Pezinho e contorno." },
+            { id: 5, category: 'cabelo', name: "Infantil", price: 45, duration: "40 min", description: "Para os pequenos (até 12 anos)." },
+            { id: 6, category: 'cabelo', name: "Selagem", price: 120, duration: "90 min", description: "Redução de volume." }
+        ];
+
+        const BARBERS = [
+            { id: 1, name: "Ricardo", role: "Master", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 2, name: "André", role: "Pro", image: "https://images.unsplash.com/photo-1618077553780-7553d680668f?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 3, name: "Disponível", role: "Equipe", image: null }
+        ];
+
+        const TESTIMONIALS = [
+            { id: 1, name: "Carlos E.", text: "O melhor degradê que já fiz. O Ricardo é fera.", rating: 5 },
+            { id: 2, name: "Felipe S.", text: "Ambiente top, cerveja gelada e resenha boa.", rating: 5 },
+            { id: 3, name: "João P.", text: "Prático e rápido. Virei cliente fiel.", rating: 5 },
+        ];
+
+        let currentUser = null;
+        let currentStep = 1;
+        let selectedCategory = 'todos';
+        let pendingBooking = false; 
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
+        let appointments = [];
+        let unavailableSlots = []; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderServicesLanding();
+            renderTestimonials();
+            lucide.createIcons();
+            
+            if (USE_MOCK) {
+                const s = localStorage.getItem('mock_session');
+                if (s) handleSession(JSON.parse(s)); else updateUIForGuest();
+            } else {
+                supabaseClient.auth.getSession().then(({ data: { session } }) => handleSession(session));
+                supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
+            }
+        });
+
+        // --- IMPL FUNCTIONS ---
+        function handleSession(session) {
+            if (session) {
+                currentUser = {
+                    name: session.user.user_metadata.full_name || session.user.email.split('@')[0],
+                    email: session.user.email,
+                    avatar: session.user.user_metadata.avatar_url,
+                    id: session.user.id
+                };
+                updateUIForUser();
+                closeAuthModalImpl();
+                fetchAppointments(session.user.id);
+                if(pendingBooking) { openBookingImpl(); pendingBooking = false; }
+            } else {
+                currentUser = null;
+                updateUIForGuest();
+                appointments = []; 
+            }
+        }
+
+        function updateUIForUser() {
+            document.getElementById('nav-guest').classList.add('hidden');
+            document.getElementById('nav-user').classList.remove('hidden');
+            document.getElementById('nav-user').classList.add('flex');
+            document.getElementById('mobile-guest').classList.add('hidden');
+            document.getElementById('mobile-user').classList.remove('hidden');
+            document.getElementById('mobile-user').classList.add('flex');
+            document.getElementById('user-name-display').textContent = currentUser.name.split(' ')[0];
+            document.getElementById('mobile-user-name').textContent = currentUser.name;
+        }
+
+        function updateUIForGuest() {
+            document.getElementById('nav-guest').classList.remove('hidden');
+            document.getElementById('nav-user').classList.add('hidden');
+            document.getElementById('mobile-guest').classList.remove('hidden');
+            document.getElementById('mobile-user').classList.add('hidden');
+        }
+
+        function openAuthModalImpl(tab = 'login') { 
+            if(!pendingBooking) document.getElementById('auth-message-container').classList.add('hidden');
+            document.getElementById('auth-modal').classList.remove('hidden'); 
+            switchAuthTabImpl(tab); 
+        }
+        function closeAuthModalImpl() { document.getElementById('auth-modal').classList.add('hidden'); pendingBooking = false; }
+        function switchAuthTabImpl(tab) {
+            if (tab === 'login') { document.getElementById('form-login').classList.remove('hidden'); document.getElementById('form-register').classList.add('hidden'); document.getElementById('tab-login').classList.add('text-amber-500'); document.getElementById('tab-register').classList.remove('text-amber-500'); }
+            else { document.getElementById('form-register').classList.remove('hidden'); document.getElementById('form-login').classList.add('hidden'); document.getElementById('tab-register').classList.add('text-amber-500'); document.getElementById('tab-login').classList.remove('text-amber-500'); }
+        }
+
+        async function logoutImpl() { await supabaseClient.auth.signOut(); updateUIForGuest(); }
+        async function handleLoginImpl() { 
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            if(!email || !password) return alert("Preencha tudo");
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) alert(error.message);
+        }
+        async function handleRegisterImpl() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            if(!email || !password) return alert("Preencha tudo");
+            const { error } = await supabaseClient.auth.signUp({ email, password, options: { data: { full_name: name } } });
+            if (error) alert(error.message); else alert("Conta criada! Faça login.");
+        }
+        async function handleGoogleLoginImpl() {
+             if (USE_MOCK) { await supabaseClient.auth.signInWithOAuth(); return; }
+             const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
+             if(error) alert(error.message);
+        }
+
+        async function fetchAppointments(userId) {
+            const { data, error } = await supabaseClient.from('appointments').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+            if (!error) {
+                appointments = data.map(item => {
+                    const details = typeof item.details === 'string' ? JSON.parse(item.details) : item.details;
+                    return { id: item.id, ...details, db_id: item.id };
+                });
+                if(!document.getElementById('appointments-modal').classList.contains('hidden')) renderAppointments();
+            }
+        }
+        async function fetchUnavailableSlots(date, barberId) {
+            if(!date || USE_MOCK) return [];
+            const dateStr = date.toISOString().split('T')[0];
+            const { data, error } = await supabaseClient.from('appointments').select('details').filter('date_iso', 'ilike', `${dateStr}%`);
+            if (error) return [];
+            return data.map(r => (typeof r.details==='string'?JSON.parse(r.details):r.details)).filter(d => (barberId && barberId !== 3 ? d.barber.id === barberId : true)).map(d => d.time);
+        }
+        async function saveAppointment() {
+            if (!currentUser) return;
+            const taken = await fetchUnavailableSlots(bookingData.date, bookingData.barber?.id);
+            if(taken.includes(bookingData.time)) { alert("Horário ocupado."); currentStep = 3; renderStep(); return; }
+            const { error } = await supabaseClient.from('appointments').insert({ user_id: currentUser.id, details: bookingData, date_iso: bookingData.date.toISOString() });
+            if (!error) { fetchAppointments(currentUser.id); currentStep = 5; renderStep(); } else { alert("Erro ao salvar."); }
+        }
+
+        async function deleteAppointmentImpl(id) {
+            if (!currentUser || !confirm("Cancelar agendamento?")) return;
+            const appt = appointments.find(a => a.id == id);
+            const lookupId = USE_MOCK ? appt.id : appt.db_id;
+            const { error } = await supabaseClient.from('appointments').delete().eq('id', lookupId);
+            if (!error) { fetchAppointments(currentUser.id); }
+        }
+
+        function startBookingImpl() {
+            bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
+            currentStep = 1; openBookingImpl();
+        }
+        function openBookingImpl() {
+            if(!currentUser) { document.getElementById('auth-message-container').classList.remove('hidden'); pendingBooking = true; openAuthModalImpl(); return; }
+            document.getElementById('booking-modal').classList.remove('hidden');
+            if(!bookingData.clientName) bookingData.clientName = currentUser.name;
+            updateSummary(); renderStep();
+        }
+        function closeBookingImpl() { document.getElementById('booking-modal').classList.add('hidden'); }
+        async function nextStepImpl() { if(currentStep === 4) { await saveAppointment(); } else { currentStep++; renderStep(); } }
+        function prevStepImpl() { currentStep--; renderStep(); }
+        
+        function selectCategoryImpl(cat) { selectedCategory = cat; renderStep(); }
+        function selectServiceImpl(id) { const s = SERVICES.find(x => x.id === id); if(s) { bookingData.service = s; bookingData.price = s.price; updateSummary(); openBookingImpl(); } }
+        function selectBarberImpl(id) { bookingData.barber = BARBERS.find(b => b.id === id); updateSummary(); nextStepImpl(); }
+        async function selectDateImpl(dStr) { 
+            const d = new Date(dStr); bookingData.date = d; bookingData.time = null; updateSummary(); 
+            document.getElementById('slots-container').innerHTML = '<div class="col-span-full text-center py-4"><div class="loader"></div></div>';
+            unavailableSlots = await fetchUnavailableSlots(d, bookingData.barber?.id);
+            renderStep();
+        }
+        function selectTimeImpl(t) { bookingData.time = t; updateSummary(); nextStepImpl(); }
+
+        function updateClientDataImpl(field, value) {
+            if(field === 'clientPhone') value = value.replace(/\D/g, '').replace(/^(\d{2})(\d)/g, '($1) $2').replace(/(\d)(\d{4})$/, '$1-$2').slice(0, 15);
+            bookingData[field] = value;
+            if(field === 'clientPhone') { const el = document.querySelector('input[name="phone"]'); if(el) el.value = value; }
+            const isValid = bookingData.clientName && bookingData.clientPhone.length >= 14;
+            document.querySelectorAll('.confirm-btn-cls').forEach(b => { b.disabled = !isValid; b.classList.toggle('opacity-50', !isValid); });
+        }
+
+        function updateSummary() {
+            const elS = document.getElementById('summary-service'); if(elS) elS.textContent = bookingData.service?.name || '--';
+            const elP = document.getElementById('summary-price'); if(elP) elP.textContent = bookingData.service ? `R$ ${bookingData.service.price},00` : '--';
+            const elB = document.getElementById('summary-barber'); if(elB) elB.textContent = bookingData.barber?.name || '--';
+            const elD = document.getElementById('summary-date'); if(elD) elD.textContent = bookingData.date ? `${bookingData.date.toLocaleDateString()} ${bookingData.time||''}` : '--';
+            const elT = document.getElementById('summary-total'); if(elT) elT.textContent = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
+            const elMT = document.getElementById('mobile-total'); if(elMT) elMT.textContent = elT.textContent;
+
+            const dAct = document.getElementById('booking-footer-action');
+            const mAct = document.getElementById('mobile-footer-action');
+            if(!dAct || !mAct) return;
+
+            if(currentStep < 4) {
+                 const back = currentStep > 1 ? `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 font-bold py-3 rounded-xl mb-2 hover:bg-white/5">Voltar</button>` : '';
+                 dAct.innerHTML = back; mAct.innerHTML = currentStep > 1 ? `<button onclick="prevStep()" class="text-zinc-400 px-4">Voltar</button>` : '';
+            } else if (currentStep === 4) {
+                 const btn = `<button onclick="nextStep()" class="confirm-btn-cls w-full bg-amber-600 text-white font-bold py-3 rounded-xl opacity-50" disabled>Confirmar</button>`;
+                 dAct.innerHTML = `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-400 font-bold py-3 rounded-xl mb-2">Voltar</button>` + btn;
+                 mAct.innerHTML = `<button onclick="prevStep()" class="text-zinc-400 mr-2">Voltar</button>` + btn.replace('w-full', 'px-6 rounded-lg');
+            } else { dAct.innerHTML = ''; mAct.innerHTML = ''; }
+        }
+
+        function renderStep() {
+            const content = document.getElementById('booking-content');
+            document.getElementById('step-indicator').textContent = `Passo ${currentStep} de 5`;
+            let html = '<div class="animate-fade-in-up pb-20 md:pb-0">';
+
+            if (currentStep === 1) {
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4><div class="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar"><button onclick="selectCategory('todos')" class="${selectedCategory==='todos'?'bg-white text-black':'bg-white/5 text-zinc-400'} px-4 py-2 rounded-full text-sm font-bold">Todos</button><button onclick="selectCategory('cabelo')" class="${selectedCategory==='cabelo'?'bg-white text-black':'bg-white/5 text-zinc-400'} px-4 py-2 rounded-full text-sm font-bold">Cabelo</button><button onclick="selectCategory('barba')" class="${selectedCategory==='barba'?'bg-white text-black':'bg-white/5 text-zinc-400'} px-4 py-2 rounded-full text-sm font-bold">Barba</button><button onclick="selectCategory('combo')" class="${selectedCategory==='combo'?'bg-white text-black':'bg-white/5 text-zinc-400'} px-4 py-2 rounded-full text-sm font-bold">Combos</button></div><div class="grid grid-cols-1 gap-3">`;
+                const filtered = SERVICES.filter(s => selectedCategory === 'todos' || s.category === selectedCategory);
+                html += filtered.map(s => `<div onclick="selectService(${s.id})" class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/30 cursor-pointer flex justify-between items-center ${bookingData.service?.id === s.id ? 'selected ring-1 ring-amber-500' : ''}"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center text-amber-500 border border-white/5"><i data-lucide="${s.category === 'barba' ? 'smile' : 'scissors'}" class="w-6 h-6"></i></div><div><h4 class="font-bold text-white text-lg">${s.name}</h4><p class="text-zinc-400 text-xs">${s.description}</p><span class="text-[10px] uppercase font-bold text-zinc-500 bg-zinc-900/50 px-2 py-0.5 rounded mt-2 inline-block">${s.duration}</span></div></div><div class="text-right"><span class="block text-xl font-bold text-white">R$ ${s.price}</span></div></div>`).join('');
+                html += '</div>';
+            } else if (currentStep === 2) {
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Profissional</h4><div class="grid grid-cols-1 sm:grid-cols-2 gap-4">` + BARBERS.map(b => `<div onclick="selectBarber(${b.id})" class="glass-card p-4 rounded-xl border border-white/5 bg-zinc-800/30 cursor-pointer flex items-center gap-4 ${bookingData.barber?.id === b.id ? 'selected ring-1 ring-amber-500' : ''}"><div class="w-14 h-14 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-700">${b.image ? `<img src="${b.image}" class="w-full h-full object-cover">` : '<div class="w-full h-full flex items-center justify-center text-zinc-500"><i data-lucide="user"></i></div>'}</div><div><h4 class="font-bold text-white">${b.name}</h4><p class="text-xs text-amber-500 font-bold uppercase">${b.role}</p></div></div>`).join('') + `</div>`;
+            } else if (currentStep === 3) {
+                const dates = []; const today = new Date(); for(let i=0;i<7;i++) { const d=new Date(today); d.setDate(today.getDate()+i); dates.push(d); }
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Data e Hora</h4><div class="mb-8"><div class="flex gap-3 overflow-x-auto pb-4 custom-scrollbar">` + dates.map(d => `<div onclick="selectDate('${d.toISOString()}')" class="flex-shrink-0 w-20 h-24 rounded-xl flex flex-col items-center justify-center cursor-pointer border transition-all ${bookingData.date?.toDateString() === d.toDateString() ? 'bg-amber-600 border-amber-500 text-white' : 'bg-zinc-800/40 border-white/5 text-zinc-400'}"><span class="text-[0.7rem] font-bold uppercase">${d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')}</span><span class="text-2xl font-bold">${d.getDate()}</span></div>`).join('') + `</div></div>`;
+                if (bookingData.date) {
+                    html += `<div id="slots-container" class="space-y-6">`;
+                    const periods = { 'Manhã': [9,10,11], 'Tarde': [13,14,15,16,17], 'Noite': [18,19,20] };
+                    for (const [p, hs] of Object.entries(periods)) {
+                        html += `<div><h5 class="text-white font-bold mb-3 text-sm flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-amber-500"></div> ${p}</h5><div class="grid grid-cols-4 gap-3">`;
+                        hs.forEach(h => { [`${h}:00`,`${h}:30`].forEach(t => {
+                            const taken = unavailableSlots.includes(t);
+                            html += `<button ${taken?'disabled':`onclick="selectTime('${t}')"`} class="py-2 rounded-lg text-sm font-bold border ${taken?'bg-zinc-900/30 text-zinc-700 border-transparent line-through':bookingData.time===t?'bg-white text-black':'bg-zinc-800/50 border-white/5 text-zinc-300 hover:border-amber-500'}">${t}</button>`;
+                        })});
+                        html += `</div></div>`;
+                    }
+                    html += `</div>`;
+                }
+            } else if (currentStep === 4) {
+                const name = bookingData.clientName || '';
+                html += `<h4 class="text-2xl font-bold text-white mb-6">Confirmação</h4><div class="space-y-6 max-w-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4"><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">Nome</label><input type="text" oninput="updateClientData('clientName', this.value)" value="${name}" class="w-full glass-input rounded-xl py-3 px-4" placeholder="Seu nome"></div><div class="space-y-2"><label class="text-xs font-bold text-zinc-400 uppercase">WhatsApp</label><input name="phone" type="tel" oninput="updateClientData('clientPhone', this.value)" value="${bookingData.clientPhone}" class="w-full glass-input rounded-xl py-3 px-4" placeholder="(00) 00000-0000" maxlength="15"></div></div>
+                    <div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5 flex items-center gap-2"><i data-lucide="store" class="text-amber-500 w-5 h-5"></i><span class="text-sm text-zinc-300">Pagamento no Local</span></div>
+                </div>`;
+            } else if (currentStep === 5) {
+                html += `<div class="h-full flex flex-col items-center justify-center text-center"><div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6"><i data-lucide="check" class="w-10 h-10 text-green-500"></i></div><h3 class="text-3xl font-bold text-white mb-2">Confirmado!</h3><p class="text-zinc-400 mb-8">Te esperamos lá.</p><div class="flex flex-col gap-3 w-full max-w-xs"><button onclick="closeBooking(); openAppointments()" class="w-full bg-zinc-800 hover:bg-zinc-700 text-white font-bold py-3 rounded-xl">Meus Agendamentos</button><button onclick="closeBooking()" class="text-zinc-500 hover:text-white text-sm">Fechar</button></div></div>`;
+            }
+            content.innerHTML = html + '</div>';
+            lucide.createIcons();
+        }
+
+        function renderServicesLanding() {
+            document.getElementById('services-grid').innerHTML = SERVICES.map(s => `<div class="glass-card p-8 rounded-2xl group cursor-default"><div class="flex justify-between items-start mb-6"><div class="p-3 bg-white/5 rounded-xl text-amber-500 group-hover:bg-amber-600 group-hover:text-white transition-colors border border-white/5"><i data-lucide="scissors" class="w-6 h-6"></i></div><span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span></div><h3 class="text-xl font-bold text-white mb-2 group-hover:text-amber-500 transition-colors">${s.name}</h3><p class="text-zinc-400 mb-6 text-sm leading-relaxed min-h-[40px]">${s.description}</p><div class="flex items-center justify-between border-t border-white/5 pt-4"><div class="flex items-center text-xs text-zinc-500 gap-2 font-medium uppercase tracking-wider"><i data-lucide="clock" class="w-3 h-3"></i> <span>${s.duration}</span></div><button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold hover:text-amber-400 transition-colors flex items-center gap-1 opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 duration-300">Reservar <i data-lucide="arrow-right" class="w-3 h-3"></i></button></div></div>`).join('');
+        }
+        function renderTestimonials() {
+             document.getElementById('testimonials-grid').innerHTML = TESTIMONIALS.map(t => `<div class="glass-card p-8 rounded-2xl border border-white/5 relative bg-zinc-900/20"><div class="absolute -top-3 left-8 bg-amber-600 text-white px-3 py-1 rounded-md shadow-lg shadow-amber-900/50 flex gap-1 text-xs">${Array(t.rating).fill('<i data-lucide="star" class="w-3 h-3 fill-current"></i>').join('')}</div><div class="mt-4 mb-6"><p class="text-zinc-300 italic text-lg leading-relaxed">"${t.text}"</p></div><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-700 to-zinc-900 flex items-center justify-center border border-white/10"><span class="font-bold text-zinc-400 text-sm">${t.name.charAt(0)}</span></div><div><span class="font-bold text-white block text-sm">${t.name}</span><span class="text-xs text-zinc-500 uppercase tracking-wider">Cliente Verificado</span></div></div></div>`).join('');
+        }
+        function toggleMobileMenuImpl() {
+            const menu = document.getElementById('mobile-menu'); const icon = document.getElementById('menu-icon');
+            menu.classList.toggle('hidden'); icon.setAttribute('data-lucide', menu.classList.contains('hidden') ? 'menu' : 'x'); lucide.createIcons();
+        }
+        function toggleProfileDropdownImpl() {
+             const d = document.getElementById('profile-dropdown');
+             if(d) { d.classList.toggle('opacity-0'); d.classList.toggle('invisible'); d.classList.toggle('translate-y-2'); d.classList.toggle('translate-y-0'); }
+        }
+        function openAppointmentsImpl() {
+            if(!currentUser) { openAuthModalImpl(); return; }
+            document.getElementById('appointments-modal').classList.remove('hidden');
+            document.getElementById('appointments-content').innerHTML = '<div class="flex justify-center p-8"><div class="loader"></div></div>';
+            fetchAppointments(currentUser.id);
+        }
+        function closeAppointmentsImpl() { document.getElementById('appointments-modal').classList.add('hidden'); }
+
+        function renderAppointments() {
+             const c = document.getElementById('appointments-content');
+             if(!c) return;
+             if(appointments.length === 0) { c.innerHTML = `<div class="text-center py-10 text-zinc-500"><i data-lucide="calendar-x" class="w-12 h-12 mx-auto mb-4 opacity-50"></i><p>Sem agendamentos.</p></div>`; lucide.createIcons(); return; }
+             
+             c.innerHTML = `<div class="space-y-3">` + appointments.map(a => {
+                 const d = a.date ? new Date(a.date) : null;
+                 const day = d ? d.getDate() : '--';
+                 const m = d ? d.toLocaleDateString('pt-BR',{month:'short'}).toUpperCase().replace('.','') : '';
+                 return `<div class="glass-card p-0 rounded-2xl border border-white/5 bg-zinc-800/30 overflow-hidden flex flex-col sm:flex-row"><div class="bg-zinc-900/80 p-4 sm:w-20 flex flex-col items-center justify-center border-b sm:border-b-0 sm:border-r border-white/5"><span class="text-xs font-bold text-amber-500">${m}</span><span class="text-xl font-bold text-white">${day}</span><span class="text-[10px] text-zinc-500">${a.time}</span></div><div class="p-4 flex-1"><div class="flex justify-between items-start mb-2"><h4 class="font-bold text-white text-sm">${a.service?.name||'Serviço'}</h4><span class="bg-green-500/10 text-green-400 text-[9px] font-bold px-2 py-0.5 rounded border border-green-500/20">CONFIRMADO</span></div><div class="flex items-center gap-2 text-xs text-zinc-400"><i data-lucide="user" class="w-3 h-3"></i> ${a.barber?.name||'Profissional'}</div></div><div class="p-2 sm:w-24 bg-white/5 flex items-center justify-center"><button onclick="deleteAppointment('${a.id}')" class="text-red-400 hover:text-white hover:bg-red-500/20 p-2 rounded-lg transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+             }).join('') + `</div>`;
+             lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
