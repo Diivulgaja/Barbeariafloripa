@@ -102,9 +102,8 @@
         }
 
         .glass-card.selected {
-            background: rgba(217, 119, 6, 0.15);
+            background: rgba(217, 119, 6, 0.08);
             border-color: #d97706;
-            box-shadow: 0 0 20px -5px rgba(217, 119, 6, 0.2);
         }
 
         .glass-input {
@@ -630,6 +629,36 @@
             supabaseClient = createMockClient();
         }
 
+        // --- DATA ---
+        const SERVICES = [
+            { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, duration: "45 min", description: "O tradicional na tesoura ou máquina." },
+            { id: 2, category: 'barba', name: "Ritual de Barba", price: 40, duration: "30 min", description: "Toalha quente e alinhamento." },
+            { id: 3, category: 'combo', name: "Cabelo & Barba", price: 80, duration: "75 min", description: "A experiência completa com desconto." },
+            { id: 4, category: 'cabelo', name: "Acabamento", price: 20, duration: "15 min", description: "Pezinho e contorno." },
+            { id: 5, category: 'cabelo', name: "Infantil", price: 45, duration: "40 min", description: "Para crianças." },
+            { id: 6, category: 'cabelo', name: "Selagem", price: 120, duration: "90 min", description: "Redução de volume." }
+        ];
+
+        const BARBERS = [
+            { id: 1, name: "Ricardo", role: "Master", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 2, name: "André", role: "Pro", image: "https://images.unsplash.com/photo-1618077553780-7553d680668f?auto=format&fit=crop&q=80&w=200&h=200" },
+            { id: 3, name: "Disponível", role: "Equipe", image: null }
+        ];
+
+        const TESTIMONIALS = [
+            { id: 1, name: "Carlos E.", text: "O melhor degradê que já fiz. O Ricardo é fera.", rating: 5 },
+            { id: 2, name: "Felipe S.", text: "Ambiente top, cerveja gelada e resenha boa.", rating: 5 },
+            { id: 3, name: "João P.", text: "Prático e rápido. Virei cliente fiel.", rating: 5 },
+        ];
+
+        let currentUser = null;
+        let currentStep = 1;
+        let selectedCategory = 'todos';
+        let pendingBooking = false; 
+        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
+        let appointments = [];
+        let unavailableSlots = []; 
+
         // --- GLOBAL EXPORTS ---
         window.openAuthModal = (tab) => openAuthModalImpl(tab);
         window.closeAuthModal = () => closeAuthModalImpl();
@@ -650,8 +679,6 @@
         window.selectDate = (d) => selectDateImpl(d);
         window.selectTime = (t) => selectTimeImpl(t);
         window.selectCategory = (cat) => selectCategoryImpl(cat);
-        // window.selectPayment removed - only local payment
-        
         window.updateClientData = (f, v) => updateClientDataImpl(f, v);
         
         window.openAppointments = () => openAppointmentsImpl();
@@ -680,51 +707,6 @@
             };
         }
 
-        // --- DATA ---
-        const SERVICES = [
-            { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, duration: "45 min", description: "O tradicional na tesoura ou máquina." },
-            { id: 2, category: 'barba', name: "Ritual de Barba", price: 40, duration: "30 min", description: "Toalha quente e alinhamento." },
-            { id: 3, category: 'combo', name: "Cabelo & Barba", price: 80, duration: "75 min", description: "A experiência completa com desconto." },
-            { id: 4, category: 'cabelo', name: "Acabamento", price: 20, duration: "15 min", description: "Pezinho e contorno." },
-            { id: 5, category: 'cabelo', name: "Infantil", price: 45, duration: "40 min", description: "Para os pequenos (até 12 anos)." },
-            { id: 6, category: 'cabelo', name: "Selagem", price: 120, duration: "90 min", description: "Redução de volume." }
-        ];
-
-        const BARBERS = [
-            { id: 1, name: "Ricardo", role: "Master", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
-            { id: 2, name: "André", role: "Pro", image: "https://images.unsplash.com/photo-1618077553780-7553d680668f?auto=format&fit=crop&q=80&w=200&h=200" },
-            { id: 3, name: "Disponível", role: "Equipe", image: null }
-        ];
-
-        const TESTIMONIALS = [
-            { id: 1, name: "Carlos E.", text: "O melhor degradê que já fiz. O Ricardo é fera.", rating: 5 },
-            { id: 2, name: "Felipe S.", text: "Ambiente top, cerveja gelada e resenha boa.", rating: 5 },
-            { id: 3, name: "João P.", text: "Prático e rápido. Virei cliente fiel.", rating: 5 },
-        ];
-
-        let currentUser = null;
-        let currentStep = 1;
-        let selectedCategory = 'todos';
-        let pendingBooking = false; 
-        let bookingData = { service: null, barber: null, date: null, time: null, clientName: '', clientPhone: '', paymentMethod: 'local', notes: '' };
-        let appointments = [];
-        let unavailableSlots = []; 
-
-        document.addEventListener('DOMContentLoaded', () => {
-            renderServicesLanding();
-            renderTestimonials();
-            lucide.createIcons();
-            
-            if (USE_MOCK) {
-                const s = localStorage.getItem('mock_session');
-                if (s) handleSession(JSON.parse(s)); else updateUIForGuest();
-            } else {
-                supabaseClient.auth.getSession().then(({ data: { session } }) => handleSession(session));
-                supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
-            }
-        });
-
-        // --- IMPL FUNCTIONS ---
         function handleSession(session) {
             if (session) {
                 currentUser = {
@@ -847,7 +829,8 @@
         function selectBarberImpl(id) { bookingData.barber = BARBERS.find(b => b.id === id); updateSummary(); nextStepImpl(); }
         async function selectDateImpl(dStr) { 
             const d = new Date(dStr); bookingData.date = d; bookingData.time = null; updateSummary(); 
-            document.getElementById('slots-container').innerHTML = '<div class="col-span-full text-center py-4"><div class="loader"></div></div>';
+            const slotsContainer = document.getElementById('slots-container');
+            if (slotsContainer) slotsContainer.innerHTML = '<div class="col-span-full text-center py-4"><div class="loader"></div></div>';
             unavailableSlots = await fetchUnavailableSlots(d, bookingData.barber?.id);
             renderStep();
         }
