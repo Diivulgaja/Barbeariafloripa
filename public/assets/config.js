@@ -3,7 +3,7 @@
 
 window.APP_CONFIG = {
   SUPABASE_URL: "https://mfycmbbsijylwervuuwf.supabase.co",
-  SUPABASE_ANON_KEY: "COLE_SUA_ANON_KEY_AQUI",
+  SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1meWNtYmJzaWp5bHdlcnZ1dXdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk3Mzk0NTYsImV4cCI6MjA4NTMxNTQ1Nn0.cJ5gn5a2MKzux6Aigvno9hjOIcPEbnuBwukAuOPzRLs",
   BUSINESS: {
     name: "Ricardo Barbershop",
     city: "Florianópolis - SC",
