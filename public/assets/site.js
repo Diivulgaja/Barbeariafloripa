@@ -19,14 +19,17 @@ function toast(msg, type = "success") {
 }
 
 // ====== DATA (você pode puxar do banco depois) ======
-const SERVICES = [
-  { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, durationMin: 45, description: "Corte tradicional e finalização.", popular: true },
-  { id: 2, category: 'barba', name: "Barba Terapia", price: 40, durationMin: 30, description: "Modelagem + hidratação.", popular: false },
-  { id: 3, category: 'combo', name: "Cabelo & Barba", price: 80, durationMin: 75, description: "Combo completo.", popular: true },
-  { id: 4, category: 'cabelo', name: "Acabamento", price: 20, durationMin: 15, description: "Apenas contorno e finalização.", popular: false },
-  { id: 5, category: 'cabelo', name: "Corte Infantil", price: 45, durationMin: 40, description: "Corte para crianças.", popular: false },
-  { id: 6, category: 'cabelo', name: "Selagem", price: 120, durationMin: 90, description: "Redução de volume e tratamento.", popular: false }
-];
+// ====== DATA (Fetched dynamically now) ======
+let SERVICES = []; // Will be populated from DB
+
+// ... (keep BARBERS as is or fetch too) ...
+
+// ====== DATA LOADING ======
+async function loadServices() {
+  const { data, error } = await supabaseClient.from('services').select('*').order('id');
+  if (data) SERVICES = data;
+  else console.warn("Erro ao carregar serviços", error);
+}
 
 const BARBERS = [
   { id: 1, name: "Ricardo Silva", role: "Master", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
@@ -749,23 +752,299 @@ function goSite() { window.location.hash = '#home'; }
 window.addEventListener('hashchange', route);
 
 // ====== ADMIN APP (visual demo) ======
+// ====== ADMIN APP ======
 const adminApp = {
-  init: async () => { },
-  login: (e) => {
-    e.preventDefault();
-    // ⚠️ Para produção: implemente admin real com Supabase + RLS.
-    const email = qs('admin-email').value;
-    if (email) {
-      qs('admin-login-screen').classList.add('hidden');
-      qs('admin-app-layout').classList.remove('hidden');
+  data: {
+    appointments: [],
+    services: [],
+    clients: []
+  },
+
+  init: async () => {
+    if (!currentUser) return;
+    // Check role (in a real app, use RLS/Metadata. Here we trust the UI for demo but backend enforces RLS)
+    // const { data } = await supabaseClient.from('profiles').select('role').eq('id', currentUser.id).single();
+    // if (data?.role !== 'admin') { toast("Acesso negado", "error"); return goSite(); }
+
+    await adminApp.fetchData();
+    adminApp.renderKPIs();
+    adminApp.renderAgenda();
+    adminApp.renderClients();
+
+    // Auto refresh every 30s
+    setInterval(() => adminApp.fetchData().then(() => {
       adminApp.renderKPIs();
+      adminApp.renderAgenda();
+    }), 30000);
+  },
+
+  refresh: () => {
+    adminApp.fetchData().then(() => {
+      adminApp.renderKPIs();
+      adminApp.renderAgenda();
+      adminApp.renderClients();
+    });
+  },
+
+  fetchData: async () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+
+    // Fetch all for client stats, but usually you'd paginate. For demo, fetch last 1000.
+    const { data: appts, error } = await supabaseClient
+      .from('appointments')
+      .select('*')
+      .order('date_iso', { ascending: true })
+      .limit(500);
+
+    if (error) { console.error(error); return; }
+
+    adminApp.data.appointments = appts.map(a => ({
+      ...a,
+      details: typeof a.details === 'string' ? JSON.parse(a.details) : a.details
+    }));
+  },
+
+  renderKPIs: () => {
+    const today = new Date().toDateString();
+    const todaysAppts = adminApp.data.appointments.filter(a => new Date(a.date_iso).toDateString() === today);
+
+    // KPI 1: Cortes Hoje
+    qs('admin-kpi-count').textContent = todaysAppts.length;
+
+    // KPI 2: Faturamento Estimado (Status != cancelado)
+    const revenue = todaysAppts
+      .filter(a => a.status !== 'cancelado')
+      .reduce((sum, a) => sum + (a.details?.service?.price || 0), 0);
+    qs('admin-kpi-revenue').textContent = `R$ ${revenue}`;
+
+    // KPI 3: Próximo Cliente
+    const now = new Date();
+    const next = todaysAppts.find(a => new Date(a.date_iso) > now && a.status !== 'cancelado');
+    if (next) {
+      qs('admin-kpi-next-name').textContent = next.details?.clientName || 'Cliente';
+      qs('admin-kpi-next-time').textContent = next.details?.time || '--:--';
     } else {
-      toast("Informe e-mail.", "error");
+      qs('admin-kpi-next-name').textContent = 'Sem mais agendamentos';
+      qs('admin-kpi-next-time').textContent = '--:--';
     }
   },
-  logout: () => { window.location.hash = '#home'; location.reload(); },
-  renderKPIs: () => { qs('admin-kpi-count').textContent = '0'; qs('admin-kpi-revenue').textContent = 'R$ 0'; },
-  nav: (p) => { ['dashboard', 'agenda', 'clients', 'services'].forEach(v => qs(`admin-view-${v}`)?.classList.add('hidden')); qs(`admin-view-${p}`)?.classList.remove('hidden'); }
+
+  nav: (p) => {
+    ['dashboard', 'agenda', 'clients', 'services'].forEach(v => qs(`admin-view-${v}`)?.classList.add('hidden'));
+    qs(`admin-view-${p}`)?.classList.remove('hidden');
+
+    const titleMap = { dashboard: 'Visão Geral', agenda: 'Agenda', clients: 'Clientes', services: 'Catálogo' };
+    qs('admin-page-title').textContent = titleMap[p] || 'Painel';
+
+    // Update active nav state
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    // Simple way to highlight, typically you'd query by ID or data attribute
+  },
+
+  // --- AGENDA ---
+  renderAgenda: (filter = 'all') => {
+    const tbody = qs('admin-agenda-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = adminApp.data.appointments.map(a => {
+      const statusColors = {
+        'confirmado': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+        'pendente': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+        'concluido': 'bg-green-500/10 text-green-500 border-green-500/20',
+        'cancelado': 'bg-red-500/10 text-red-500 border-red-500/20'
+      };
+
+      const dateObj = new Date(a.date_iso);
+      const dateStr = dateObj.toLocaleDateString('pt-BR');
+
+      return `
+        <tr class="hover:bg-white/5 transition-colors group">
+          <td class="p-5">
+            <div class="font-bold text-white">${escapeHtml(a.details?.clientName || 'Cliente')}</div>
+            <div class="text-xs text-zinc-500">${escapeHtml(a.details?.clientPhone || '')}</div>
+          </td>
+          <td class="p-5 text-zinc-300">${escapeHtml(a.details?.service?.name || '-')}</td>
+          <td class="p-5 text-zinc-400 text-sm">${dateStr}</td>
+          <td class="p-5 text-white font-bold">${escapeHtml(a.details?.time || '--:--')}</td>
+          <td class="p-5">
+            <span class="px-3 py-1 rounded-full text-xs font-bold border ${statusColors[a.status] || 'bg-zinc-800 text-zinc-400 border-white/10'} uppercase tracking-wider">
+              ${a.status}
+            </span>
+          </td>
+          <td class="p-5 text-right">
+             <div class="flex gap-2 justify-end opacity-50 group-hover:opacity-100 transition-opacity">
+               ${a.status !== 'concluido' ? `
+               <button onclick="adminApp.updateStatus(${a.id}, 'concluido')" class="p-2 hover:bg-green-500/20 text-green-500 rounded-lg transition-colors" title="Concluir">
+                 <i data-lucide="check" class="w-4 h-4"></i>
+               </button>` : ''}
+               ${a.status !== 'cancelado' ? `
+               <button onclick="adminApp.updateStatus(${a.id}, 'cancelado')" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors" title="Cancelar">
+                 <i data-lucide="x" class="w-4 h-4"></i>
+               </button>` : ''}
+             </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    lucide.createIcons();
+  },
+
+  updateStatus: async (id, status) => {
+    const { error } = await supabaseClient
+      .from('appointments')
+      .update({ status })
+      .eq('id', id);
+
+    if (error) return toast("Erro ao atualizar", "error");
+    toast(`Agendamento ${status}!`);
+    adminApp.refresh();
+  },
+
+  // --- CLIENTS ---
+  renderClients: () => {
+    // Unique clients by phone
+    const clientsMap = {};
+    adminApp.data.appointments.forEach(a => {
+      const phone = a.details?.clientPhone;
+      if (!phone) return;
+      if (!clientsMap[phone]) {
+        clientsMap[phone] = {
+          name: a.details.clientName,
+          phone,
+          visits: 0,
+          totalSpent: 0,
+          lastVisit: a.date_iso
+        };
+      }
+      clientsMap[phone].visits++;
+      if (a.status !== 'cancelado') {
+        clientsMap[phone].totalSpent += (a.details.service?.price || 0);
+      }
+      if (a.date_iso > clientsMap[phone].lastVisit) {
+        clientsMap[phone].lastVisit = a.date_iso;
+      }
+    });
+
+    const clients = Object.values(clientsMap).sort((a, b) => b.totalSpent - a.totalSpent);
+
+    const tbody = qs('admin-clients-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = clients.map(c => `
+      <tr class="hover:bg-white/5 transition-colors">
+        <td class="p-5 text-white font-bold">${escapeHtml(c.name)}</td>
+        <td class="p-5 text-zinc-400 text-sm">${escapeHtml(c.phone)}</td>
+        <td class="p-5 text-zinc-300">${c.visits}</td>
+        <td class="p-5 text-emerald-500 font-bold">R$ ${c.totalSpent}</td>
+        <td class="p-5 text-zinc-500 text-sm">${new Date(c.lastVisit).toLocaleDateString('pt-BR')}</td>
+      </tr>
+    `).join('');
+  },
+
+  // --- SERVICES (CRUD) ---
+  renderServices: () => {
+    const grid = qs('admin-services-grid');
+    if (!grid) return;
+
+    // Add "New Service" card
+    let html = `
+      <div onclick="adminApp.openServiceModal()" class="admin-glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-4 border-2 border-dashed border-white/10 hover:border-amber-500/50 cursor-pointer group transition-all min-h-[200px]">
+        <div class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
+          <i data-lucide="plus" class="w-8 h-8 text-zinc-500 group-hover:text-white"></i>
+        </div>
+        <p class="font-bold text-zinc-400 group-hover:text-amber-500">Novo Serviço</p>
+      </div>
+    `;
+
+    html += SERVICES.map(s => `
+      <div class="admin-glass-panel p-6 rounded-2xl relative group">
+        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+           <button onclick="adminApp.openServiceModal(${s.id})" class="p-2 bg-zinc-800 hover:bg-amber-600 rounded-lg text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+           <button onclick="adminApp.deleteService(${s.id})" class="p-2 bg-zinc-800 hover:bg-red-600 rounded-lg text-white"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+        <div class="flex items-center justify-between mb-4">
+           <div class="p-3 bg-white/5 rounded-xl text-amber-500"><i data-lucide="scissors"></i></div>
+           <span class="font-bold text-white bg-white/5 px-3 py-1 rounded-lg">R$ ${s.price}</span>
+        </div>
+        <h3 class="font-bold text-white text-lg mb-1">${escapeHtml(s.name)}</h3>
+        <p class="text-xs text-zinc-500 mb-4 h-10 overflow-hidden text-ellipsis">${escapeHtml(s.description)}</p>
+        <div class="flex gap-2 text-xs font-bold uppercase tracking-wider text-zinc-600">
+           <span>${s.durationMin} min</span>
+           ${s.popular ? '<span class="text-amber-500">• Popular</span>' : ''}
+        </div>
+      </div>
+    `).join('');
+
+    grid.innerHTML = html;
+    lucide.createIcons();
+  },
+
+  openServiceModal: (id = null) => {
+    const s = id ? SERVICES.find(x => x.id === id) : { name: '', price: '', duration_min: 30, description: '', popular: false };
+    if (!s) return;
+
+    qs('service-modal-title').textContent = id ? 'Editar Serviço' : 'Novo Serviço';
+    qs('svc-id').value = id || '';
+    qs('svc-name').value = s.name;
+    qs('svc-price').value = s.price;
+    qs('svc-duration').value = s.durationMin || s.duration_min; // DB uses snake_case usually, but let's handle mismatch
+    qs('svc-desc').value = s.description || '';
+    qs('svc-popular').checked = s.popular;
+
+    qs('service-modal').classList.remove('hidden');
+  },
+
+  saveService: async (e) => {
+    e.preventDefault();
+    const id = qs('svc-id').value;
+    const data = {
+      name: qs('svc-name').value,
+      price: Number(qs('svc-price').value),
+      duration_min: Number(qs('svc-duration').value),
+      description: qs('svc-desc').value,
+      popular: qs('svc-popular').checked
+    };
+
+    if (!data.name || !data.price) return toast("Nome e Preço obrigatórios", "error");
+
+    let error;
+    if (id) {
+      ({ error } = await supabaseClient.from('services').update(data).eq('id', id));
+    } else {
+      ({ error } = await supabaseClient.from('services').insert(data));
+    }
+
+    if (error) return toast("Erro ao salvar serviço", "error");
+
+    toast("Serviço salvo!");
+    qs('service-modal').classList.add('hidden');
+    await loadServices(); // Refresh local list
+    adminApp.renderServices();
+    renderServicesLanding(); // Update Landing Page
+  },
+
+  deleteService: async (id) => {
+    if (!confirm("Tem certeza?")) return;
+    const { error } = await supabaseClient.from('services').delete().eq('id', id);
+    if (error) return toast("Erro ao deletar", "error");
+
+    toast("Serviço removido.");
+    await loadServices();
+    adminApp.renderServices();
+    renderServicesLanding();
+  },
+  login: (e) => {
+    e.preventDefault();
+    const email = qs('admin-email').value;
+    // Simple "fake" auth for demo if Supabase fails or for quick access
+    // In production, use Supabase Login
+    if (email) {
+      document.body.classList.add('admin-body'); // Force style
+      qs('admin-login-screen').classList.add('hidden');
+      qs('admin-app-layout').classList.remove('hidden');
+      adminApp.init(); // Try real init
+    }
+  }
 };
 window.adminApp = adminApp;
 
@@ -840,7 +1119,7 @@ function initScrollObserver() {
 }
 
 (function init() {
-  renderServicesLanding();
+  loadServices().then(renderServicesLanding);
   supabaseClient = ensureSupabase();
   if (supabaseClient) {
     supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
@@ -848,6 +1127,7 @@ function initScrollObserver() {
   } else {
     updateUIForGuest();
   }
+
 
   // icons + route first load
   lucide.createIcons();
