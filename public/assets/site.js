@@ -18,7 +18,7 @@ function toast(msg, type="success") {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3200);
 }
 
-// ====== DATA (você pode puxar do banco depois) ======
+// ====== DATA (pode puxar do banco depois) ======
 const SERVICES = [
   { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, durationMin: 45, description: "Corte tradicional e finalização.", popular: true },
   { id: 2, category: 'barba', name: "Barba Terapia", price: 40, durationMin: 30, description: "Modelagem + hidratação.", popular: false },
@@ -44,9 +44,16 @@ let appointments = [];
 let unavailableSlots = [];
 let servicesSearch = "";
 
-// ====== UI helpers ======
+// ====== Helpers ======
 function qs(id){ return document.getElementById(id); }
+function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m])); }
 
+function setBodyLock(locked) {
+  document.documentElement.style.overflow = locked ? 'hidden' : '';
+  document.body.style.overflow = locked ? 'hidden' : '';
+}
+
+// ====== UI helpers ======
 function updateUIForGuest() {
   qs("nav-guest")?.classList.remove("hidden");
   qs("nav-user")?.classList.add("hidden");
@@ -60,11 +67,11 @@ function updateUIForUser(user) {
   qs("mobile-guest")?.classList.add("hidden");
   qs("mobile-user")?.classList.remove("hidden");
 
-  const fullName = user?.name || user?.email || "Usuário";
+  const fullName = (user?.name || user?.email || "Usuário").trim();
   qs("user-name-display").textContent = fullName;
   qs("mobile-user-name").textContent = fullName;
 
-  const initial = (fullName || "U").trim().charAt(0).toUpperCase();
+  const initial = (fullName || "U").charAt(0).toUpperCase();
   qs("user-initial").textContent = initial;
   qs("mobile-user-initial").textContent = initial;
 }
@@ -74,6 +81,7 @@ function closeAuthModalImpl() {
   qs('auth-modal').classList.add('hidden');
   pendingBooking = false;
   qs('form-reset').classList.add('hidden');
+  setBodyLock(false);
 }
 
 function switchAuthTabImpl(tab) {
@@ -141,6 +149,7 @@ async function handleRegisterImpl() {
   if (error) return toast(error.message, "error");
   toast("Conta criada! Verifique seu e-mail se for exigido.", "success");
   switchAuthTabImpl('login');
+  setTimeout(() => qs('login-email')?.focus(), 60);
 }
 
 async function handleGoogleLoginImpl() {
@@ -172,7 +181,6 @@ function handleSession(session) {
   };
   updateUIForUser(currentUser);
 
-  // se o usuário clicou em "Agendar" antes, abrir agora
   if (pendingBooking) {
     pendingBooking = false;
     openBookingImpl();
@@ -195,12 +203,16 @@ function openBookingImpl() {
     return;
   }
   qs('booking-modal').classList.remove('hidden');
+  setBodyLock(true);
   updateSummary();
   renderStep();
   lucide.createIcons();
 }
 
-function closeBookingImpl() { qs('booking-modal').classList.add('hidden'); }
+function closeBookingImpl() {
+  qs('booking-modal').classList.add('hidden');
+  setBodyLock(false);
+}
 
 function prevStepImpl() { currentStep = Math.max(1, currentStep - 1); renderStep(); }
 
@@ -284,13 +296,13 @@ function updateSummary() {
   const desktop = qs('booking-footer-action');
   const mobile = qs('mobile-footer-action');
 
-  const prevBtn = currentStep > 1 ? `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-300 py-3 rounded-xl mb-2">Voltar</button>` : '';
+  const prevBtn = currentStep > 1 ? `<button onclick="prevStep()" class="tap-target w-full border border-white/10 text-zinc-300 py-3 rounded-xl mb-2">Voltar</button>` : '';
   const nextLbl = currentStep === 4 ? 'Confirmar' : 'Continuar';
   const nextCls = currentStep === 4 ? 'bg-amber-600 text-white' : 'bg-white text-black';
 
-  const actions = `${prevBtn}<button onclick="nextStep()" class="w-full ${nextCls} font-bold py-3 rounded-xl">${nextLbl}</button>`;
+  const actions = `${prevBtn}<button onclick="nextStep()" class="tap-target w-full ${nextCls} font-bold py-3 rounded-xl">${nextLbl}</button>`;
   if (desktop) desktop.innerHTML = actions;
-  if (mobile) mobile.innerHTML = `<button onclick="nextStep()" class="${nextCls} font-bold py-3 px-5 rounded-xl">${nextLbl}</button>`;
+  if (mobile) mobile.innerHTML = `<button onclick="nextStep()" class="tap-target ${nextCls} font-bold py-3 px-5 rounded-xl">${nextLbl}</button>`;
 }
 
 function renderStep() {
@@ -314,8 +326,8 @@ function renderStep() {
     html += `<h4 class="text-2xl font-bold text-white mb-4">Escolha o Serviço</h4><div class="grid grid-cols-1 gap-3">${SERVICES.map(s => `
       <div onclick="selectService(${s.id})" class="glass-card p-4 rounded-xl border border-white/5 cursor-pointer flex justify-between items-center ${bookingData.service?.id === s.id ? 'selected' : ''}">
         <div class="flex items-center gap-4">
-           <div class="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center text-amber-500"><i data-lucide="scissors"></i></div>
-           <div><h4 class="font-bold text-white">${escapeHtml(s.name)}</h4><p class="text-zinc-400 text-xs">${s.durationMin} min</p></div>
+          <div class="w-12 h-12 rounded-lg bg-zinc-900 flex items-center justify-center text-amber-500"><i data-lucide="scissors"></i></div>
+          <div><h4 class="font-bold text-white">${escapeHtml(s.name)}</h4><p class="text-zinc-400 text-xs">${s.durationMin} min</p></div>
         </div>
         <span class="block text-xl font-bold text-white">R$ ${s.price}</span>
       </div>`).join('')}</div>`;
@@ -339,7 +351,6 @@ function renderStep() {
       <input type="date" id="date-input-picker" value="${selectedDateStr}" onchange="selectDate(this.value)" class="w-full bg-zinc-900 border border-white/10 p-4 rounded-xl text-white outline-none focus:border-amber-500 mb-6">
       ${bookingData.date ? `<div id="slots-container" class="grid grid-cols-3 sm:grid-cols-4 gap-3"></div>` : `<div class="text-center py-10 text-zinc-500 bg-white/5 rounded-xl border border-white/5">Selecione um dia</div>`}`;
 
-    // auto-load today
     if (!bookingData.date) setTimeout(() => selectDateImpl(todayStr), 0);
   }
 
@@ -353,7 +364,7 @@ function renderStep() {
         </div>
         <div class="space-y-2">
           <label class="text-xs font-bold text-zinc-400">WhatsApp</label>
-          <input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${escapeHtml(bookingData.clientPhone||'')}" class="w-full glass-input rounded-xl py-3 px-4">
+          <input type="tel" inputmode="tel" oninput="updateClientData('clientPhone', this.value)" value="${escapeHtml(bookingData.clientPhone||'')}" class="w-full glass-input rounded-xl py-3 px-4">
         </div>
         <div class="bg-zinc-900/50 p-4 rounded-xl border border-white/5">
           <i data-lucide="store" class="text-amber-500 inline mr-2"></i> Pagamento no local
@@ -367,8 +378,8 @@ function renderStep() {
       <h3 class="text-3xl font-bold text-white">Confirmado!</h3>
       <p class="text-zinc-500 mt-2 mb-8">Seu horário foi reservado com sucesso.</p>
       <div class="flex flex-col gap-3 justify-center items-center">
-        <button onclick="closeBooking(); openAppointments();" class="px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all border border-white/5 w-full max-w-xs">Ir para Meus Agendamentos</button>
-        <button onclick="closeBooking()" class="text-zinc-500 hover:text-white transition-colors text-sm">Fechar</button>
+        <button onclick="closeBooking(); openAppointments();" class="tap-target px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all border border-white/5 w-full max-w-xs">Ir para Meus Agendamentos</button>
+        <button onclick="closeBooking()" class="tap-target text-zinc-500 hover:text-white transition-colors text-sm">Fechar</button>
       </div>
     </div>`;
   }
@@ -435,14 +446,10 @@ function buildSlots(d){
   }
   return s;
 }
-function escapeHtml(s){
-  return String(s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
-}
 
 // ====== DB ======
 async function fetchUnavailableSlots(dateStr, barberId) {
   if (!dateStr) return [];
-  // busca agendamentos do dia
   const { data, error } = await supabaseClient
     .from('appointments')
     .select('details,date_iso')
@@ -535,7 +542,7 @@ function renderAppointments() {
           <div class="text-xs text-zinc-400">${dateStr} às ${escapeHtml(a.time || '')}</div>
           <div class="text-xs text-amber-500 mt-2 font-bold uppercase">${escapeHtml(a.status || '')}</div>
         </div>
-        <a href="${waUrl}" target="_blank" rel="noopener" class="text-xs font-bold px-3 py-2 rounded-lg bg-zinc-900/60 border border-white/10 hover:border-amber-500/60 text-amber-500">
+        <a href="${waUrl}" target="_blank" rel="noopener" class="tap-target text-xs font-bold px-3 py-2 rounded-lg bg-zinc-900/60 border border-white/10 hover:border-amber-500/60 text-amber-500">
           Cancelar (WhatsApp)
         </a>
       </div>
@@ -543,7 +550,7 @@ function renderAppointments() {
   }).join('');
 }
 
-// ====== LANDING SERVICES ======
+// ====== SERVICES (Landing) ======
 function renderServicesLanding() {
   const g = qs('services-grid');
   const list = SERVICES.filter(s => !servicesSearch || s.name.toLowerCase().includes(servicesSearch.toLowerCase()));
@@ -556,7 +563,7 @@ function renderServicesLanding() {
       </div>
       <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(s.name)}</h3>
       <p class="text-zinc-400 mb-6 text-sm min-h-[40px]">${escapeHtml(s.description)}</p>
-      <button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold flex items-center gap-2">Reservar <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+      <button onclick="selectService(${s.id})" class="tap-target text-amber-500 text-sm font-bold flex items-center gap-2">Reservar <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
     </div>`).join('');
   lucide.createIcons();
 }
@@ -567,7 +574,20 @@ function siteSearchServicesImpl(q) {
 }
 
 // ====== MENU / DROPDOWN ======
-function toggleMobileMenuImpl() { qs('mobile-menu')?.classList.toggle('hidden'); }
+function toggleMobileMenuImpl() {
+  const menu = qs('mobile-menu');
+  if (!menu) return;
+  const willOpen = menu.classList.contains('hidden');
+  menu.classList.toggle('hidden');
+  setBodyLock(willOpen);
+}
+
+function closeMobileMenu() {
+  const menu = qs('mobile-menu');
+  if (!menu) return;
+  if (!menu.classList.contains('hidden')) menu.classList.add('hidden');
+  setBodyLock(false);
+}
 
 function closeProfileDropdown() {
   const d = qs('profile-dropdown');
@@ -587,26 +607,42 @@ function toggleProfileDropdownImpl() {
   }
 }
 
-// close dropdown on outside click
+// close dropdown + close mobile menu on outside click
 document.addEventListener('click', (e) => {
   const drop = qs('profile-dropdown');
   const trigger = qs('nav-user');
-  if (!drop || drop.classList.contains('invisible')) return;
-  if (drop.contains(e.target)) return;
-  if (trigger && trigger.contains(e.target)) return;
-  closeProfileDropdown();
+  if (drop && !drop.classList.contains('invisible')) {
+    if (!drop.contains(e.target) && !(trigger && trigger.contains(e.target))) {
+      closeProfileDropdown();
+    }
+  }
+
+  const mobileMenu = qs('mobile-menu');
+  const nav = qs('main-nav');
+  if (mobileMenu && nav && !nav.contains(e.target)) {
+    closeMobileMenu();
+  }
+});
+
+// Close mobile on resize
+window.addEventListener('resize', () => {
+  if (window.innerWidth >= 768) closeMobileMenu();
 });
 
 // ====== APPOINTMENTS MODAL ======
 function openAppointmentsImpl() {
   if (!currentUser) return window.openAuthModal('login');
   qs('appointments-modal').classList.remove('hidden');
+  setBodyLock(true);
   qs('appointments-content').innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
   fetchAppointments(currentUser.id);
 }
-function closeAppointmentsImpl() { qs('appointments-modal').classList.add('hidden'); }
+function closeAppointmentsImpl() {
+  qs('appointments-modal').classList.add('hidden');
+  setBodyLock(false);
+}
 
-// ====== ROUTER (hash) ======
+// ====== ROUTER ======
 function showSiteView() {
   document.body.classList.remove('admin-body');
   qs('admin-root').classList.add('hidden');
@@ -639,15 +675,12 @@ const adminApp = {
   init: async()=>{},
   login: (e)=>{
     e.preventDefault();
-    // ⚠️ Para produção: implemente admin real com Supabase + RLS.
-    const email = qs('admin-email').value;
-    if (email) {
-      qs('admin-login-screen').classList.add('hidden');
-      qs('admin-app-layout').classList.remove('hidden');
-      adminApp.renderKPIs();
-    } else {
-      toast("Informe e-mail.", "error");
-    }
+    const email = qs('admin-email')?.value;
+    const pass = qs('admin-password')?.value;
+    if (!email || !pass) return toast("Informe e-mail e senha.", "error");
+    qs('admin-login-screen').classList.add('hidden');
+    qs('admin-app-layout').classList.remove('hidden');
+    adminApp.renderKPIs();
   },
   logout: ()=>{ window.location.hash = '#home'; location.reload(); },
   renderKPIs: ()=>{ qs('admin-kpi-count').textContent = '0'; qs('admin-kpi-revenue').textContent = 'R$ 0'; },
@@ -655,11 +688,13 @@ const adminApp = {
 };
 window.adminApp = adminApp;
 
-// ====== EXPORT GLOBALS (para onclick do HTML) ======
+// ====== EXPORT GLOBALS (onclick HTML) ======
 window.openAuthModal = function(tab){
   qs('auth-modal').classList.remove('hidden');
+  setBodyLock(true);
   switchAuthTabImpl(tab);
   lucide.createIcons();
+  setTimeout(() => qs('login-email')?.focus(), 80);
 };
 window.closeAuthModal = closeAuthModalImpl;
 window.switchAuthTab = switchAuthTabImpl;
@@ -692,6 +727,21 @@ window.route = route;
 window.goAdmin = goAdmin;
 window.goSite = goSite;
 
+// ESC closes modals
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+
+  const bookingOpen = qs('booking-modal') && !qs('booking-modal').classList.contains('hidden');
+  const authOpen = qs('auth-modal') && !qs('auth-modal').classList.contains('hidden');
+  const apptOpen = qs('appointments-modal') && !qs('appointments-modal').classList.contains('hidden');
+
+  if (bookingOpen) window.closeBooking();
+  if (authOpen) window.closeAuthModal();
+  if (apptOpen) window.closeAppointments();
+  closeMobileMenu();
+  closeProfileDropdown();
+});
+
 // ====== INIT ======
 function ensureSupabase() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === "COLE_SUA_ANON_KEY_AQUI") {
@@ -703,15 +753,55 @@ function ensureSupabase() {
   });
 }
 
+function initNavbarPolish() {
+  const nav = qs('main-nav');
+  const wa = qs('wa-float');
+  const navInner = qs('nav-inner');
+
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || 0;
+    nav?.classList.toggle('nav-shadow', y > 10);
+
+    if (navInner) {
+      if (y > 30) navInner.classList.add('py-2');
+      else navInner.classList.remove('py-2');
+    }
+
+    if (wa) {
+      if (y > 500) wa.classList.remove('hidden');
+      else wa.classList.add('hidden');
+    }
+  });
+}
+
+function initHeroMotion() {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const v = qs('hero-video');
+  if (prefersReducedMotion && v) {
+    try {
+      v.pause();
+      v.removeAttribute('autoplay');
+    } catch {}
+  }
+}
+
 (function init(){
   renderServicesLanding();
+
   supabaseClient = ensureSupabase();
-  if (!supabaseClient) { updateUIForGuest(); return; }
+  if (!supabaseClient) {
+    updateUIForGuest();
+    lucide.createIcons();
+    route();
+    return;
+  }
 
   supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
   supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
 
-  // icons + route first load
+  initNavbarPolish();
+  initHeroMotion();
+
   lucide.createIcons();
   route();
 })();
