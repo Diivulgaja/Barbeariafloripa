@@ -5,6 +5,44 @@ const BUSINESS = CFG.BUSINESS || {};
 const SUPABASE_URL = CFG.SUPABASE_URL || "";
 const SUPABASE_ANON_KEY = CFG.SUPABASE_ANON_KEY || "";
 
+// ====== EXPORT GLOBALS (Move up to ensure early availability) ======
+window.toast = toast;
+window.openAuthModal = function (tab) {
+  qs('auth-modal').classList.remove('hidden');
+  switchAuthTabImpl(tab);
+  lucide.createIcons();
+};
+window.closeAuthModal = closeAuthModalImpl;
+window.switchAuthTab = switchAuthTabImpl;
+window.openResetPassword = openResetPasswordImpl;
+window.backToLogin = backToLoginImpl;
+window.handleLogin = handleLoginImpl;
+window.handleRegister = handleRegisterImpl;
+window.handleGoogleLogin = handleGoogleLoginImpl;
+window.handleResetPassword = handleResetPasswordImpl;
+window.logout = logoutImpl;
+
+window.startBooking = startBookingImpl;
+window.closeBooking = closeBookingImpl;
+window.nextStep = nextStepImpl;
+window.prevStep = prevStepImpl;
+window.selectService = selectServiceImpl;
+window.selectBarber = selectBarberImpl;
+window.selectDate = selectDateImpl;
+window.selectTime = selectTimeImpl;
+window.updateClientData = updateClientDataImpl;
+
+window.openAppointments = openAppointmentsImpl;
+window.closeAppointments = closeAppointmentsImpl;
+
+window.toggleMobileMenu = toggleMobileMenuImpl;
+window.toggleProfileDropdown = toggleProfileDropdownImpl;
+window.siteSearchServices = siteSearchServicesImpl;
+
+window.route = route;
+window.goAdmin = goAdmin;
+window.goSite = goSite;
+
 // ====== TOAST ======
 function toast(msg, type = "success") {
   const c = document.getElementById('site-toast-container');
@@ -1047,43 +1085,6 @@ const adminApp = {
   }
 };
 window.adminApp = adminApp;
-
-// ====== EXPORT GLOBALS (para onclick do HTML) ======
-window.openAuthModal = function (tab) {
-  qs('auth-modal').classList.remove('hidden');
-  switchAuthTabImpl(tab);
-  lucide.createIcons();
-};
-window.closeAuthModal = closeAuthModalImpl;
-window.switchAuthTab = switchAuthTabImpl;
-window.openResetPassword = openResetPasswordImpl;
-window.backToLogin = backToLoginImpl;
-window.handleLogin = handleLoginImpl;
-window.handleRegister = handleRegisterImpl;
-window.handleGoogleLogin = handleGoogleLoginImpl;
-window.handleResetPassword = handleResetPasswordImpl;
-window.logout = logoutImpl;
-
-window.startBooking = startBookingImpl;
-window.closeBooking = closeBookingImpl;
-window.nextStep = nextStepImpl;
-window.prevStep = prevStepImpl;
-window.selectService = selectServiceImpl;
-window.selectBarber = selectBarberImpl;
-window.selectDate = selectDateImpl;
-window.selectTime = selectTimeImpl;
-window.updateClientData = updateClientDataImpl;
-
-window.openAppointments = openAppointmentsImpl;
-window.closeAppointments = closeAppointmentsImpl;
-
-window.toggleMobileMenu = toggleMobileMenuImpl;
-window.toggleProfileDropdown = toggleProfileDropdownImpl;
-window.siteSearchServices = siteSearchServicesImpl;
-
-window.route = route;
-window.goAdmin = goAdmin;
-window.goSite = goSite;
 
 // ====== INIT ======
 function ensureSupabase() {
