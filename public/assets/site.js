@@ -18,7 +18,7 @@ function toast(msg, type="success") {
   setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3200);
 }
 
-// ====== DATA (pode puxar do banco depois) ======
+// ====== DATA ======
 const SERVICES = [
   { id: 1, category: 'cabelo', name: "Corte Clássico", price: 50, durationMin: 45, description: "Corte tradicional e finalização.", popular: true },
   { id: 2, category: 'barba', name: "Barba Terapia", price: 40, durationMin: 30, description: "Modelagem + hidratação.", popular: false },
@@ -78,9 +78,9 @@ function updateUIForUser(user) {
 
 // ====== AUTH ======
 function closeAuthModalImpl() {
-  qs('auth-modal').classList.add('hidden');
+  qs('auth-modal')?.classList.add('hidden');
   pendingBooking = false;
-  qs('form-reset').classList.add('hidden');
+  qs('form-reset')?.classList.add('hidden');
   setBodyLock(false);
 }
 
@@ -89,6 +89,8 @@ function switchAuthTabImpl(tab) {
   const reg = qs('form-register');
   const tLogin = qs('tab-login');
   const tReg = qs('tab-register');
+
+  if (!login || !reg || !tLogin || !tReg) return;
 
   if (tab === 'login') {
     login.classList.remove('hidden');
@@ -106,17 +108,17 @@ function switchAuthTabImpl(tab) {
 }
 
 function openResetPasswordImpl() {
-  qs('form-login').classList.add('hidden');
-  qs('form-reset').classList.remove('hidden');
+  qs('form-login')?.classList.add('hidden');
+  qs('form-reset')?.classList.remove('hidden');
 }
 
 function backToLoginImpl() {
-  qs('form-reset').classList.add('hidden');
+  qs('form-reset')?.classList.add('hidden');
   switchAuthTabImpl('login');
 }
 
 async function handleResetPasswordImpl() {
-  const email = qs('reset-email').value.trim();
+  const email = qs('reset-email')?.value?.trim();
   if (!email) return toast("Digite seu e-mail.", "error");
   const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
   if (error) return toast(error.message, "error");
@@ -125,8 +127,8 @@ async function handleResetPasswordImpl() {
 }
 
 async function handleLoginImpl() {
-  const email = qs('login-email').value.trim();
-  const password = qs('login-password').value;
+  const email = qs('login-email')?.value?.trim();
+  const password = qs('login-password')?.value;
   if (!email || !password) return toast("Preencha e-mail e senha.", "error");
 
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -136,9 +138,9 @@ async function handleLoginImpl() {
 }
 
 async function handleRegisterImpl() {
-  const name = qs('register-name').value.trim();
-  const email = qs('register-email').value.trim();
-  const password = qs('register-password').value;
+  const name = qs('register-name')?.value?.trim();
+  const email = qs('register-email')?.value?.trim();
+  const password = qs('register-password')?.value;
   if (!name || !email || !password) return toast("Preencha nome, e-mail e senha.", "error");
 
   const { error } = await supabaseClient.auth.signUp({
@@ -202,7 +204,7 @@ function openBookingImpl() {
     window.openAuthModal('login');
     return;
   }
-  qs('booking-modal').classList.remove('hidden');
+  qs('booking-modal')?.classList.remove('hidden');
   setBodyLock(true);
   updateSummary();
   renderStep();
@@ -210,7 +212,7 @@ function openBookingImpl() {
 }
 
 function closeBookingImpl() {
-  qs('booking-modal').classList.add('hidden');
+  qs('booking-modal')?.classList.add('hidden');
   setBodyLock(false);
 }
 
@@ -259,8 +261,7 @@ async function selectDateImpl(ymd) {
 
   try {
     unavailableSlots = await fetchUnavailableSlots(ymd, bookingData.barber?.id);
-  } catch (e) {
-    console.error("Erro ao buscar horários", e);
+  } catch {
     unavailableSlots = [];
   }
   renderStep();
@@ -372,18 +373,6 @@ function renderStep() {
       </div>`;
   }
 
-  if (currentStep === 5) {
-    html += `<div class="text-center py-10">
-      <div class="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mb-6 mx-auto"><i data-lucide="check" class="w-10 h-10 text-green-500"></i></div>
-      <h3 class="text-3xl font-bold text-white">Confirmado!</h3>
-      <p class="text-zinc-500 mt-2 mb-8">Seu horário foi reservado com sucesso.</p>
-      <div class="flex flex-col gap-3 justify-center items-center">
-        <button onclick="closeBooking(); openAppointments();" class="tap-target px-8 py-3 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-xl transition-all border border-white/5 w-full max-w-xs">Ir para Meus Agendamentos</button>
-        <button onclick="closeBooking()" class="tap-target text-zinc-500 hover:text-white transition-colors text-sm">Fechar</button>
-      </div>
-    </div>`;
-  }
-
   content.innerHTML = html + '</div>';
   lucide.createIcons();
   updateSummary();
@@ -395,14 +384,6 @@ function renderSlots() {
   if (!grid || !bookingData.date) return;
 
   const slots = buildSlots(bookingData.date);
-  if (!slots.length) {
-    grid.innerHTML = `<div class="col-span-full text-center py-10 text-zinc-500 border border-white/5 rounded-xl">
-      <p class="mb-2 font-bold text-amber-500">Sem horários disponíveis.</p>
-      <p class="text-xs">Estamos fechados neste dia ou o expediente já encerrou.</p>
-    </div>`;
-    return;
-  }
-
   grid.innerHTML = slots.map(slot => {
     if (slot.status === 'busy') {
       return `<button disabled class="slot-btn py-3 rounded-lg border border-white/5 text-zinc-600 bg-zinc-900/30 text-xs font-bold relative opacity-50 cursor-not-allowed"><span class="line-through decoration-white/20">${slot.time}</span></button>`;
@@ -456,10 +437,7 @@ async function fetchUnavailableSlots(dateStr, barberId) {
     .gte('date_iso', `${dateStr}T00:00:00`)
     .lt('date_iso', `${dateStr}T23:59:59`);
 
-  if (error) {
-    console.warn("fetchUnavailableSlots error", error);
-    return [];
-  }
+  if (error) return [];
 
   return (data||[])
     .map(r => (typeof r.details === 'string' ? JSON.parse(r.details) : r.details))
@@ -488,10 +466,7 @@ async function saveAppointment() {
   };
 
   const { error } = await supabaseClient.from('appointments').insert(payload);
-  if (error) {
-    console.warn(error);
-    return toast("Erro ao salvar. Verifique se o horário já foi ocupado.", "error");
-  }
+  if (error) return toast("Erro ao salvar. Horário pode ter sido ocupado.", "error");
 
   toast("Agendamento confirmado!");
   currentStep = 5;
@@ -506,10 +481,7 @@ async function fetchAppointments(uid) {
     .eq('user_id', uid)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.warn(error);
-    return;
-  }
+  if (error) return;
 
   appointments = (data||[]).map(i => ({
     id: i.id,
@@ -553,6 +525,7 @@ function renderAppointments() {
 // ====== SERVICES (Landing) ======
 function renderServicesLanding() {
   const g = qs('services-grid');
+  if (!g) return;
   const list = SERVICES.filter(s => !servicesSearch || s.name.toLowerCase().includes(servicesSearch.toLowerCase()));
   g.innerHTML = list.map(s => `
     <div class="glass-card p-8 rounded-2xl group cursor-default relative overflow-hidden">
@@ -607,7 +580,6 @@ function toggleProfileDropdownImpl() {
   }
 }
 
-// close dropdown + close mobile menu on outside click
 document.addEventListener('click', (e) => {
   const drop = qs('profile-dropdown');
   const trigger = qs('nav-user');
@@ -624,7 +596,6 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Close mobile on resize
 window.addEventListener('resize', () => {
   if (window.innerWidth >= 768) closeMobileMenu();
 });
@@ -632,27 +603,27 @@ window.addEventListener('resize', () => {
 // ====== APPOINTMENTS MODAL ======
 function openAppointmentsImpl() {
   if (!currentUser) return window.openAuthModal('login');
-  qs('appointments-modal').classList.remove('hidden');
+  qs('appointments-modal')?.classList.remove('hidden');
   setBodyLock(true);
   qs('appointments-content').innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
   fetchAppointments(currentUser.id);
 }
 function closeAppointmentsImpl() {
-  qs('appointments-modal').classList.add('hidden');
+  qs('appointments-modal')?.classList.add('hidden');
   setBodyLock(false);
 }
 
 // ====== ROUTER ======
 function showSiteView() {
   document.body.classList.remove('admin-body');
-  qs('admin-root').classList.add('hidden');
-  qs('site-root').classList.remove('hidden');
+  qs('admin-root')?.classList.add('hidden');
+  qs('site-root')?.classList.remove('hidden');
   lucide.createIcons();
 }
 function showAdminView() {
   document.body.classList.add('admin-body');
-  qs('site-root').classList.add('hidden');
-  qs('admin-root').classList.remove('hidden');
+  qs('site-root')?.classList.add('hidden');
+  qs('admin-root')?.classList.remove('hidden');
   lucide.createIcons();
   if (!window.__adminInitialized) {
     window.__adminInitialized = true;
@@ -670,7 +641,7 @@ function goAdmin() { window.location.hash = '#admin'; }
 function goSite() { window.location.hash = '#home'; }
 window.addEventListener('hashchange', route);
 
-// ====== ADMIN APP (visual demo) ======
+// ====== Admin (visual demo) ======
 const adminApp = {
   init: async()=>{},
   login: (e)=>{
@@ -678,8 +649,8 @@ const adminApp = {
     const email = qs('admin-email')?.value;
     const pass = qs('admin-password')?.value;
     if (!email || !pass) return toast("Informe e-mail e senha.", "error");
-    qs('admin-login-screen').classList.add('hidden');
-    qs('admin-app-layout').classList.remove('hidden');
+    qs('admin-login-screen')?.classList.add('hidden');
+    qs('admin-app-layout')?.classList.remove('hidden');
     adminApp.renderKPIs();
   },
   logout: ()=>{ window.location.hash = '#home'; location.reload(); },
@@ -688,9 +659,9 @@ const adminApp = {
 };
 window.adminApp = adminApp;
 
-// ====== EXPORT GLOBALS (onclick HTML) ======
+// ====== EXPORT GLOBALS ======
 window.openAuthModal = function(tab){
-  qs('auth-modal').classList.remove('hidden');
+  qs('auth-modal')?.classList.remove('hidden');
   setBodyLock(true);
   switchAuthTabImpl(tab);
   lucide.createIcons();
@@ -730,17 +701,37 @@ window.goSite = goSite;
 // ESC closes modals
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-
-  const bookingOpen = qs('booking-modal') && !qs('booking-modal').classList.contains('hidden');
-  const authOpen = qs('auth-modal') && !qs('auth-modal').classList.contains('hidden');
-  const apptOpen = qs('appointments-modal') && !qs('appointments-modal').classList.contains('hidden');
-
-  if (bookingOpen) window.closeBooking();
-  if (authOpen) window.closeAuthModal();
-  if (apptOpen) window.closeAppointments();
+  if (qs('booking-modal') && !qs('booking-modal').classList.contains('hidden')) window.closeBooking();
+  if (qs('auth-modal') && !qs('auth-modal').classList.contains('hidden')) window.closeAuthModal();
+  if (qs('appointments-modal') && !qs('appointments-modal').classList.contains('hidden')) window.closeAppointments();
   closeMobileMenu();
   closeProfileDropdown();
 });
+
+// ✅ Navbar polish (SEM mexer em padding)
+function initNavbarPolish() {
+  const nav = qs('main-nav');
+  const wa = qs('wa-float');
+
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY || 0;
+    nav?.classList.toggle('nav-shadow', y > 10);
+
+    if (wa) {
+      if (y > 500) wa.classList.remove('hidden');
+      else wa.classList.add('hidden');
+    }
+  });
+}
+
+// Reduce motion video
+function initHeroMotion() {
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const v = qs('hero-video');
+  if (prefersReducedMotion && v) {
+    try { v.pause(); v.removeAttribute('autoplay'); } catch {}
+  }
+}
 
 // ====== INIT ======
 function ensureSupabase() {
@@ -751,38 +742,6 @@ function ensureSupabase() {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
   });
-}
-
-function initNavbarPolish() {
-  const nav = qs('main-nav');
-  const wa = qs('wa-float');
-  const navInner = qs('nav-inner');
-
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY || 0;
-    nav?.classList.toggle('nav-shadow', y > 10);
-
-    if (navInner) {
-      if (y > 30) navInner.classList.add('py-2');
-      else navInner.classList.remove('py-2');
-    }
-
-    if (wa) {
-      if (y > 500) wa.classList.remove('hidden');
-      else wa.classList.add('hidden');
-    }
-  });
-}
-
-function initHeroMotion() {
-  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const v = qs('hero-video');
-  if (prefersReducedMotion && v) {
-    try {
-      v.pause();
-      v.removeAttribute('autoplay');
-    } catch {}
-  }
 }
 
 (function init(){
