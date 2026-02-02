@@ -1,4 +1,5 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+// REMOVED IMPORT: Using global 'supabase' from CDN
+// import { createClient } from "..." 
 
 const CFG = window.APP_CONFIG || {};
 const BUSINESS = CFG.BUSINESS || {};
@@ -1094,6 +1095,8 @@ function ensureSupabase() {
     toast("Configure SUPABASE_URL e SUPABASE_ANON_KEY em assets/config.js", "error");
     return null;
   }
+  // Use global 'supabase' object from CDN
+  const { createClient } = window.supabase;
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true }
   });
