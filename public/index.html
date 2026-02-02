@@ -770,6 +770,315 @@
     </div>
   </div>
 
+  <!-- AUTH MODAL -->
+  <div id="auth-modal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-in-up">
+    <div
+      class="relative w-full max-w-md bg-[#18181b] rounded-3xl border border-white/10 shadow-2xl overflow-hidden glass-panel">
+      <!-- ... auth content ... -->
+      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i
+          data-lucide="x"></i></button>
+      <div id="auth-content" class="p-8">
+        <div id="auth-message-container"
+          class="hidden mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
+          <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
+          <p id="auth-message-text" class="text-sm text-amber-200">
+            Para agendar seu horário, faça login ou crie sua conta.
+          </p>
+        </div>
+
+        <div class="flex gap-6 border-b border-white/10 mb-6">
+          <button onclick="switchAuthTab('login')" id="tab-login"
+            class="pb-2 text-amber-500 border-b-2 border-amber-500 font-bold text-lg transition-all">Entrar</button>
+          <button onclick="switchAuthTab('register')" id="tab-register"
+            class="pb-2 text-zinc-400 hover:text-white font-medium text-lg transition-all">Criar Conta</button>
+        </div>
+
+        <div id="form-login" class="space-y-5">
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
+            <input type="email" id="login-email" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="seu@email.com">
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
+            <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="••••••••">
+          </div>
+
+          <button onclick="handleLogin()"
+            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
+            Entrar
+          </button>
+
+          <button onclick="openResetPassword()" class="w-full text-sm text-zinc-400 hover:text-white transition-colors">
+            Esqueci minha senha
+          </button>
+        </div>
+
+        <div id="form-register" class="space-y-5 hidden">
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">Nome Completo</label>
+            <input type="text" id="register-name" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="Seu nome">
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
+            <input type="email" id="register-email" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="seu@email.com">
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
+            <input type="password" id="register-password" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="••••••••">
+          </div>
+          <button onclick="handleRegister()"
+            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
+            Criar Conta
+          </button>
+        </div>
+
+        <div id="form-reset" class="space-y-5 hidden">
+          <p class="text-sm text-zinc-400">Digite seu e-mail para receber o link de recuperação.</p>
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
+            <input type="email" id="reset-email" class="w-full glass-input rounded-xl py-3 px-4"
+              placeholder="seu@email.com">
+          </div>
+          <button onclick="handleResetPassword()"
+            class="w-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-3 rounded-xl transition-all">
+            Enviar Link
+          </button>
+          <button onclick="backToLogin()"
+            class="w-full text-sm text-zinc-400 hover:text-white transition-colors">Voltar</button>
+        </div>
+
+        <div class="relative my-7">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-white/10"></div>
+          </div>
+          <div class="relative flex justify-center text-xs uppercase">
+            <span class="bg-[#18181b] px-4 text-zinc-500 font-bold">Ou continue com</span>
+          </div>
+        </div>
+
+        <button onclick="handleGoogleLogin()"
+          class="w-full glass-input hover:bg-white hover:text-black transition-colors font-bold py-3 rounded-xl flex items-center justify-center gap-3 group">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              fill="#4285F4" />
+            <path
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              fill="#34A853" />
+            <path
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"
+              fill="#FBBC05" />
+            <path
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              fill="#EA4335" />
+          </svg>
+          <span id="google-btn-text">Google</span>
+          <div id="google-loader" class="loader hidden"></div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKING MODAL -->
+  <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-0 md:p-4">
+    <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeBooking()"></div>
+
+    <div
+      class="glass-panel w-full h-full md:h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+        <div>
+          <h3 class="text-xl font-bold text-white">Agendar Horário</h3>
+          <p class="text-xs text-zinc-500 mt-1" id="step-hint">Escolha o serviço desejado</p>
+        </div>
+        <button onclick="closeBooking()"
+          class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+
+      <div class="px-8 py-4 bg-zinc-900/30 border-b border-white/5">
+        <div class="flex items-center justify-between max-w-md mx-auto">
+          <div class="flex flex-col items-center gap-2">
+            <div class="step-dot active" id="dot-1">1</div>
+            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Serviço</span>
+          </div>
+          <div class="step-line" id="line-1"></div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="step-dot" id="dot-2">2</div>
+            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Barbeiro</span>
+          </div>
+          <div class="step-line" id="line-2"></div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="step-dot" id="dot-3">3</div>
+            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Data</span>
+          </div>
+          <div class="step-line" id="line-3"></div>
+          <div class="flex flex-col items-center gap-2">
+            <div class="step-dot" id="dot-4">4</div>
+            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Final</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-1 overflow-hidden relative">
+        <div id="booking-content" class="flex-1 p-6 overflow-y-auto border-r border-white/5 pb-24 md:pb-6"></div>
+
+        <div class="hidden md:flex w-80 glass-panel flex-col p-8 border-l border-white/5 relative bg-[#0c0c0e]">
+          <h4 class="text-xs font-bold text-amber-500 uppercase tracking-[0.25em] mb-8 flex items-center gap-2">
+            <span class="w-8 h-px bg-amber-500/50"></span> Resumo
+          </h4>
+
+          <div class="space-y-8 flex-1">
+            <div class="flex gap-4 items-start group">
+              <div
+                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                <i data-lucide="scissors" class="w-5 h-5 text-amber-500"></i>
+              </div>
+              <div>
+                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Serviço</p>
+                <p id="summary-service" class="text-base font-bold text-white leading-tight">Nenhum</p>
+                <p id="summary-price" class="text-xs text-amber-500 font-bold mt-1 tracking-wide opacity-80">--</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4 items-start group">
+              <div
+                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                <i data-lucide="user" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
+              </div>
+              <div>
+                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Profissional</p>
+                <p id="summary-barber"
+                  class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">--</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4 items-start group">
+              <div
+                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                <i data-lucide="calendar" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
+              </div>
+              <div>
+                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Data e Hora</p>
+                <p id="summary-date" class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
+                  --</p>
+              </div>
+            </div>
+
+            <div class="flex gap-4 items-start group">
+              <div
+                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                <i data-lucide="store" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
+              </div>
+              <div>
+                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Pagamento</p>
+                <p id="summary-payment" class="text-sm font-medium text-zinc-300">No Local</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-8 border-t border-white/5">
+            <div class="flex justify-between items-end mb-6">
+              <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
+              <span id="summary-total" class="text-3xl font-bold text-white tracking-tight">R$ 0,00</span>
+            </div>
+            <div id="booking-footer-action"></div>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="md:hidden p-4 border-t border-white/5 bg-zinc-900/90 backdrop-blur flex justify-between items-center absolute bottom-0 w-full z-20">
+        <div class="text-left">
+          <p class="text-xs text-zinc-500">Total</p>
+          <p id="mobile-total" class="font-bold text-white text-lg">R$ 0,00</p>
+        </div>
+        <div id="mobile-footer-action" class="flex items-center"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MY APPOINTMENTS MODAL -->
+  <div id="appointments-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
+    <div
+      class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <i data-lucide="calendar-check" class="text-amber-500"></i> Meus Agendamentos
+        </h3>
+        <button onclick="closeAppointments()"
+          class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="p-4 border-b border-white/5 bg-zinc-900/30">
+        <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+          <div class="text-sm text-zinc-400">
+            Cancelar: somente via WhatsApp (botão dentro do agendamento).
+          </div>
+          <button onclick="startBooking()"
+            class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-sm">
+            Novo Agendamento
+          </button>
+        </div>
+      </div>
+      <div id="appointments-content" class="p-6 overflow-y-auto flex-1 space-y-4"></div>
+    </div>
+  </div>
+  <!-- SERVICE MODAL (ADMIN) -->
+  <div id="service-modal"
+    class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-in-up">
+    <div class="relative w-full max-w-md glass-panel p-8 rounded-3xl overflow-hidden">
+      <button onclick="document.getElementById('service-modal').classList.add('hidden')"
+        class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i data-lucide="x"></i></button>
+      <h3 id="service-modal-title" class="text-2xl font-bold text-white mb-6">Novo Serviço</h3>
+      <form onsubmit="adminApp.saveService(event)" class="space-y-4">
+        <input type="hidden" id="svc-id">
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Nome</label>
+          <input id="svc-name" type="text"
+            class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
+            placeholder="Ex: Corte Degadê" required>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Preço (R$)</label>
+            <input id="svc-price" type="number"
+              class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
+              placeholder="00" required>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Duração (min)</label>
+            <input id="svc-duration" type="number"
+              class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
+              value="30">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Descrição</label>
+          <textarea id="svc-desc" rows="3"
+            class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
+            placeholder="Detalhes do serviço..."></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input id="svc-popular" type="checkbox"
+            class="w-5 h-5 rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-amber-500">
+          <label for="svc-popular" class="text-sm text-zinc-300">Marcar como Popular</label>
+        </div>
+        <button type="submit"
+          class="w-full py-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-900/20 transition-all">Salvar
+          Serviço</button>
+      </form>
+    </div>
+  </div>
+
   <!-- SUPABASE (Global UMD) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
