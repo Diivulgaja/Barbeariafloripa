@@ -1086,6 +1086,8 @@ const adminApp = {
 };
 window.adminApp = adminApp;
 
+window.adminApp = adminApp;
+
 // ====== INIT ======
 function ensureSupabase() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === "COLE_SUA_ANON_KEY_AQUI") {
