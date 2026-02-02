@@ -216,9 +216,12 @@ async function nextStepImpl() {
 function selectServiceImpl(id) {
   bookingData.service = SERVICES.find(x => x.id === id) || null;
   bookingData.time = null;
+  // Initialize user data if needed (in case startBooking wasn't called)
+  if (!bookingData.clientName && currentUser) bookingData.clientName = currentUser.name;
+
   updateSummary();
   currentStep = 2;
-  renderStep();
+  openBookingImpl();
 }
 
 function selectBarberImpl(id) {
