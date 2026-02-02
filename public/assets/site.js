@@ -366,7 +366,7 @@ function renderStep() {
       <h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4>
       <div class="grid grid-cols-1 gap-4">
         ${SERVICES.map(s => `
-        <div onclick="selectService(${s.id})" class="group relative overflow-hidden glass-panel p-5 rounded-2xl border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 ${bookingData.service?.id === s.id ? 'border-amber-500 bg-amber-500/5' : ''}">
+        <div onclick="selectService('${s.id}')" class="group relative overflow-hidden glass-panel p-5 rounded-2xl border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 ${bookingData.service?.id === s.id ? 'border-amber-500 bg-amber-500/5' : ''}">
            <div class="flex items-center gap-5 relative z-10">
               <div class="w-14 h-14 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-amber-500 shadow-inner group-hover:scale-110 transition-transform duration-300">
                 <i data-lucide="scissors" class="w-6 h-6"></i>
@@ -393,7 +393,7 @@ function renderStep() {
       <h4 class="text-2xl font-bold text-white mb-6">Profissional</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
         ${BARBERS.map(b => `
-        <div onclick="selectBarber(${b.id})" class="group glass-panel p-6 rounded-2xl border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/50' : ''}">
+        <div onclick="selectBarber('${b.id}')" class="group glass-panel p-6 rounded-2xl border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/50' : ''}">
           <div class="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border-4 border-zinc-900 shadow-xl group-hover:border-amber-500/50 transition-colors">
             ${b.image ? `<img src="${b.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${escapeHtml(b.name)}">` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><i data-lucide="user" class="w-10 h-10"></i></div>`}
           </div>
