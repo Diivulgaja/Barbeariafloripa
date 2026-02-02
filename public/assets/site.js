@@ -236,7 +236,13 @@ function openBookingImpl() {
     window.openAuthModal('login');
     return;
   }
-  qs('booking-modal').classList.remove('hidden');
+  const modal = qs('booking-modal');
+  if (!modal) {
+    console.error('CRITICAL: booking-modal not found in DOM!');
+    toast('Erro interno: Janela de agendamento não encontrada.', 'error');
+    return;
+  }
+  modal.classList.remove('hidden');
   updateSummary();
   renderStep();
   lucide.createIcons();
