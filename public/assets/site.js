@@ -65,9 +65,18 @@ let SERVICES = []; // Will be populated from DB
 
 // ====== DATA LOADING ======
 async function loadServices() {
-  const { data, error } = await supabaseClient.from('services').select('*').order('id');
-  if (data) SERVICES = data;
-  else console.warn("Erro ao carregar serviços", error);
+  try {
+    const { data, error } = await supabaseClient.from('services').select('*').order('id');
+    if (data) {
+      SERVICES = data;
+      renderServicesLanding();
+    } else {
+      console.warn("Erro ao carregar serviços", error);
+      toast("Não foi possível carregar os serviços. Verifique sua conexão.", "error");
+    }
+  } catch (err) {
+    console.error("Erro fatal ao carregar serviços:", err);
+  }
 }
 
 const BARBERS = [
@@ -262,7 +271,8 @@ async function nextStepImpl() {
 }
 
 function selectServiceImpl(id) {
-  bookingData.service = SERVICES.find(x => x.id === id) || null;
+  // Use == to allow numeric vs string comparison
+  bookingData.service = SERVICES.find(x => x.id == id) || null;
   bookingData.time = null;
   // Initialize user data if needed (in case startBooking wasn't called)
   if (!bookingData.clientName && currentUser) bookingData.clientName = currentUser.name;
