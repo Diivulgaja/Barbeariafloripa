@@ -161,3 +161,25 @@ button, a[role="button"], .tap-target {
   margin-bottom: calc(8px + var(--safe-bottom));
   margin-right: calc(8px + var(--safe-right));
 }
+
+/* ... (mantenha seu CSS atual) ... */
+
+/* Fix: evitar o nome do usuário quebrar layout */
+#user-name-display {
+  max-width: 150px;
+}
+
+/* Fix: navbar não deixar nada estourar */
+#nav-inner {
+  align-items: center;
+}
+
+/* No mobile, nomes grandes não estouram */
+#mobile-user-name {
+  max-width: 220px;
+}
+
+/* Melhor alinhamento do avatar sempre */
+#user-avatar, #user-initial {
+  display: block;
+}
