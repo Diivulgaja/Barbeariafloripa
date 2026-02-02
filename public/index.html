@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" class="scroll-smooth">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -31,7 +32,9 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet">
 
   <link rel="stylesheet" href="./assets/site.css" />
 
@@ -52,7 +55,8 @@
     <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-300">
       <div class="container mx-auto px-6 py-4 flex justify-between items-center">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
+          <div
+            class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
             <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
           </div>
           <div>
@@ -63,21 +67,28 @@
 
         <!-- Desktop Menu -->
         <div class="hidden md:flex items-center gap-8">
-          <a href="#home" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
-          <a href="#services" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
-          <a href="#team" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Equipe</a>
-          <a href="#about" class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
+          <a href="#home"
+            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
+          <a href="#services"
+            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
+          <a href="#team"
+            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Equipe</a>
+          <a href="#about"
+            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
 
-          <button onclick="goAdmin()" class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
+          <button onclick="goAdmin()"
+            class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
             Painel
           </button>
 
           <!-- Guest -->
           <div id="nav-guest" class="flex items-center gap-4 border-l border-white/10 pl-6">
-            <button onclick="openAuthModal('login')" class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
+            <button onclick="openAuthModal('login')"
+              class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
               Entrar
             </button>
-            <button onclick="startBooking()" class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
+            <button onclick="startBooking()"
+              class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
               Agendar Horário
             </button>
           </div>
@@ -91,24 +102,30 @@
               </div>
               <div class="w-10 h-10 rounded-full bg-zinc-800 border-2 border-amber-600 overflow-hidden">
                 <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
-                <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
+                <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U
+                </div>
               </div>
             </div>
 
-            <div id="profile-dropdown" class="absolute top-full right-0 mt-2 w-56 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible transition-all duration-200 transform translate-y-2 z-50">
-              <button onclick="openAppointments()" class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
+            <div id="profile-dropdown"
+              class="absolute top-full right-0 mt-2 w-56 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible transition-all duration-200 transform translate-y-2 z-50">
+              <button onclick="openAppointments()"
+                class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
                 <i data-lucide="calendar-check" class="w-4 h-4"></i> Meus Agendamentos
               </button>
-              <button onclick="startBooking()" class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
+              <button onclick="startBooking()"
+                class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> Novo Agendamento
               </button>
               <div class="h-px bg-white/10 my-1"></div>
-              <button onclick="logout()" class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2">
+              <button onclick="logout()"
+                class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2">
                 <i data-lucide="log-out" class="w-4 h-4"></i> Sair
               </button>
             </div>
 
-            <button onclick="startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(217,119,6,0.3)] ml-2">
+            <button onclick="startBooking()"
+              class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(217,119,6,0.3)] ml-2">
               Novo Corte
             </button>
           </div>
@@ -121,7 +138,8 @@
       </div>
 
       <!-- Mobile Menu Dropdown -->
-      <div id="mobile-menu" class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b] z-40">
+      <div id="mobile-menu"
+        class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b] z-40">
         <div class="flex flex-col gap-4">
           <a href="#home" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Início</a>
           <a href="#services" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Serviços</a>
@@ -132,10 +150,12 @@
           </button>
 
           <div id="mobile-guest" class="flex flex-col gap-3 pt-4 border-t border-white/5">
-            <button onclick="toggleMobileMenu(); openAuthModal('login')" class="text-lg font-medium text-zinc-300 text-left">
+            <button onclick="toggleMobileMenu(); openAuthModal('login')"
+              class="text-lg font-medium text-zinc-300 text-left">
               Entrar / Cadastrar
             </button>
-            <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl">
+            <button onclick="toggleMobileMenu(); startBooking()"
+              class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl">
               Agendar Agora
             </button>
           </div>
@@ -143,7 +163,8 @@
           <div id="mobile-user" class="hidden flex-col gap-3 pt-4 border-t border-white/5">
             <div class="flex items-center gap-3 mb-2">
               <div class="w-10 h-10 rounded-full bg-zinc-800 border border-amber-600 overflow-hidden flex-shrink-0">
-                <div id="mobile-user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
+                <div id="mobile-user-initial"
+                  class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
               </div>
               <div>
                 <p class="text-xs text-zinc-500">Logado como</p>
@@ -151,15 +172,18 @@
               </div>
             </div>
 
-            <button onclick="toggleMobileMenu(); openAppointments()" class="text-lg font-medium text-amber-500 text-left flex items-center gap-2">
+            <button onclick="toggleMobileMenu(); openAppointments()"
+              class="text-lg font-medium text-amber-500 text-left flex items-center gap-2">
               <i data-lucide="calendar-check" class="w-5 h-5"></i> Meus Agendamentos
             </button>
 
-            <button onclick="toggleMobileMenu(); startBooking()" class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl mt-2">
+            <button onclick="toggleMobileMenu(); startBooking()"
+              class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl mt-2">
               Novo Agendamento
             </button>
 
-            <button onclick="toggleMobileMenu(); logout()" class="text-lg font-medium text-red-400 text-left flex items-center gap-2">
+            <button onclick="toggleMobileMenu(); logout()"
+              class="text-lg font-medium text-red-400 text-left flex items-center gap-2">
               <i data-lucide="log-out" class="w-5 h-5"></i> Sair
             </button>
           </div>
@@ -180,38 +204,46 @@
 
       <div class="container mx-auto px-6 relative z-10 pt-24 md:pt-20">
         <div class="max-w-3xl animate-fade-in-up text-center md:text-left">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
             <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span class="text-xs font-medium text-amber-200 uppercase tracking-wider">Agendamento 100% online</span>
           </div>
-          <h1 class="text-4xl sm:text-5xl md:text-8xl font-bold text-white leading-[1.1] md:leading-[0.9] mb-6 md:mb-8 tracking-tight">
-            Domine <br/><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu Estilo.</span>
+          <h1
+            class="text-4xl sm:text-5xl md:text-8xl font-bold text-white leading-[1.1] md:leading-[0.9] mb-6 md:mb-8 tracking-tight">
+            Domine <br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu
+              Estilo.</span>
           </h1>
-          <p class="text-zinc-400 text-base md:text-xl mb-8 md:mb-10 leading-relaxed max-w-lg font-light mx-auto md:mx-0">
-            Agende pelo site em segundos. Pagamento <b>apenas no local</b>. WhatsApp somente para dúvidas ou cancelamentos.
+          <p
+            class="text-zinc-400 text-base md:text-xl mb-8 md:mb-10 leading-relaxed max-w-lg font-light mx-auto md:mx-0">
+            Agende pelo site em segundos. Pagamento <b>apenas no local</b>. WhatsApp somente para dúvidas ou
+            cancelamentos.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
-            <button onclick="startBooking()" class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
-              Agendar Agora <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            <button onclick="startBooking()"
+              class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
+              Agendar Agora <i data-lucide="arrow-right"
+                class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
             </button>
-            <button onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})" class="glass-panel hover:bg-white/5 text-white border border-white/10 font-bold py-4 px-8 rounded-xl transition-all">
+            <button onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})"
+              class="glass-panel hover:bg-white/5 text-white border border-white/10 font-bold py-4 px-8 rounded-xl transition-all">
               Conhecer Serviços
             </button>
           </div>
 
           <div class="grid grid-cols-3 gap-8 pt-8 border-t border-white/10 max-w-lg mx-auto md:mx-0">
-             <div class="text-center md:text-left">
-                <p class="text-2xl font-bold text-white">+5 Anos</p>
-                <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">De História</p>
-             </div>
-             <div class="text-center md:text-left">
-                <p class="text-2xl font-bold text-white">12k+</p>
-                <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Cortes Feitos</p>
-             </div>
-             <div class="text-center md:text-left">
-                <p class="text-2xl font-bold text-white">4.9/5</p>
-                <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Avaliação</p>
-             </div>
+            <div class="text-center md:text-left">
+              <p class="text-2xl font-bold text-white">+5 Anos</p>
+              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">De História</p>
+            </div>
+            <div class="text-center md:text-left">
+              <p class="text-2xl font-bold text-white">12k+</p>
+              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Cortes Feitos</p>
+            </div>
+            <div class="text-center md:text-left">
+              <p class="text-2xl font-bold text-white">4.9/5</p>
+              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Avaliação</p>
+            </div>
           </div>
         </div>
       </div>
@@ -219,7 +251,8 @@
 
     <!-- SERVICES -->
     <section id="services" class="py-16 md:py-28 relative">
-      <div class="absolute top-1/2 left-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[128px] pointer-events-none"></div>
+      <div class="absolute top-1/2 left-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[128px] pointer-events-none">
+      </div>
 
       <div class="container mx-auto px-6 relative">
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-14 gap-6">
@@ -235,9 +268,11 @@
             <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
               <div class="relative w-full sm:w-72">
                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i>
-                <input id="services-search" oninput="siteSearchServices(this.value)" placeholder="Buscar serviço..." class="w-full glass-input rounded-full py-2.5 pl-10 pr-4 text-sm">
+                <input id="services-search" oninput="siteSearchServices(this.value)" placeholder="Buscar serviço..."
+                  class="w-full glass-input rounded-full py-2.5 pl-10 pr-4 text-sm">
               </div>
-              <button onclick="startBooking()" class="bg-white text-zinc-950 hover:bg-zinc-200 font-bold px-4 py-2.5 rounded-full">
+              <button onclick="startBooking()"
+                class="bg-white text-zinc-950 hover:bg-zinc-200 font-bold px-4 py-2.5 rounded-full">
                 Agendar
               </button>
             </div>
@@ -250,30 +285,36 @@
 
     <!-- ABOUT -->
     <section id="about" class="py-20 relative bg-[#09090b] overflow-hidden">
-      <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+      <div
+        class="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none">
+      </div>
 
       <div class="container mx-auto px-6 relative z-10">
         <div class="grid lg:grid-cols-2 gap-16 items-center">
           <div>
             <span class="text-amber-500 font-bold tracking-widest text-xs uppercase mb-2 block">Nossa História</span>
             <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 font-['Playfair_Display'] leading-tight">
-              FORJADOS NA <br/> <span class="text-amber-500">TRADIÇÃO & ESTILO</span>
+              FORJADOS NA <br /> <span class="text-amber-500">TRADIÇÃO & ESTILO</span>
             </h2>
 
             <div class="flex items-center gap-2 mb-8">
-               <div class="w-2 h-2 bg-amber-500 rotate-45"></div>
-               <div class="h-px w-24 bg-gradient-to-r from-amber-500 to-transparent"></div>
+              <div class="w-2 h-2 bg-amber-500 rotate-45"></div>
+              <div class="h-px w-24 bg-gradient-to-r from-amber-500 to-transparent"></div>
             </div>
 
             <div class="space-y-6 text-zinc-400 leading-relaxed text-sm md:text-base">
               <p>
-                A <strong class="text-white">Ricardo Barbershop</strong> nasceu da paixão por unir a tradição da barbearia clássica com a força e determinação do homem moderno. Desde o início, temos sido o destino de quem valoriza não apenas um corte de cabelo, mas uma experiência completa.
+                A <strong class="text-white">Ricardo Barbershop</strong> nasceu da paixão por unir a tradição da
+                barbearia clássica com a força e determinação do homem moderno. Desde o início, temos sido o destino de
+                quem valoriza não apenas um corte de cabelo, mas uma experiência completa.
               </p>
               <p>
-                Nosso espaço foi projetado para transportá-lo a uma atmosfera única. Aqui, você não é apenas um cliente — é um parceiro que merece o melhor atendimento de Florianópolis.
+                Nosso espaço foi projetado para transportá-lo a uma atmosfera única. Aqui, você não é apenas um cliente
+                — é um parceiro que merece o melhor atendimento de Florianópolis.
               </p>
               <p>
-                Com uma equipe de barbeiros altamente qualificados, garantimos que cada visita seja uma jornada de transformação e bem-estar.
+                Com uma equipe de barbeiros altamente qualificados, garantimos que cada visita seja uma jornada de
+                transformação e bem-estar.
               </p>
             </div>
 
@@ -287,50 +328,63 @@
 
           <div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+              <div
+                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
+                <div
+                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
                   <i data-lucide="shield" class="w-5 h-5"></i>
                 </div>
                 <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Tradição</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Honramos as técnicas clássicas da barbearia com um toque moderno.</p>
+                <p class="text-zinc-500 text-xs leading-relaxed">Honramos as técnicas clássicas da barbearia com um
+                  toque moderno.</p>
               </div>
 
-              <div class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+              <div
+                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
+                <div
+                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
                   <i data-lucide="scissors" class="w-5 h-5"></i>
                 </div>
                 <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Precisão</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Cada corte é executado com a precisão de um verdadeiro artesão.</p>
+                <p class="text-zinc-500 text-xs leading-relaxed">Cada corte é executado com a precisão de um verdadeiro
+                  artesão.</p>
               </div>
 
-              <div class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+              <div
+                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
+                <div
+                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
                   <i data-lucide="heart" class="w-5 h-5"></i>
                 </div>
                 <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Paixão</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Amamos o que fazemos e isso se reflete em cada detalhe.</p>
+                <p class="text-zinc-500 text-xs leading-relaxed">Amamos o que fazemos e isso se reflete em cada detalhe.
+                </p>
               </div>
 
-              <div class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
+              <div
+                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
+                <div
+                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
                   <i data-lucide="star" class="w-5 h-5"></i>
                 </div>
                 <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Excelência</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Buscamos a perfeição em cada serviço que oferecemos.</p>
+                <p class="text-zinc-500 text-xs leading-relaxed">Buscamos a perfeição em cada serviço que oferecemos.
+                </p>
               </div>
             </div>
 
-            <div class="glass-panel p-8 rounded-xl border border-white/5 flex justify-around items-center text-center relative overflow-hidden">
-               <div class="absolute inset-0 bg-amber-500/5"></div>
-               <div class="relative z-10">
-                  <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">+5</span>
-                  <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Anos de História</span>
-               </div>
-               <div class="w-px h-12 bg-white/10 relative z-10"></div>
-               <div class="relative z-10">
-                  <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">12k+</span>
-                  <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Cortes Feitos</span>
-               </div>
+            <div
+              class="glass-panel p-8 rounded-xl border border-white/5 flex justify-around items-center text-center relative overflow-hidden">
+              <div class="absolute inset-0 bg-amber-500/5"></div>
+              <div class="relative z-10">
+                <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">+5</span>
+                <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Anos de História</span>
+              </div>
+              <div class="w-px h-12 bg-white/10 relative z-10"></div>
+              <div class="relative z-10">
+                <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">12k+</span>
+                <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Cortes Feitos</span>
+              </div>
             </div>
           </div>
 
@@ -340,72 +394,86 @@
 
     <!-- TEAM -->
     <section id="team" class="py-16 md:py-24 bg-[#0c0c0e]">
-       <div class="container mx-auto px-6">
-          <div class="text-center mb-16">
-             <span class="text-amber-500 text-xs font-bold uppercase tracking-[0.3em]">Especialistas</span>
-             <h2 class="text-3xl md:text-4xl font-bold text-white mt-4">Mestres da <span class="text-amber-500">Navalha</span></h2>
+      <div class="container mx-auto px-6">
+        <div class="text-center mb-16">
+          <span class="text-amber-500 text-xs font-bold uppercase tracking-[0.3em]">Especialistas</span>
+          <h2 class="text-3xl md:text-4xl font-bold text-white mt-4">Mestres da <span
+              class="text-amber-500">Navalha</span></h2>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div class="glass-card rounded-2xl overflow-hidden group">
+            <div class="relative overflow-hidden aspect-square">
+              <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&h=500&fit=crop"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                alt="Barbeiro 1">
+              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
+              </div>
+              <div class="absolute bottom-6 left-6">
+                <h3 class="text-xl font-bold text-white">Ricardo Silva</h3>
+                <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Master Barber</p>
+              </div>
+            </div>
+            <div class="p-6 border-t border-white/5">
+              <p class="text-zinc-400 text-sm leading-relaxed">Especialista em visagismo e cortes clássicos de tesoura.
+              </p>
+            </div>
           </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-             <div class="glass-card rounded-2xl overflow-hidden group">
-                <div class="relative overflow-hidden aspect-square">
-                   <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&h=500&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Barbeiro 1">
-                   <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80"></div>
-                   <div class="absolute bottom-6 left-6">
-                      <h3 class="text-xl font-bold text-white">Ricardo Silva</h3>
-                      <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Master Barber</p>
-                   </div>
-                </div>
-                <div class="p-6 border-t border-white/5">
-                   <p class="text-zinc-400 text-sm leading-relaxed">Especialista em visagismo e cortes clássicos de tesoura.</p>
-                </div>
-             </div>
-             <div class="glass-card rounded-2xl overflow-hidden group">
-                <div class="relative overflow-hidden aspect-square">
-                   <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Barbeiro 2">
-                   <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80"></div>
-                   <div class="absolute bottom-6 left-6">
-                      <h3 class="text-xl font-bold text-white">André Costa</h3>
-                      <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Fade Expert</p>
-                   </div>
-                </div>
-                <div class="p-6 border-t border-white/5">
-                   <p class="text-zinc-400 text-sm leading-relaxed">Referência em degradês modernos e barboterapia.</p>
-                </div>
-             </div>
-             <div class="glass-card rounded-2xl border-dashed border-2 border-white/5 flex flex-col items-center justify-center p-10 text-center">
-                <div class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-amber-500 mb-6">
-                   <i data-lucide="users" class="w-8 h-8"></i>
-                </div>
-                <h3 class="text-lg font-bold text-white">Equipe Completa</h3>
-                <p class="text-zinc-500 text-xs mt-2">Profissionais treinados no padrão de qualidade Ricardo.</p>
-                <button onclick="startBooking()" class="mt-6 text-amber-500 font-bold uppercase text-[10px] tracking-widest hover:underline">Ver disponibilidade</button>
-             </div>
+          <div class="glass-card rounded-2xl overflow-hidden group">
+            <div class="relative overflow-hidden aspect-square">
+              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop"
+                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                alt="Barbeiro 2">
+              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
+              </div>
+              <div class="absolute bottom-6 left-6">
+                <h3 class="text-xl font-bold text-white">André Costa</h3>
+                <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Fade Expert</p>
+              </div>
+            </div>
+            <div class="p-6 border-t border-white/5">
+              <p class="text-zinc-400 text-sm leading-relaxed">Referência em degradês modernos e barboterapia.</p>
+            </div>
           </div>
-       </div>
+          <div
+            class="glass-card rounded-2xl border-dashed border-2 border-white/5 flex flex-col items-center justify-center p-10 text-center">
+            <div class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-amber-500 mb-6">
+              <i data-lucide="users" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-lg font-bold text-white">Equipe Completa</h3>
+            <p class="text-zinc-500 text-xs mt-2">Profissionais treinados no padrão de qualidade Ricardo.</p>
+            <button onclick="startBooking()"
+              class="mt-6 text-amber-500 font-bold uppercase text-[10px] tracking-widest hover:underline">Ver
+              disponibilidade</button>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- CONTATO -->
     <section id="contact" class="py-20 relative bg-[#09090b] border-t border-white/5">
       <div class="container mx-auto px-6">
         <div class="text-center mb-16">
-          <h2 class="text-3xl md:text-4xl font-bold text-amber-500 uppercase tracking-widest mb-2 font-['Playfair_Display']">Visite o Nosso Salão</h2>
+          <h2
+            class="text-3xl md:text-4xl font-bold text-amber-500 uppercase tracking-widest mb-2 font-['Playfair_Display']">
+            Visite o Nosso Salão</h2>
           <div class="w-2 h-2 bg-amber-500 rotate-45 mx-auto mt-4"></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
           <div class="w-full h-[500px] rounded-xl overflow-hidden border border-white/10 shadow-2xl relative group">
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.637373406206!2d-48.58682292359783!3d-27.57375622325357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527387343053805%3A0xc3f83732e783a62!2sR.%20Irm%C3%A3%20Bonavita%2C%20123%20-%20Capoeiras%2C%20Florian%C3%B3polis%20-%20SC%2C%2088070-630!5e0!3m2!1spt-BR!2sbr!4v1707248382745!5m2!1spt-BR!2sbr" 
-              width="100%" height="100%" style="border:0; filter: grayscale(100%) invert(92%) contrast(83%);" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              class="group-hover:filter-none transition-all duration-500"
-            ></iframe>
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.637373406206!2d-48.58682292359783!3d-27.57375622325357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527387343053805%3A0xc3f83732e783a62!2sR.%20Irm%C3%A3%20Bonavita%2C%20123%20-%20Capoeiras%2C%20Florian%C3%B3polis%20-%20SC%2C%2088070-630!5e0!3m2!1spt-BR!2sbr!4v1707248382745!5m2!1spt-BR!2sbr"
+              width="100%" height="100%" style="border:0; filter: grayscale(100%) invert(92%) contrast(83%);"
+              allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              class="group-hover:filter-none transition-all duration-500"></iframe>
             <div class="absolute inset-0 border-4 border-amber-500/10 pointer-events-none rounded-xl"></div>
           </div>
 
           <div class="space-y-10">
             <div class="space-y-8">
               <div class="flex gap-6">
-                <div class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
+                <div
+                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
                   <i data-lucide="map-pin" class="w-6 h-6"></i>
                 </div>
                 <div>
@@ -419,7 +487,8 @@
               </div>
 
               <div class="flex gap-6">
-                <div class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
+                <div
+                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
                   <i data-lucide="phone" class="w-6 h-6"></i>
                 </div>
                 <div>
@@ -432,29 +501,37 @@
               </div>
 
               <div class="flex gap-6">
-                <div class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
+                <div
+                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
                   <i data-lucide="clock" class="w-6 h-6"></i>
                 </div>
                 <div>
                   <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Horário de Funcionamento</h4>
                   <div class="text-zinc-400 text-sm space-y-2">
-                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Segunda a Sexta:</span> <span class="text-white font-medium">09:00 - 20:00</span></div>
-                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Sábado:</span> <span class="text-white font-medium">09:00 - 18:00</span></div>
-                    <div class="flex justify-between w-64"><span>Domingo:</span> <span class="text-amber-500 font-bold">Fechado</span></div>
+                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Segunda a Sexta:</span>
+                      <span class="text-white font-medium">09:00 - 20:00</span></div>
+                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Sábado:</span> <span
+                        class="text-white font-medium">09:00 - 18:00</span></div>
+                    <div class="flex justify-between w-64"><span>Domingo:</span> <span
+                        class="text-amber-500 font-bold">Fechado</span></div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div class="border border-white/10 bg-zinc-900 rounded-xl p-8 relative overflow-hidden group">
-              <div class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                 <i data-lucide="message-circle" class="w-24 h-24 text-white"></i>
+              <div
+                class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                <i data-lucide="message-circle" class="w-24 h-24 text-white"></i>
               </div>
               <div class="relative z-10">
                 <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Agende pelo WhatsApp</h4>
-                <p class="text-zinc-500 text-xs mb-6 max-w-xs">Prefere agendar direto pelo WhatsApp? Clique no botão abaixo!</p>
+                <p class="text-zinc-500 text-xs mb-6 max-w-xs">Prefere agendar direto pelo WhatsApp? Clique no botão
+                  abaixo!</p>
 
-                <a href="https://wa.me/554896689199" target="_blank" class="block w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-lg text-center transition-all shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 transform hover:-translate-y-1" rel="noopener">
+                <a href="https://wa.me/554896689199" target="_blank"
+                  class="block w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-lg text-center transition-all shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 transform hover:-translate-y-1"
+                  rel="noopener">
                   <i data-lucide="message-circle" class="w-5 h-5"></i>
                   Chamar no WhatsApp
                 </a>
@@ -462,10 +539,13 @@
             </div>
 
             <div class="flex gap-4 pt-4">
-              <a href="https://instagram.com/diivulgaja" target="_blank" class="w-12 h-12 bg-zinc-800 hover:bg-amber-600 border border-white/5 hover:border-amber-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300" rel="noopener">
+              <a href="https://instagram.com/diivulgaja" target="_blank"
+                class="w-12 h-12 bg-zinc-800 hover:bg-amber-600 border border-white/5 hover:border-amber-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300"
+                rel="noopener">
                 <i data-lucide="instagram" class="w-5 h-5"></i>
               </a>
-              <a href="#" class="w-12 h-12 bg-zinc-800 hover:bg-blue-600 border border-white/5 hover:border-blue-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300">
+              <a href="#"
+                class="w-12 h-12 bg-zinc-800 hover:bg-blue-600 border border-white/5 hover:border-blue-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300">
                 <i data-lucide="facebook" class="w-5 h-5"></i>
               </a>
             </div>
@@ -473,23 +553,20 @@
           </div>
         </div>
 
-        <div class="border-t border-white/5 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-xs gap-4">
+        <div
+          class="border-t border-white/5 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-xs gap-4">
           <p>&copy; 2026 Ricardo Barbershop. Todos os direitos reservados.</p>
-          <button onclick="goAdmin()" class="hover:text-amber-500 transition-colors uppercase font-bold tracking-wider flex items-center gap-2">
+          <button onclick="goAdmin()"
+            class="hover:text-amber-500 transition-colors uppercase font-bold tracking-wider flex items-center gap-2">
             <i data-lucide="lock" class="w-3 h-3"></i> Painel Admin
           </button>
         </div>
       </div>
     </section>
 
-    <a
-      id="wa-float"
-      href="https://wa.me/554896689199"
-      target="_blank"
+    <a id="wa-float" href="https://wa.me/554896689199" target="_blank"
       class="fixed bottom-6 right-6 z-[55] flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/60 shadow-2xl backdrop-blur text-white transition-all"
-      aria-label="WhatsApp - Dúvidas ou Cancelar"
-      rel="noopener"
-    >
+      aria-label="WhatsApp - Dúvidas ou Cancelar" rel="noopener">
       <span class="w-3 h-3 rounded-full bg-green-500"></span>
       <div class="text-left leading-tight">
         <p class="text-xs text-zinc-400">Dúvidas / Cancelar</p>
@@ -500,13 +577,16 @@
     <!-- AUTH MODAL -->
     <div id="auth-modal" class="fixed inset-0 z-[70] hidden flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAuthModal()"></div>
-      <div class="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
-        <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
+      <div
+        class="glass-panel w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+        <button onclick="closeAuthModal()"
+          class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
           <i data-lucide="x" class="w-6 h-6"></i>
         </button>
 
         <div class="p-8">
-          <div id="auth-message-container" class="hidden mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
+          <div id="auth-message-container"
+            class="hidden mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
             <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
             <p id="auth-message-text" class="text-sm text-amber-200">
               Para agendar seu horário, faça login ou crie sua conta.
@@ -514,25 +594,31 @@
           </div>
 
           <div class="flex gap-6 border-b border-white/10 mb-6">
-            <button onclick="switchAuthTab('login')" id="tab-login" class="pb-2 text-amber-500 border-b-2 border-amber-500 font-bold text-lg transition-all">Entrar</button>
-            <button onclick="switchAuthTab('register')" id="tab-register" class="pb-2 text-zinc-400 hover:text-white font-medium text-lg transition-all">Criar Conta</button>
+            <button onclick="switchAuthTab('login')" id="tab-login"
+              class="pb-2 text-amber-500 border-b-2 border-amber-500 font-bold text-lg transition-all">Entrar</button>
+            <button onclick="switchAuthTab('register')" id="tab-register"
+              class="pb-2 text-zinc-400 hover:text-white font-medium text-lg transition-all">Criar Conta</button>
           </div>
 
           <div id="form-login" class="space-y-5">
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-              <input type="email" id="login-email" class="w-full glass-input rounded-xl py-3 px-4" placeholder="seu@email.com">
+              <input type="email" id="login-email" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="seu@email.com">
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
-              <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4" placeholder="••••••••">
+              <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="••••••••">
             </div>
 
-            <button onclick="handleLogin()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
+            <button onclick="handleLogin()"
+              class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
               Entrar
             </button>
 
-            <button onclick="openResetPassword()" class="w-full text-sm text-zinc-400 hover:text-white transition-colors">
+            <button onclick="openResetPassword()"
+              class="w-full text-sm text-zinc-400 hover:text-white transition-colors">
               Esqueci minha senha
             </button>
           </div>
@@ -540,17 +626,21 @@
           <div id="form-register" class="space-y-5 hidden">
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">Nome Completo</label>
-              <input type="text" id="register-name" class="w-full glass-input rounded-xl py-3 px-4" placeholder="Seu nome">
+              <input type="text" id="register-name" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="Seu nome">
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-              <input type="email" id="register-email" class="w-full glass-input rounded-xl py-3 px-4" placeholder="seu@email.com">
+              <input type="email" id="register-email" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="seu@email.com">
             </div>
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
-              <input type="password" id="register-password" class="w-full glass-input rounded-xl py-3 px-4" placeholder="••••••••">
+              <input type="password" id="register-password" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="••••••••">
             </div>
-            <button onclick="handleRegister()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
+            <button onclick="handleRegister()"
+              class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
               Criar Conta
             </button>
           </div>
@@ -559,27 +649,41 @@
             <p class="text-sm text-zinc-400">Digite seu e-mail para receber o link de recuperação.</p>
             <div class="space-y-2">
               <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-              <input type="email" id="reset-email" class="w-full glass-input rounded-xl py-3 px-4" placeholder="seu@email.com">
+              <input type="email" id="reset-email" class="w-full glass-input rounded-xl py-3 px-4"
+                placeholder="seu@email.com">
             </div>
-            <button onclick="handleResetPassword()" class="w-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-3 rounded-xl transition-all">
+            <button onclick="handleResetPassword()"
+              class="w-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-3 rounded-xl transition-all">
               Enviar Link
             </button>
-            <button onclick="backToLogin()" class="w-full text-sm text-zinc-400 hover:text-white transition-colors">Voltar</button>
+            <button onclick="backToLogin()"
+              class="w-full text-sm text-zinc-400 hover:text-white transition-colors">Voltar</button>
           </div>
 
           <div class="relative my-7">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-white/10"></div>
+            </div>
             <div class="relative flex justify-center text-xs uppercase">
               <span class="bg-[#18181b] px-4 text-zinc-500 font-bold">Ou continue com</span>
             </div>
           </div>
 
-          <button onclick="handleGoogleLogin()" class="w-full glass-input hover:bg-white hover:text-black transition-colors font-bold py-3 rounded-xl flex items-center justify-center gap-3 group">
+          <button onclick="handleGoogleLogin()"
+            class="w-full glass-input hover:bg-white hover:text-black transition-colors font-bold py-3 rounded-xl flex items-center justify-center gap-3 group">
             <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z" fill="#FBBC05"/>
-              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              <path
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                fill="#4285F4" />
+              <path
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                fill="#34A853" />
+              <path
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"
+                fill="#FBBC05" />
+              <path
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                fill="#EA4335" />
             </svg>
             <span id="google-btn-text">Google</span>
             <div id="google-loader" class="loader hidden"></div>
@@ -592,105 +696,112 @@
     <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-0 md:p-4">
       <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeBooking()"></div>
 
-      <div class="glass-panel w-full h-full md:h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+      <div
+        class="glass-panel w-full h-full md:h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
         <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
           <div>
             <h3 class="text-xl font-bold text-white">Agendar Horário</h3>
             <p class="text-xs text-zinc-500 mt-1" id="step-hint">Escolha o serviço desejado</p>
           </div>
-          <button onclick="closeBooking()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <button onclick="closeBooking()"
+            class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
             <i data-lucide="x"></i>
           </button>
         </div>
 
         <div class="px-8 py-4 bg-zinc-900/30 border-b border-white/5">
-           <div class="flex items-center justify-between max-w-md mx-auto">
-              <div class="flex flex-col items-center gap-2">
-                 <div class="step-dot active" id="dot-1">1</div>
-                 <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Serviço</span>
-              </div>
-              <div class="step-line" id="line-1"></div>
-              <div class="flex flex-col items-center gap-2">
-                 <div class="step-dot" id="dot-2">2</div>
-                 <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Barbeiro</span>
-              </div>
-              <div class="step-line" id="line-2"></div>
-              <div class="flex flex-col items-center gap-2">
-                 <div class="step-dot" id="dot-3">3</div>
-                 <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Data</span>
-              </div>
-              <div class="step-line" id="line-3"></div>
-              <div class="flex flex-col items-center gap-2">
-                 <div class="step-dot" id="dot-4">4</div>
-                 <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Final</span>
-              </div>
-           </div>
+          <div class="flex items-center justify-between max-w-md mx-auto">
+            <div class="flex flex-col items-center gap-2">
+              <div class="step-dot active" id="dot-1">1</div>
+              <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Serviço</span>
+            </div>
+            <div class="step-line" id="line-1"></div>
+            <div class="flex flex-col items-center gap-2">
+              <div class="step-dot" id="dot-2">2</div>
+              <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Barbeiro</span>
+            </div>
+            <div class="step-line" id="line-2"></div>
+            <div class="flex flex-col items-center gap-2">
+              <div class="step-dot" id="dot-3">3</div>
+              <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Data</span>
+            </div>
+            <div class="step-line" id="line-3"></div>
+            <div class="flex flex-col items-center gap-2">
+              <div class="step-dot" id="dot-4">4</div>
+              <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Final</span>
+            </div>
+          </div>
         </div>
 
         <div class="flex flex-1 overflow-hidden relative">
           <div id="booking-content" class="flex-1 p-6 overflow-y-auto border-r border-white/5 pb-24 md:pb-6"></div>
 
-          <div class="hidden md:flex w-80 bg-zinc-900/30 flex-col p-6 border-l border-white/5">
-            <h4 class="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-6">Resumo</h4>
+          <div class="hidden md:flex w-80 glass-panel flex-col p-8 border-l border-white/5 relative bg-[#0c0c0e]">
+            <h4 class="text-xs font-bold text-amber-500 uppercase tracking-[0.25em] mb-8 flex items-center gap-2">
+              <span class="w-8 h-px bg-amber-500/50"></span> Resumo
+            </h4>
 
-            <div class="space-y-6 flex-1">
-              <div class="flex gap-3 items-start">
-                <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
-                  <i data-lucide="scissors" class="w-4 h-4 text-amber-500"></i>
+            <div class="space-y-8 flex-1">
+              <div class="flex gap-4 items-start group">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                  <i data-lucide="scissors" class="w-5 h-5 text-amber-500"></i>
                 </div>
                 <div>
-                  <p class="text-xs text-zinc-500 mb-1">Serviço</p>
-                  <p id="summary-service" class="text-sm font-bold text-white leading-tight">Nenhum selecionado</p>
-                  <p id="summary-price" class="text-xs text-amber-500 font-medium mt-1">--</p>
+                  <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Serviço</p>
+                  <p id="summary-service" class="text-base font-bold text-white leading-tight">Nenhum</p>
+                  <p id="summary-price" class="text-xs text-amber-500 font-bold mt-1 tracking-wide opacity-80">--</p>
                 </div>
               </div>
 
-              <div class="flex gap-3 items-start">
-                <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
-                  <i data-lucide="user" class="w-4 h-4 text-zinc-400"></i>
+              <div class="flex gap-4 items-start group">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                  <i data-lucide="user" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
                 </div>
                 <div>
-                  <p class="text-xs text-zinc-500 mb-1">Profissional</p>
-                  <p id="summary-barber" class="text-sm font-medium text-zinc-300">--</p>
+                  <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Profissional</p>
+                  <p id="summary-barber"
+                    class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">--</p>
                 </div>
               </div>
 
-              <div class="flex gap-3 items-start">
-                <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
-                  <i data-lucide="calendar" class="w-4 h-4 text-zinc-400"></i>
+              <div class="flex gap-4 items-start group">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                  <i data-lucide="calendar" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
                 </div>
                 <div>
-                  <p class="text-xs text-zinc-500 mb-1">Data e Hora</p>
-                  <p id="summary-date" class="text-sm font-medium text-zinc-300">--</p>
+                  <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Data e Hora</p>
+                  <p id="summary-date"
+                    class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">--</p>
                 </div>
               </div>
 
-              <div class="flex gap-3 items-start">
-                <div class="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center shrink-0 border border-white/5">
-                  <i data-lucide="store" class="w-4 h-4 text-zinc-400"></i>
+              <div class="flex gap-4 items-start group">
+                <div
+                  class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
+                  <i data-lucide="store" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
                 </div>
                 <div>
-                  <p class="text-xs text-zinc-500 mb-1">Pagamento</p>
+                  <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Pagamento</p>
                   <p id="summary-payment" class="text-sm font-medium text-zinc-300">No Local</p>
                 </div>
               </div>
-
-              <div class="bg-white/5 border border-white/10 rounded-xl p-4 text-xs text-zinc-400">
-                WhatsApp é apenas para <b>dúvidas/cancelamentos</b>.
-              </div>
             </div>
 
-            <div class="pt-6 border-t border-white/10">
-              <div class="flex justify-between items-end mb-4">
-                <span class="text-zinc-400 text-sm">Total</span>
-                <span id="summary-total" class="text-2xl font-bold text-white">R$ 0,00</span>
+            <div class="pt-8 border-t border-white/5">
+              <div class="flex justify-between items-end mb-6">
+                <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
+                <span id="summary-total" class="text-3xl font-bold text-white tracking-tight">R$ 0,00</span>
               </div>
               <div id="booking-footer-action"></div>
             </div>
           </div>
         </div>
 
-        <div class="md:hidden p-4 border-t border-white/5 bg-zinc-900/90 backdrop-blur flex justify-between items-center absolute bottom-0 w-full z-20">
+        <div
+          class="md:hidden p-4 border-t border-white/5 bg-zinc-900/90 backdrop-blur flex justify-between items-center absolute bottom-0 w-full z-20">
           <div class="text-left">
             <p class="text-xs text-zinc-500">Total</p>
             <p id="mobile-total" class="font-bold text-white text-lg">R$ 0,00</p>
@@ -703,12 +814,14 @@
     <!-- MY APPOINTMENTS MODAL -->
     <div id="appointments-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
       <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
-      <div class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
+      <div
+        class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
         <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
           <h3 class="text-xl font-bold text-white flex items-center gap-2">
             <i data-lucide="calendar-check" class="text-amber-500"></i> Meus Agendamentos
           </h3>
-          <button onclick="closeAppointments()" class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
+          <button onclick="closeAppointments()"
+            class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
             <i data-lucide="x"></i>
           </button>
         </div>
@@ -717,7 +830,8 @@
             <div class="text-sm text-zinc-400">
               Cancelar: somente via WhatsApp (botão dentro do agendamento).
             </div>
-            <button onclick="startBooking()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-sm">
+            <button onclick="startBooking()"
+              class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-sm">
               Novo Agendamento
             </button>
           </div>
@@ -737,21 +851,26 @@
       <div class="admin-glass-panel p-8 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-600 to-amber-800"></div>
         <div class="text-center mb-8">
-          <div class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
+          <div
+            class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
             <i data-lucide="shield" class="w-8 h-8 text-amber-500"></i>
           </div>
           <h1 class="text-2xl font-bold text-white font-['Playfair_Display']">Ricardo Admin</h1>
           <p class="text-zinc-500 text-sm mt-1">Gestão Profissional</p>
         </div>
         <form onsubmit="adminApp.login(event)" class="space-y-4">
-          <input type="email" id="admin-email" class="w-full admin-glass-input rounded-lg py-3 px-4" placeholder="admin@ricardo.com">
-          <input type="password" id="admin-password" class="w-full admin-glass-input rounded-lg py-3 px-4" placeholder="Senha">
-          <button type="submit" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg shadow-amber-900/20">
+          <input type="email" id="admin-email" class="w-full admin-glass-input rounded-lg py-3 px-4"
+            placeholder="admin@ricardo.com">
+          <input type="password" id="admin-password" class="w-full admin-glass-input rounded-lg py-3 px-4"
+            placeholder="Senha">
+          <button type="submit"
+            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg shadow-amber-900/20">
             Acessar Painel
           </button>
         </form>
         <div class="mt-6 pt-6 border-t border-white/5 text-center space-y-3">
-          <button onclick="goSite()" class="block w-full text-xs text-amber-500 hover:text-amber-400 transition-colors uppercase font-bold tracking-widest">
+          <button onclick="goSite()"
+            class="block w-full text-xs text-amber-500 hover:text-amber-400 transition-colors uppercase font-bold tracking-widest">
             Voltar para o site
           </button>
         </div>
@@ -766,30 +885,36 @@
         </div>
 
         <nav class="flex-1 py-6 space-y-2 px-2">
-          <button onclick="adminApp.nav('dashboard')" class="nav-item active w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
+          <button onclick="adminApp.nav('dashboard')"
+            class="nav-item active w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
             <i data-lucide="layout-grid" class="w-5 h-5"></i>
             <span class="hidden lg:block font-medium">Visão Geral</span>
           </button>
-          <button onclick="adminApp.nav('agenda')" class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
+          <button onclick="adminApp.nav('agenda')"
+            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
             <i data-lucide="calendar" class="w-5 h-5"></i>
             <span class="hidden lg:block font-medium">Agenda</span>
           </button>
-          <button onclick="adminApp.nav('clients')" class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
+          <button onclick="adminApp.nav('clients')"
+            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
             <i data-lucide="users" class="w-5 h-5"></i>
             <span class="hidden lg:block font-medium">Clientes</span>
           </button>
-          <button onclick="adminApp.nav('services')" class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
+          <button onclick="adminApp.nav('services')"
+            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
             <i data-lucide="tag" class="w-5 h-5"></i>
             <span class="hidden lg:block font-medium">Catálogo</span>
           </button>
         </nav>
 
         <div class="p-4 border-t border-white/5 space-y-3">
-          <button onclick="goSite()" class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-amber-500 hover:text-amber-400 text-sm transition-colors rounded-lg hover:bg-white/5">
+          <button onclick="goSite()"
+            class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-amber-500 hover:text-amber-400 text-sm transition-colors rounded-lg hover:bg-white/5">
             <i data-lucide="arrow-left" class="w-4 h-4"></i>
             <span class="hidden lg:block text-sm font-medium">Voltar ao Site</span>
           </button>
-          <button onclick="adminApp.logout()" class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-zinc-500 hover:text-red-400 text-sm transition-colors rounded-lg hover:bg-white/5">
+          <button onclick="adminApp.logout()"
+            class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-zinc-500 hover:text-red-400 text-sm transition-colors rounded-lg hover:bg-white/5">
             <i data-lucide="log-out" class="w-4 h-4"></i>
             <span class="hidden lg:block text-sm font-medium">Sair</span>
           </button>
@@ -797,7 +922,8 @@
       </aside>
 
       <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#050505]">
-        <header class="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-[#050505]/50 backdrop-blur-sm z-10">
+        <header
+          class="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-[#050505]/50 backdrop-blur-sm z-10">
           <div class="flex items-center gap-4">
             <h2 id="admin-page-title" class="text-xl font-bold text-white capitalize">Visão Geral</h2>
             <span id="admin-header-loader" class="hidden">
@@ -806,7 +932,8 @@
           </div>
 
           <div class="flex items-center gap-4">
-            <button onclick="adminApp.openNewAppointmentModal && adminApp.openNewAppointmentModal()" class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-lg shadow-amber-900/20 transition-all">
+            <button onclick="adminApp.openNewAppointmentModal && adminApp.openNewAppointmentModal()"
+              class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-lg shadow-amber-900/20 transition-all">
               <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Novo Agendamento</span>
             </button>
           </div>
@@ -831,7 +958,8 @@
                 <h3 class="text-3xl font-bold text-white" id="admin-kpi-revenue">R$ 0</h3>
               </div>
 
-              <div class="admin-glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500 md:col-span-2 flex items-center justify-between">
+              <div
+                class="admin-glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500 md:col-span-2 flex items-center justify-between">
                 <div>
                   <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Próximo Cliente</p>
                   <h3 class="text-2xl font-bold text-white mb-1" id="admin-kpi-next-name">Sem agendamentos</h3>
@@ -839,7 +967,8 @@
                     <i data-lucide="clock" class="w-4 h-4"></i> <span id="admin-kpi-next-time">--:--</span>
                   </p>
                 </div>
-                <button onclick="adminApp.nav('agenda')" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors border border-white/5">
+                <button onclick="adminApp.nav('agenda')"
+                  class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors border border-white/5">
                   Ver Agenda
                 </button>
               </div>
@@ -903,4 +1032,5 @@
     document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); window.route(); });
   </script>
 </body>
+
 </html>
