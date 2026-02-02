@@ -1039,4 +1039,53 @@
                     <tr class="bg-white/5 border-b border-white/5 text-xs text-zinc-400 uppercase tracking-wider">
                       <th class="p-5 font-bold">Cliente</th>
                       <th class="p-5 font-bold">Serviço</th>
-       
+                      <th class="p-5 font-bold">Data</th>
+                      <th class="p-5 font-bold">Horário</th>
+                      <th class="p-5 font-bold">Status</th>
+                      <th class="p-5 font-bold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-agenda-table-body" class="text-sm divide-y divide-white/5"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="admin-view-clients" class="hidden space-y-6 animate-fade-in-up">
+            <div class="admin-glass-panel rounded-2xl overflow-hidden border border-white/5">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-white/5 border-b border-white/5 text-xs text-zinc-400 uppercase tracking-wider">
+                      <th class="p-5 font-bold">Nome</th>
+                      <th class="p-5 font-bold">Telefone</th>
+                      <th class="p-5 font-bold">Total Cortes</th>
+                      <th class="p-5 font-bold">Total Gasto (LTV)</th>
+                      <th class="p-5 font-bold">Última Visita</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-clients-table-body" class="text-sm divide-y divide-white/5"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div id="admin-view-services" class="hidden space-y-6 animate-fade-in-up">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="admin-services-grid"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- SUPABASE (Global UMD) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- SITE LOGIC -->
+  <script src="./assets/site.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); window.route(); });
+  </script>
+</body>
+
+</html>
