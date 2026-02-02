@@ -817,15 +817,42 @@ function ensureSupabase() {
   });
 }
 
+// ====== ANIMATIONS ======
+function initScrollObserver() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-fade-in-up');
+        entry.target.classList.remove('opacity-0', 'translate-y-10');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  // Select elements to animate
+  const targets = document.querySelectorAll('.glass-card, .glass-panel, h2, h3, #home p, #home button');
+  targets.forEach(el => {
+    if (!el.classList.contains('animate-fade-in-up')) {
+      el.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+      observer.observe(el);
+    }
+  });
+}
+
 (function init() {
   renderServicesLanding();
   supabaseClient = ensureSupabase();
-  if (!supabaseClient) { updateUIForGuest(); return; }
-
-  supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
-  supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
+  if (supabaseClient) {
+    supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
+    supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
+  } else {
+    updateUIForGuest();
+  }
 
   // icons + route first load
   lucide.createIcons();
   route();
+
+  // Start animations
+  setTimeout(initScrollObserver, 100);
 })();
