@@ -1119,9 +1119,10 @@ function initScrollObserver() {
 }
 
 (function init() {
-  loadServices().then(renderServicesLanding);
   supabaseClient = ensureSupabase();
+
   if (supabaseClient) {
+    loadServices().then(renderServicesLanding);
     supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
     supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
   } else {
