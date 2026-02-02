@@ -1,1092 +1,1151 @@
-<!DOCTYPE html>
-<html lang="pt-BR" class="scroll-smooth">
+// REMOVED IMPORT: Using global 'supabase' from CDN
+// import { createClient } from "..." 
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Ricardo Barbershop | Agendamento Online</title>
+const CFG = window.APP_CONFIG || {};
+const BUSINESS = CFG.BUSINESS || {};
+const SUPABASE_URL = CFG.SUPABASE_URL || "";
+const SUPABASE_ANON_KEY = CFG.SUPABASE_ANON_KEY || "";
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            amber: { 450: '#F59E0B', 550: '#D97706' },
-            zinc: { 850: '#1f1f22', 925: '#121214' },
-            dark: { 950: '#050505' }
-          },
-          screens: { xs: '375px' }
-        }
-      }
+// ====== EXPORT GLOBALS (Move up to ensure early availability) ======
+window.toast = toast;
+window.openAuthModal = function (tab) {
+  qs('auth-modal').classList.remove('hidden');
+  switchAuthTabImpl(tab);
+  lucide.createIcons();
+};
+window.closeAuthModal = closeAuthModalImpl;
+window.switchAuthTab = switchAuthTabImpl;
+window.openResetPassword = openResetPasswordImpl;
+window.backToLogin = backToLoginImpl;
+window.handleLogin = handleLoginImpl;
+window.handleRegister = handleRegisterImpl;
+window.handleGoogleLogin = handleGoogleLoginImpl;
+window.handleResetPassword = handleResetPasswordImpl;
+window.logout = logoutImpl;
+
+window.startBooking = startBookingImpl;
+window.closeBooking = closeBookingImpl;
+window.nextStep = nextStepImpl;
+window.prevStep = prevStepImpl;
+window.selectService = selectServiceImpl;
+window.selectBarber = selectBarberImpl;
+window.selectDate = selectDateImpl;
+window.selectTime = selectTimeImpl;
+window.updateClientData = updateClientDataImpl;
+
+window.openAppointments = openAppointmentsImpl;
+window.closeAppointments = closeAppointmentsImpl;
+
+window.toggleMobileMenu = toggleMobileMenuImpl;
+window.toggleProfileDropdown = toggleProfileDropdownImpl;
+window.siteSearchServices = siteSearchServicesImpl;
+
+window.route = route;
+window.goAdmin = goAdmin;
+window.goSite = goSite;
+
+// ====== TOAST ======
+function toast(msg, type = "success") {
+  const c = document.getElementById('site-toast-container');
+  const t = document.createElement('div');
+  const colors = { success: "border-l-green-500", error: "border-l-red-500", info: "border-l-amber-500" };
+  t.className = `toast show glass-panel px-4 py-3 rounded-lg border-l-4 ${colors[type] || colors.info} text-sm text-white shadow-xl flex items-center gap-2 min-w-[260px]`;
+  const icon = type === "error" ? "alert-circle" : type === "success" ? "check-circle" : "info";
+  t.innerHTML = `<i data-lucide="${icon}" class="w-4 h-4"></i> <div class="leading-tight">${escapeHtml(msg)}</div>`;
+  c.appendChild(t);
+  lucide.createIcons();
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 250); }, 3200);
+}
+
+// ====== DATA (você pode puxar do banco depois) ======
+// ====== DATA (Fetched dynamically now) ======
+let SERVICES = []; // Will be populated from DB
+
+// ... (keep BARBERS as is or fetch too) ...
+
+// ====== DATA LOADING ======
+async function loadServices() {
+  const { data, error } = await supabaseClient.from('services').select('*').order('id');
+  if (data) SERVICES = data;
+  else console.warn("Erro ao carregar serviços", error);
+}
+
+const BARBERS = [
+  { id: 1, name: "Ricardo Silva", role: "Master", image: "https://images.unsplash.com/photo-1583900985315-95fdb19276a8?auto=format&fit=crop&q=80&w=200&h=200" },
+  { id: 2, name: "André Costa", role: "Pro", image: "https://images.unsplash.com/photo-1618077553780-7553d680668f?auto=format&fit=crop&q=80&w=200&h=200" },
+  { id: 3, name: "Qualquer Profissional", role: "Disponível", image: null }
+];
+
+// ====== STATE ======
+let supabaseClient = null;
+let currentUser = null;
+let currentStep = 1;
+let pendingBooking = false;
+let bookingData = { service: null, barber: null, date: null, time: null, clientName: "", clientPhone: "", paymentMethod: "local", notes: "", rescheduleFromId: null };
+let appointments = [];
+let unavailableSlots = [];
+let servicesSearch = "";
+
+// ====== UI helpers ======
+function qs(id) { return document.getElementById(id); }
+
+function updateUIForGuest() {
+  qs("nav-guest")?.classList.remove("hidden");
+  qs("nav-user")?.classList.add("hidden");
+  qs("mobile-guest")?.classList.remove("hidden");
+  qs("mobile-user")?.classList.add("hidden");
+}
+
+function updateUIForUser(user) {
+  qs("nav-guest")?.classList.add("hidden");
+  qs("nav-user")?.classList.remove("hidden");
+  qs("mobile-guest")?.classList.add("hidden");
+  qs("mobile-user")?.classList.remove("hidden");
+
+  const fullName = user?.name || user?.email || "Usuário";
+  qs("user-name-display").textContent = fullName;
+  qs("mobile-user-name").textContent = fullName;
+
+  const initial = (fullName || "U").trim().charAt(0).toUpperCase();
+  qs("user-initial").textContent = initial;
+  qs("mobile-user-initial").textContent = initial;
+}
+
+// ====== AUTH ======
+function closeAuthModalImpl() {
+  qs('auth-modal').classList.add('hidden');
+  pendingBooking = false;
+  qs('form-reset').classList.add('hidden');
+}
+
+function switchAuthTabImpl(tab) {
+  const login = qs('form-login');
+  const reg = qs('form-register');
+  const tLogin = qs('tab-login');
+  const tReg = qs('tab-register');
+
+  if (tab === 'login') {
+    login.classList.remove('hidden');
+    reg.classList.add('hidden');
+    tLogin.classList.add('text-amber-500', 'border-amber-500');
+    tReg.classList.remove('text-amber-500', 'border-amber-500');
+    tReg.classList.add('text-zinc-400');
+  } else {
+    reg.classList.remove('hidden');
+    login.classList.add('hidden');
+    tReg.classList.add('text-amber-500', 'border-amber-500');
+    tLogin.classList.remove('text-amber-500', 'border-amber-500');
+    tLogin.classList.add('text-zinc-400');
+  }
+}
+
+function openResetPasswordImpl() {
+  qs('form-login').classList.add('hidden');
+  qs('form-reset').classList.remove('hidden');
+}
+
+function backToLoginImpl() {
+  qs('form-reset').classList.add('hidden');
+  switchAuthTabImpl('login');
+}
+
+async function handleResetPasswordImpl() {
+  const email = qs('reset-email').value.trim();
+  if (!email) return toast("Digite seu e-mail.", "error");
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+  if (error) return toast(error.message, "error");
+  toast("Link enviado! Verifique seu e-mail.", "success");
+  backToLoginImpl();
+}
+
+async function handleLoginImpl() {
+  const email = qs('login-email').value.trim();
+  const password = qs('login-password').value;
+  if (!email || !password) return toast("Preencha e-mail e senha.", "error");
+
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (error) return toast(error.message, "error");
+  toast("Login efetuado!", "success");
+  closeAuthModalImpl();
+}
+
+async function handleRegisterImpl() {
+  const name = qs('register-name').value.trim();
+  const email = qs('register-email').value.trim();
+  const password = qs('register-password').value;
+  if (!name || !email || !password) return toast("Preencha nome, e-mail e senha.", "error");
+
+  const { error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: name } }
+  });
+  if (error) return toast(error.message, "error");
+  toast("Conta criada! Verifique seu e-mail se for exigido.", "success");
+  switchAuthTabImpl('login');
+}
+
+async function handleGoogleLoginImpl() {
+  const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
+  if (error) toast(error.message, "error");
+}
+
+async function logoutImpl() {
+  const { error } = await supabaseClient.auth.signOut();
+  if (error) return toast(error.message, "error");
+  currentUser = null;
+  updateUIForGuest();
+  toast("Saiu.", "info");
+  closeProfileDropdown();
+}
+
+// ====== SESSION ======
+function handleSession(session) {
+  if (!session || !session.user) {
+    currentUser = null;
+    updateUIForGuest();
+    return;
+  }
+  const u = session.user;
+  currentUser = {
+    id: u.id,
+    email: u.email,
+    name: u.user_metadata?.full_name || u.user_metadata?.name || u.email
+  };
+  updateUIForUser(currentUser);
+
+  // se o usuário clicou em "Agendar" antes, abrir agora
+  if (pendingBooking) {
+    pendingBooking = false;
+    openBookingImpl();
+  }
+}
+
+// ====== BOOKING ======
+function startBookingImpl() {
+  const savedName = localStorage.getItem('client_name') || (currentUser?.name || '');
+  const savedPhone = localStorage.getItem('client_phone') || '';
+  bookingData = { service: null, barber: null, date: null, time: null, clientName: savedName, clientPhone: savedPhone, paymentMethod: 'local', notes: '', rescheduleFromId: null };
+  currentStep = 1;
+  openBookingImpl();
+}
+
+function openBookingImpl() {
+  if (!currentUser) {
+    pendingBooking = true;
+    window.openAuthModal('login');
+    return;
+  }
+  const modal = qs('booking-modal');
+  if (!modal) {
+    console.error('CRITICAL: booking-modal not found in DOM!');
+    toast('Erro interno: Janela de agendamento não encontrada.', 'error');
+    return;
+  }
+  modal.classList.remove('hidden');
+  updateSummary();
+  renderStep();
+  lucide.createIcons();
+}
+
+function closeBookingImpl() { qs('booking-modal').classList.add('hidden'); }
+
+function prevStepImpl() { currentStep = Math.max(1, currentStep - 1); renderStep(); }
+
+async function nextStepImpl() {
+  if (currentStep === 1 && !bookingData.service) return toast("Selecione um serviço.", "error");
+  if (currentStep === 2 && !bookingData.barber) return toast("Selecione um profissional.", "error");
+  if (currentStep === 3 && (!bookingData.date || !bookingData.time)) return toast("Selecione data e horário.", "error");
+  if (currentStep === 4) { await saveAppointment(); return; }
+  currentStep++;
+  renderStep();
+}
+
+function selectServiceImpl(id) {
+  bookingData.service = SERVICES.find(x => x.id === id) || null;
+  bookingData.time = null;
+  // Initialize user data if needed (in case startBooking wasn't called)
+  if (!bookingData.clientName && currentUser) bookingData.clientName = currentUser.name;
+
+  updateSummary();
+  currentStep = 2;
+  openBookingImpl();
+}
+
+function selectBarberImpl(id) {
+  bookingData.barber = BARBERS.find(x => x.id === id) || null;
+  bookingData.time = null;
+  updateSummary();
+  currentStep = 3;
+  renderStep();
+}
+
+function getLocalYMD(d) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+async function selectDateImpl(ymd) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  bookingData.date = new Date(y, m - 1, d);
+  bookingData.time = null;
+  updateSummary();
+
+  const container = qs('slots-container');
+  if (container) container.innerHTML = Array(8).fill(0).map(() => `<div class="h-12 rounded-lg skeleton"></div>`).join('');
+
+  try {
+    unavailableSlots = await fetchUnavailableSlots(ymd, bookingData.barber?.id);
+  } catch (e) {
+    console.error("Erro ao buscar horários", e);
+    unavailableSlots = [];
+  }
+  renderStep();
+}
+
+function selectTimeImpl(t) {
+  if (unavailableSlots.includes(t)) return toast("Horário indisponível. Escolha outro.", "error");
+  bookingData.time = t;
+  updateSummary();
+  currentStep = 4;
+  renderStep();
+}
+
+function updateClientDataImpl(field, val) {
+  bookingData[field] = val;
+  updateSummary();
+}
+
+function updateSummary() {
+  qs('summary-service').textContent = bookingData.service?.name || '--';
+  qs('summary-barber').textContent = bookingData.barber?.name || '--';
+  qs('summary-total').textContent = bookingData.service ? `R$ ${bookingData.service.price},00` : 'R$ 0,00';
+  qs('mobile-total').textContent = qs('summary-total').textContent;
+
+  const dateEl = qs('summary-date');
+  if (bookingData.date && bookingData.time) {
+    const dt = new Date(bookingData.date);
+    dateEl.textContent = `${dt.toLocaleDateString('pt-BR')} às ${bookingData.time}`;
+  } else {
+    dateEl.textContent = '--';
+  }
+
+  const desktop = qs('booking-footer-action');
+  const mobile = qs('mobile-footer-action');
+
+  const prevBtn = currentStep > 1 ? `<button onclick="prevStep()" class="w-full border border-white/10 text-zinc-300 py-3 rounded-xl mb-2">Voltar</button>` : '';
+  const nextLbl = currentStep === 4 ? 'Confirmar' : 'Continuar';
+  const nextCls = currentStep === 4 ? 'bg-amber-600 text-white' : 'bg-white text-black';
+
+  const actions = `${prevBtn}<button onclick="nextStep()" class="w-full ${nextCls} font-bold py-3 rounded-xl">${nextLbl}</button>`;
+  if (desktop) desktop.innerHTML = actions;
+  if (mobile) mobile.innerHTML = `<button onclick="nextStep()" class="${nextCls} font-bold py-3 px-5 rounded-xl">${nextLbl}</button>`;
+}
+
+function renderStep() {
+  const content = qs('booking-content');
+  const hint = qs('step-hint');
+
+  for (let i = 1; i <= 4; i++) {
+    const dot = qs(`dot-${i}`);
+    const line = qs(`line-${i}`);
+    if (dot) {
+      dot.classList.toggle('active', i <= currentStep);
+      dot.classList.toggle('completed', i < currentStep);
     }
-  </script>
+    if (line) line.classList.toggle('completed', i < currentStep);
+  }
 
-  <!-- Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  let html = '<div class="animate-fade-in-up pb-24 md:pb-0 h-full flex flex-col">';
 
-  <!-- Chart.js (painel) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <!-- Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
-    rel="stylesheet">
-
-  <link rel="stylesheet" href="./assets/site.css" />
-
-  <!-- Config (edite aqui suas chaves públicas) -->
-  <script src="./assets/config.js"></script>
-</head>
-
-<body class="antialiased selection:bg-amber-600 selection:text-white">
-
-  <!-- SITE TOAST -->
-  <div id="site-toast-container" class="fixed top-4 right-4 z-[200] flex flex-col gap-2"></div>
-
-  <!-- =========================
-       SITE (PRINCIPAL)
-  ========================== -->
-  <div id="site-root">
-    <!-- NAVIGATION -->
-    <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-300">
-      <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
-          <div
-            class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
-            <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
-          </div>
-          <div>
-            <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
-            <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
-          </div>
-        </div>
-
-        <!-- Desktop Menu -->
-        <div class="hidden md:flex items-center gap-8">
-          <a href="#home"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
-          <a href="#services"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
-          <a href="#team"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Equipe</a>
-          <a href="#about"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
-
-          <button onclick="goAdmin()"
-            class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
-            Painel
-          </button>
-
-          <!-- Guest -->
-          <div id="nav-guest" class="flex items-center gap-4 border-l border-white/10 pl-6">
-            <button onclick="openAuthModal('login')"
-              class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
-              Entrar
-            </button>
-            <button onclick="startBooking()"
-              class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
-              Agendar Horário
-            </button>
-          </div>
-
-          <!-- Logged -->
-          <div id="nav-user" class="hidden flex items-center gap-4 relative">
-            <div onclick="toggleProfileDropdown()" class="flex items-center gap-3 cursor-pointer select-none">
-              <div class="text-right hidden lg:block">
-                <p class="text-xs text-zinc-400">Olá,</p>
-                <p id="user-name-display" class="text-sm font-bold text-white">Usuário</p>
-              </div>
-              <div class="w-10 h-10 rounded-full bg-zinc-800 border-2 border-amber-600 overflow-hidden">
-                <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
-                <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U
-                </div>
-              </div>
-            </div>
-
-            <div id="profile-dropdown"
-              class="absolute top-full right-0 mt-2 w-56 glass-panel rounded-xl shadow-2xl py-2 opacity-0 invisible transition-all duration-200 transform translate-y-2 z-50">
-              <button onclick="openAppointments()"
-                class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                <i data-lucide="calendar-check" class="w-4 h-4"></i> Meus Agendamentos
-              </button>
-              <button onclick="startBooking()"
-                class="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-white/5 hover:text-white flex items-center gap-2">
-                <i data-lucide="plus" class="w-4 h-4"></i> Novo Agendamento
-              </button>
-              <div class="h-px bg-white/10 my-1"></div>
-              <button onclick="logout()"
-                class="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-white/5 hover:text-red-300 flex items-center gap-2">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Sair
-              </button>
-            </div>
-
-            <button onclick="startBooking()"
-              class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(217,119,6,0.3)] ml-2">
-              Novo Corte
-            </button>
-          </div>
-        </div>
-
-        <!-- Mobile Menu Button -->
-        <button class="md:hidden text-white p-2" onclick="toggleMobileMenu()">
-          <i data-lucide="menu" id="menu-icon"></i>
-        </button>
-      </div>
-
-      <!-- Mobile Menu Dropdown -->
-      <div id="mobile-menu"
-        class="hidden md:hidden glass-panel border-t border-white/5 p-6 animate-fade-in-up absolute top-full left-0 w-full bg-[#09090b] z-40">
-        <div class="flex flex-col gap-4">
-          <a href="#home" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Início</a>
-          <a href="#services" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Serviços</a>
-          <a href="#about" class="text-lg font-medium text-zinc-300" onclick="toggleMobileMenu()">Sobre</a>
-
-          <button onclick="toggleMobileMenu(); goAdmin()" class="text-lg font-bold text-amber-500 text-left">
-            Painel Administrativo
-          </button>
-
-          <div id="mobile-guest" class="flex flex-col gap-3 pt-4 border-t border-white/5">
-            <button onclick="toggleMobileMenu(); openAuthModal('login')"
-              class="text-lg font-medium text-zinc-300 text-left">
-              Entrar / Cadastrar
-            </button>
-            <button onclick="toggleMobileMenu(); startBooking()"
-              class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl">
-              Agendar Agora
-            </button>
-          </div>
-
-          <div id="mobile-user" class="hidden flex-col gap-3 pt-4 border-t border-white/5">
-            <div class="flex items-center gap-3 mb-2">
-              <div class="w-10 h-10 rounded-full bg-zinc-800 border border-amber-600 overflow-hidden flex-shrink-0">
-                <div id="mobile-user-initial"
-                  class="w-full h-full flex items-center justify-center font-bold text-amber-500">U</div>
+  if (currentStep === 1) {
+    hint.textContent = "Escolha o serviço desejado.";
+    html += `
+      <h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4>
+      <div class="grid grid-cols-1 gap-4">
+        ${SERVICES.map(s => `
+        <div onclick="selectService(${s.id})" class="group relative overflow-hidden glass-panel p-5 rounded-2xl border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 ${bookingData.service?.id === s.id ? 'border-amber-500 bg-amber-500/5' : ''}">
+           <div class="flex items-center gap-5 relative z-10">
+              <div class="w-14 h-14 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-amber-500 shadow-inner group-hover:scale-110 transition-transform duration-300">
+                <i data-lucide="scissors" class="w-6 h-6"></i>
               </div>
               <div>
-                <p class="text-xs text-zinc-500">Logado como</p>
-                <p id="mobile-user-name" class="font-bold text-white">Usuário</p>
+                <h4 class="font-bold text-white text-lg group-hover:text-amber-500 transition-colors">${escapeHtml(s.name)}</h4>
+                <p class="text-zinc-400 text-sm">${s.durationMin} min • <span class="text-zinc-500">${escapeHtml(s.description)}</span></p>
               </div>
-            </div>
+           </div>
+           <div class="flex flex-col items-end gap-1 relative z-10">
+              <span class="text-xl font-bold text-white">R$ ${s.price}</span>
+              ${s.popular ? `<span class="bg-amber-500/20 text-amber-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-amber-500/20">Popular</span>` : ''}
+           </div>
+           
+           <!-- Hover effect background -->
+           <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"></div>
+        </div>`).join('')}
+      </div>`;
+  }
 
-            <button onclick="toggleMobileMenu(); openAppointments()"
-              class="text-lg font-medium text-amber-500 text-left flex items-center gap-2">
-              <i data-lucide="calendar-check" class="w-5 h-5"></i> Meus Agendamentos
-            </button>
-
-            <button onclick="toggleMobileMenu(); startBooking()"
-              class="w-full bg-amber-600 text-white font-bold py-3 px-6 rounded-xl mt-2">
-              Novo Agendamento
-            </button>
-
-            <button onclick="toggleMobileMenu(); logout()"
-              class="text-lg font-medium text-red-400 text-left flex items-center gap-2">
-              <i data-lucide="log-out" class="w-5 h-5"></i> Sair
-            </button>
+  if (currentStep === 2) {
+    hint.textContent = "Selecione o profissional.";
+    html += `
+      <h4 class="text-2xl font-bold text-white mb-6">Profissional</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
+        ${BARBERS.map(b => `
+        <div onclick="selectBarber(${b.id})" class="group glass-panel p-6 rounded-2xl border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/50' : ''}">
+          <div class="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border-4 border-zinc-900 shadow-xl group-hover:border-amber-500/50 transition-colors">
+            ${b.image ? `<img src="${b.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${escapeHtml(b.name)}">` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><i data-lucide="user" class="w-10 h-10"></i></div>`}
           </div>
-        </div>
-      </div>
-    </nav>
-
-    <!-- HERO -->
-    <section id="home" class="relative h-screen flex items-center overflow-hidden">
-      <div class="absolute inset-0 z-0">
-        <video autoplay muted loop playsinline class="w-full h-full object-cover opacity-50">
-          <source src="Criação_de_Vídeo_Animado_e_Motion_Design.mp4" type="video/mp4">
-          Seu navegador não suporta vídeos HTML5.
-        </video>
-        <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-zinc-950/30"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
-      </div>
-
-      <div class="container mx-auto px-6 relative z-10 pt-24 md:pt-20">
-        <div class="max-w-3xl animate-fade-in-up text-center md:text-left">
-          <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
-            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span class="text-xs font-medium text-amber-200 uppercase tracking-wider">Agendamento 100% online</span>
-          </div>
-          <h1
-            class="text-4xl sm:text-5xl md:text-8xl font-bold text-white leading-[1.1] md:leading-[0.9] mb-6 md:mb-8 tracking-tight">
-            Domine <br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu
-              Estilo.</span>
-          </h1>
-          <p
-            class="text-zinc-400 text-base md:text-xl mb-8 md:mb-10 leading-relaxed max-w-lg font-light mx-auto md:mx-0">
-            Agende pelo site em segundos. Pagamento <b>apenas no local</b>. WhatsApp somente para dúvidas ou
-            cancelamentos.
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
-            <button onclick="startBooking()"
-              class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
-              Agendar Agora <i data-lucide="arrow-right"
-                class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
-            </button>
-            <button onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})"
-              class="glass-panel hover:bg-white/5 text-white border border-white/10 font-bold py-4 px-8 rounded-xl transition-all">
-              Conhecer Serviços
-            </button>
-          </div>
-
-          <div class="grid grid-cols-3 gap-8 pt-8 border-t border-white/10 max-w-lg mx-auto md:mx-0">
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">+5 Anos</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">De História</p>
-            </div>
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">12k+</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Cortes Feitos</p>
-            </div>
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">4.9/5</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Avaliação</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- GLOW SEPARATOR -->
-    <div class="relative w-full h-px bg-gradient-to-r from-transparent via-amber-500/50 to-transparent">
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-1 bg-amber-500 blur-[20px]"></div>
-    </div>
-
-    <!-- SERVICES -->
-    <section id="services" class="py-16 md:py-28 relative">
-      <div class="absolute top-1/2 left-0 w-96 h-96 bg-amber-600/10 rounded-full blur-[128px] pointer-events-none">
-      </div>
-
-      <div class="container mx-auto px-6 relative">
-        <div class="flex flex-col md:flex-row justify-between items-end mb-10 md:mb-14 gap-6">
           <div>
-            <h3 class="text-amber-500 font-bold uppercase tracking-widest text-xs mb-3">Nossa Expertise</h3>
-            <h2 class="text-3xl md:text-5xl font-bold text-white">Menu de Serviços</h2>
-          </div>
-
-          <div class="w-full md:w-auto flex flex-col md:items-end gap-3">
-            <p class="text-zinc-400 max-w-sm text-sm md:text-base">
-              Técnicas clássicas com tendências modernas.
-            </p>
-            <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <div class="relative w-full sm:w-72">
-                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i>
-                <input id="services-search" oninput="siteSearchServices(this.value)" placeholder="Buscar serviço..."
-                  class="w-full glass-input rounded-full py-2.5 pl-10 pr-4 text-sm">
-              </div>
-              <button onclick="startBooking()"
-                class="bg-white text-zinc-950 hover:bg-zinc-200 font-bold px-4 py-2.5 rounded-full">
-                Agendar
-              </button>
+            <h4 class="font-bold text-white text-lg">${escapeHtml(b.name)}</h4>
+            <div class="inline-block mt-1 px-3 py-1 rounded-full bg-zinc-900/50 border border-white/5 text-xs text-amber-500 font-bold uppercase tracking-wider">
+              ${escapeHtml(b.role)}
             </div>
+          </div>
+        </div>`).join('')}
+      </div>`;
+  }
+
+  if (currentStep === 3) {
+    hint.textContent = "Data e Hora";
+    const todayStr = getLocalYMD(new Date());
+    const selectedDateStr = bookingData.date ? getLocalYMD(bookingData.date) : todayStr;
+
+    html += `
+      <div class="flex flex-col h-full">
+        <h4 class="text-2xl font-bold text-white mb-6">Data e Hora</h4>
+        
+        <div class="mb-8">
+          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Selecione o Dia</label>
+          <div class="relative">
+             <input type="date" id="date-input-picker" value="${selectedDateStr}" min="${todayStr}" onchange="selectDate(this.value)" class="w-full bg-zinc-900 border border-white/10 text-white font-bold rounded-xl py-4 px-5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer">
+             <i data-lucide="calendar" class="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"></i>
           </div>
         </div>
 
-        <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section id="about" class="py-20 relative bg-[#09090b] overflow-hidden">
-      <div
-        class="absolute top-0 right-0 w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[100px] pointer-events-none">
-      </div>
-
-      <div class="container mx-auto px-6 relative z-10">
-        <div class="grid lg:grid-cols-2 gap-16 items-center">
-          <div>
-            <span class="text-amber-500 font-bold tracking-widest text-xs uppercase mb-2 block">Nossa História</span>
-            <h2 class="text-4xl md:text-5xl font-bold text-white mb-6 font-['Playfair_Display'] leading-tight">
-              FORJADOS NA <br /> <span class="text-amber-500">TRADIÇÃO & ESTILO</span>
-            </h2>
-
-            <div class="flex items-center gap-2 mb-8">
-              <div class="w-2 h-2 bg-amber-500 rotate-45"></div>
-              <div class="h-px w-24 bg-gradient-to-r from-amber-500 to-transparent"></div>
-            </div>
-
-            <div class="space-y-6 text-zinc-400 leading-relaxed text-sm md:text-base">
-              <p>
-                A <strong class="text-white">Ricardo Barbershop</strong> nasceu da paixão por unir a tradição da
-                barbearia clássica com a força e determinação do homem moderno. Desde o início, temos sido o destino de
-                quem valoriza não apenas um corte de cabelo, mas uma experiência completa.
-              </p>
-              <p>
-                Nosso espaço foi projetado para transportá-lo a uma atmosfera única. Aqui, você não é apenas um cliente
-                — é um parceiro que merece o melhor atendimento de Florianópolis.
-              </p>
-              <p>
-                Com uma equipe de barbeiros altamente qualificados, garantimos que cada visita seja uma jornada de
-                transformação e bem-estar.
-              </p>
-            </div>
-
-            <div class="mt-10 p-6 border-l-4 border-amber-500 bg-zinc-900/50 rounded-r-xl relative">
-              <p class="text-white italic font-medium text-lg font-['Playfair_Display']">
-                "Mais que uma barbearia, um Lifestyle. Domine seu estilo com quem entende do assunto."
-              </p>
-              <p class="text-amber-500 text-xs font-bold mt-3 uppercase tracking-wider">— Equipe Ricardo</p>
-            </div>
-          </div>
-
-          <div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-              <div
-                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div
-                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
-                  <i data-lucide="shield" class="w-5 h-5"></i>
-                </div>
-                <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Tradição</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Honramos as técnicas clássicas da barbearia com um
-                  toque moderno.</p>
-              </div>
-
-              <div
-                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div
-                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
-                  <i data-lucide="scissors" class="w-5 h-5"></i>
-                </div>
-                <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Precisão</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Cada corte é executado com a precisão de um verdadeiro
-                  artesão.</p>
-              </div>
-
-              <div
-                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div
-                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
-                  <i data-lucide="heart" class="w-5 h-5"></i>
-                </div>
-                <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Paixão</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Amamos o que fazemos e isso se reflete em cada detalhe.
-                </p>
-              </div>
-
-              <div
-                class="glass-panel p-6 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all duration-300 group hover:-translate-y-1">
-                <div
-                  class="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center text-amber-500 mb-4 group-hover:bg-amber-500 group-hover:text-black transition-colors">
-                  <i data-lucide="star" class="w-5 h-5"></i>
-                </div>
-                <h4 class="text-white font-bold mb-2 uppercase text-sm tracking-wider">Excelência</h4>
-                <p class="text-zinc-500 text-xs leading-relaxed">Buscamos a perfeição em cada serviço que oferecemos.
-                </p>
-              </div>
-            </div>
-
-            <div
-              class="glass-panel p-8 rounded-xl border border-white/5 flex justify-around items-center text-center relative overflow-hidden">
-              <div class="absolute inset-0 bg-amber-500/5"></div>
-              <div class="relative z-10">
-                <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">+5</span>
-                <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Anos de História</span>
-              </div>
-              <div class="w-px h-12 bg-white/10 relative z-10"></div>
-              <div class="relative z-10">
-                <span class="block text-4xl font-bold text-white font-['Playfair_Display'] mb-1">12k+</span>
-                <span class="text-[10px] text-amber-500 uppercase tracking-[0.2em] font-bold">Cortes Feitos</span>
-              </div>
-            </div>
-          </div>
-
+        <div class="flex-1">
+          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Horários Disponíveis</label>
+          ${bookingData.date ?
+        `<div id="slots-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-fade-in-up"></div>` :
+        `<div class="h-40 flex flex-col items-center justify-center text-zinc-500 bg-white/5 rounded-xl border border-white/5 border-dashed">
+                <i data-lucide="calendar-clock" class="w-8 h-8 mb-2 opacity-50"></i>
+                <span class="text-sm">Selecione um dia acima</span>
+             </div>`
+      }
         </div>
       </div>
-    </section>
+    `;
 
-    <!-- TEAM -->
-    <section id="team" class="py-16 md:py-24 bg-[#0c0c0e]">
-      <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-          <span class="text-amber-500 text-xs font-bold uppercase tracking-[0.3em]">Especialistas</span>
-          <h2 class="text-3xl md:text-4xl font-bold text-white mt-4">Mestres da <span
-              class="text-amber-500">Navalha</span></h2>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="glass-card rounded-2xl overflow-hidden group">
-            <div class="relative overflow-hidden aspect-square">
-              <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                alt="Barbeiro 1">
-              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
-              </div>
-              <div class="absolute bottom-6 left-6">
-                <h3 class="text-xl font-bold text-white">Ricardo Silva</h3>
-                <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Master Barber</p>
-              </div>
-            </div>
-            <div class="p-6 border-t border-white/5">
-              <p class="text-zinc-400 text-sm leading-relaxed">Especialista em visagismo e cortes clássicos de tesoura.
-              </p>
-            </div>
-          </div>
-          <div class="glass-card rounded-2xl overflow-hidden group">
-            <div class="relative overflow-hidden aspect-square">
-              <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                alt="Barbeiro 2">
-              <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
-              </div>
-              <div class="absolute bottom-6 left-6">
-                <h3 class="text-xl font-bold text-white">André Costa</h3>
-                <p class="text-amber-500 text-xs font-bold uppercase tracking-widest mt-1">Fade Expert</p>
+    // auto-load today if not set
+    if (!bookingData.date) setTimeout(() => selectDateImpl(todayStr), 0);
+  }
+
+  if (currentStep === 4) {
+    hint.textContent = "Confirme seus dados.";
+    html += `
+      <div class="flex items-center justify-center h-full">
+        <div class="w-full max-w-md bg-zinc-900/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-700"></div>
+          
+          <h4 class="text-2xl font-bold text-white mb-2 text-center">Quase lá!</h4>
+          <p class="text-zinc-400 text-sm text-center mb-8">Confirme seus dados para finalizar o agendamento.</p>
+
+          <div class="space-y-5">
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-zinc-400 uppercase ml-1">Seu Nome</label>
+              <div class="relative">
+                <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"></i>
+                <input type="text" oninput="updateClientData('clientName', this.value)" value="${escapeHtml(bookingData.clientName || '')}" class="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-amber-500 focus:bg-black/40 transition-all outline-none" placeholder="Como prefere ser chamado?">
               </div>
             </div>
-            <div class="p-6 border-t border-white/5">
-              <p class="text-zinc-400 text-sm leading-relaxed">Referência em degradês modernos e barboterapia.</p>
+
+            <div class="space-y-2">
+              <label class="text-xs font-bold text-zinc-400 uppercase ml-1">WhatsApp</label>
+              <div class="relative">
+                <i data-lucide="smartphone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"></i>
+                <input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${escapeHtml(bookingData.clientPhone || '')}" class="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-amber-500 focus:bg-black/40 transition-all outline-none" placeholder="(00) 00000-0000">
+              </div>
             </div>
-          </div>
-          <div
-            class="glass-card rounded-2xl border-dashed border-2 border-white/5 flex flex-col items-center justify-center p-10 text-center">
-            <div class="w-16 h-16 bg-zinc-800 rounded-full flex items-center justify-center text-amber-500 mb-6">
-              <i data-lucide="users" class="w-8 h-8"></i>
+
+            <div class="bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 flex gap-3 text-amber-200 text-sm mt-2">
+              <i data-lucide="info" class="w-5 h-5 shrink-0 text-amber-500"></i>
+              <p>O pagamento é realizado <b>apenas no local</b> após o serviço.</p>
             </div>
-            <h3 class="text-lg font-bold text-white">Equipe Completa</h3>
-            <p class="text-zinc-500 text-xs mt-2">Profissionais treinados no padrão de qualidade Ricardo.</p>
-            <button onclick="startBooking()"
-              class="mt-6 text-amber-500 font-bold uppercase text-[10px] tracking-widest hover:underline">Ver
-              disponibilidade</button>
           </div>
         </div>
+      </div>`;
+  }
+
+  if (currentStep === 5) {
+    const formattedDate = bookingData.date.toLocaleDateString('pt-BR');
+
+    // Google Calendar Link Construction
+    const serviceName = bookingData.service?.name || "Corte";
+    const startTimeComp = bookingData.time.split(':');
+    const startHour = parseInt(startTimeComp[0]);
+    const startMin = parseInt(startTimeComp[1]);
+
+    // Create Date objects for start and end
+    const startDate = new Date(bookingData.date);
+    startDate.setHours(startHour, startMin);
+
+    const endDate = new Date(startDate);
+    endDate.setMinutes(startDate.getMinutes() + (bookingData.service?.durationMin || 30));
+
+    // Helper for Google format YYYYMMDDTHHMMSSZ (UTC)
+    const toGCalTime = (date) => {
+      return date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    };
+
+    const gCalUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent('Barbearia: ' + serviceName)}&dates=${toGCalTime(startDate)}/${toGCalTime(endDate)}&details=${encodeURIComponent('Agendamento confirmado no Ricardo Barbershop.')}&location=${encodeURIComponent('Ricardo Barbershop - Florianópolis')}&sf=true&output=xml`;
+
+    html += `
+      <div class="flex flex-col items-center justify-center h-full text-center animate-scale-up">
+        
+        <div class="relative mb-8">
+           <div class="absolute inset-0 bg-green-500 rounded-full blur-[40px] opacity-20"></div>
+           <div class="w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-700 rounded-full flex items-center justify-center shadow-2xl relative z-10 mx-auto">
+              <i data-lucide="check" class="w-12 h-12 text-white"></i>
+           </div>
+        </div>
+
+        <h3 class="text-4xl font-bold text-white mb-2">Confirmado!</h3>
+        <p class="text-zinc-400 text-lg mb-8 max-w-sm">
+          Seu horário para <b>${escapeHtml(bookingData.service?.name)}</b> ficou agendado para <b>${formattedDate} às ${bookingData.time}</b>.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-md">
+           <a href="${gCalUrl}" target="_blank" class="flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/10 hover:border-white/20 transition-all group">
+              <i data-lucide="calendar" class="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform"></i>
+              Add ao Agenda
+           </a>
+           
+           <button onclick="closeBooking(); openAppointments();" class="flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold border border-white/10 hover:border-white/20 transition-all">
+              <i data-lucide="list" class="w-5 h-5 text-blue-400"></i>
+              Meus Cortes
+           </button>
+
+           <button onclick="closeBooking()" class="col-span-1 sm:col-span-2 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold shadow-lg shadow-amber-900/20 transition-all transform hover:-translate-y-0.5">
+              Voltar ao Início
+           </button>
+        </div>
+
+        <p class="text-zinc-600 text-xs mt-8">Te esperamos lá!</p>
+      </div>`;
+  }
+
+  content.innerHTML = html + '</div>';
+  lucide.createIcons();
+  updateSummary(); // Refresh styled summary if needed
+  if (currentStep === 3 && bookingData.date) renderSlots();
+}
+
+function renderSlots() {
+  const grid = qs('slots-container');
+  if (!grid || !bookingData.date) return;
+
+  const slots = buildSlots(bookingData.date);
+  if (!slots.length) {
+    grid.innerHTML = `<div class="col-span-full text-center py-10 text-zinc-500 border border-white/5 rounded-xl">
+      <p class="mb-2 font-bold text-amber-500">Sem horários disponíveis.</p>
+      <p class="text-xs">Estamos fechados neste dia ou o expediente já encerrou.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = slots.map(slot => {
+    if (slot.status === 'busy') {
+      return `<button disabled class="slot-btn py-4 rounded-xl border border-white/5 text-zinc-600 bg-zinc-900/30 text-sm font-bold relative opacity-50 cursor-not-allowed transition-colors"><span class="line-through decoration-white/20">${slot.time}</span></button>`;
+    }
+    return `<button onclick="selectTime('${slot.time}')" class="slot-btn py-4 rounded-xl border bg-zinc-800/50 border-white/5 text-zinc-200 font-bold hover:bg-amber-600 hover:text-white hover:border-amber-600 hover:shadow-lg hover:shadow-amber-900/40 hover:-translate-y-1 transition-all duration-300 ${bookingData.time === slot.time ? 'bg-amber-600 border-amber-600 text-white shadow-lg shadow-amber-900/40 -translate-y-1 ring-2 ring-amber-400/30' : ''}">${slot.time}</button>`;
+  }).join('');
+}
+
+// ====== SLOT HELPERS ======
+function timeToMinutes(t) { const [h, m] = t.split(':').map(Number); return h * 60 + m; }
+function minutesToTime(min) { return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`; }
+function getOpenRangeForDate(d) {
+  const k = d.getDay();
+  const o = BUSINESS.openingHours?.[k];
+  return o ? { startMin: timeToMinutes(o.start), endMin: timeToMinutes(o.end), dayKey: k } : null;
+}
+function isInBreak(k, t) {
+  const b = BUSINESS.breaks?.[k] || [];
+  const m = timeToMinutes(t);
+  return b.some(x => m >= timeToMinutes(x.start) && m < timeToMinutes(x.end));
+}
+function isPast(dateObj, t) {
+  const now = new Date();
+  const checkDate = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate());
+  const [h, m] = t.split(':').map(Number);
+  checkDate.setHours(h, m, 0, 0);
+  return checkDate < now;
+}
+function buildSlots(d) {
+  const r = getOpenRangeForDate(d);
+  if (!r) return [];
+  const dur = bookingData.service?.durationMin || 30;
+  const s = [];
+  for (let m = r.startMin; m + dur <= r.endMin; m += (BUSINESS.slotMinutes || 30)) {
+    const t = minutesToTime(m);
+    let status = 'available';
+    if (unavailableSlots.includes(t)) status = 'busy';
+    else if (isInBreak(r.dayKey, t)) status = 'busy';
+    else if (isPast(d, t)) status = 'busy';
+    s.push({ time: t, status });
+  }
+  return s;
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m]));
+}
+
+// ====== DB ======
+async function fetchUnavailableSlots(dateStr, barberId) {
+  if (!dateStr) return [];
+  // busca agendamentos do dia
+  const { data, error } = await supabaseClient
+    .from('appointments')
+    .select('details,date_iso')
+    .gte('date_iso', `${dateStr}T00:00:00`)
+    .lt('date_iso', `${dateStr}T23:59:59`);
+
+  if (error) {
+    console.warn("fetchUnavailableSlots error", error);
+    return [];
+  }
+
+  return (data || [])
+    .map(r => (typeof r.details === 'string' ? JSON.parse(r.details) : r.details))
+    .filter(d => (!barberId || barberId === 3 || d?.barber?.id === barberId))
+    .map(d => d?.time)
+    .filter(Boolean);
+}
+
+async function saveAppointment() {
+  if (!bookingData.clientName) return toast("Informe seu nome.", "error");
+  if (!bookingData.clientPhone) return toast("Informe seu WhatsApp.", "error");
+
+  localStorage.setItem('client_name', bookingData.clientName);
+  localStorage.setItem('client_phone', bookingData.clientPhone);
+
+  const y = bookingData.date.getFullYear();
+  const m = String(bookingData.date.getMonth() + 1).padStart(2, '0');
+  const d = String(bookingData.date.getDate()).padStart(2, '0');
+  const isoString = `${y}-${m}-${d}T${bookingData.time}:00`;
+
+  const payload = {
+    user_id: currentUser.id,
+    details: bookingData,
+    date_iso: isoString,
+    status: 'confirmado'
+  };
+
+  const { error } = await supabaseClient.from('appointments').insert(payload);
+  if (error) {
+    console.warn(error);
+    return toast("Erro ao salvar. Verifique se o horário já foi ocupado.", "error");
+  }
+
+  toast("Agendamento confirmado!");
+  currentStep = 5;
+  renderStep();
+  await fetchAppointments(currentUser.id);
+}
+
+async function fetchAppointments(uid) {
+  const { data, error } = await supabaseClient
+    .from('appointments')
+    .select('*')
+    .eq('user_id', uid)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.warn(error);
+    return;
+  }
+
+  appointments = (data || []).map(i => ({
+    id: i.id,
+    ...(typeof i.details === 'string' ? JSON.parse(i.details) : i.details),
+    status: i.status,
+    date_iso: i.date_iso
+  }));
+
+  renderAppointments();
+}
+
+function renderAppointments() {
+  const c = qs('appointments-content');
+  if (!c) return;
+  if (!appointments.length) {
+    c.innerHTML = `<div class="text-center py-10 text-zinc-500">Sem agendamentos.</div>`;
+    return;
+  }
+
+  c.innerHTML = appointments.map(a => {
+    const date = new Date(a.date_iso);
+    const dateStr = date.toLocaleDateString('pt-BR');
+    const waTxt = `Olá! Gostaria de cancelar o agendamento de ${a.service?.name || 'serviço'} no dia ${dateStr} às ${a.time}.`;
+    const waUrl = `https://wa.me/${BUSINESS.whatsappE164}?text=${encodeURIComponent(waTxt)}`;
+
+    return `<div class="glass-card p-4 rounded-xl">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <div class="font-bold text-white">${escapeHtml(a.service?.name || '')}</div>
+          <div class="text-xs text-zinc-400">${dateStr} às ${escapeHtml(a.time || '')}</div>
+          <div class="text-xs text-amber-500 mt-2 font-bold uppercase">${escapeHtml(a.status || '')}</div>
+        </div>
+        <a href="${waUrl}" target="_blank" rel="noopener" class="text-xs font-bold px-3 py-2 rounded-lg bg-zinc-900/60 border border-white/10 hover:border-amber-500/60 text-amber-500">
+          Cancelar (WhatsApp)
+        </a>
       </div>
-    </section>
+    </div>`;
+  }).join('');
+}
 
-    <!-- CONTATO -->
-    <section id="contact" class="py-20 relative bg-[#09090b] border-t border-white/5">
-      <div class="container mx-auto px-6">
-        <div class="text-center mb-16">
-          <h2
-            class="text-3xl md:text-4xl font-bold text-amber-500 uppercase tracking-widest mb-2 font-['Playfair_Display']">
-            Visite o Nosso Salão</h2>
-          <div class="w-2 h-2 bg-amber-500 rotate-45 mx-auto mt-4"></div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div class="w-full h-[500px] rounded-xl overflow-hidden border border-white/10 shadow-2xl relative group">
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.637373406206!2d-48.58682292359783!3d-27.57375622325357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527387343053805%3A0xc3f83732e783a62!2sR.%20Irm%C3%A3%20Bonavita%2C%20123%20-%20Capoeiras%2C%20Florian%C3%B3polis%20-%20SC%2C%2088070-630!5e0!3m2!1spt-BR!2sbr!4v1707248382745!5m2!1spt-BR!2sbr"
-              width="100%" height="100%" style="border:0; filter: grayscale(100%) invert(92%) contrast(83%);"
-              allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
-              class="group-hover:filter-none transition-all duration-500"></iframe>
-            <div class="absolute inset-0 border-4 border-amber-500/10 pointer-events-none rounded-xl"></div>
-          </div>
-
-          <div class="space-y-10">
-            <div class="space-y-8">
-              <div class="flex gap-6">
-                <div
-                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
-                  <i data-lucide="map-pin" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Endereço</h4>
-                  <p class="text-zinc-400 text-sm leading-relaxed">
-                    Rua Irmã Bonavita, 123<br>
-                    Florianópolis - SC<br>
-                    CEP: 88070-630
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex gap-6">
-                <div
-                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
-                  <i data-lucide="phone" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Telefone</h4>
-                  <p class="text-zinc-400 text-sm leading-relaxed">
-                    (48) 9668-9199<br>
-                    (48) 3222-0000
-                  </p>
-                </div>
-              </div>
-
-              <div class="flex gap-6">
-                <div
-                  class="w-12 h-12 rounded-lg border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0 bg-amber-500/5">
-                  <i data-lucide="clock" class="w-6 h-6"></i>
-                </div>
-                <div>
-                  <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Horário de Funcionamento</h4>
-                  <div class="text-zinc-400 text-sm space-y-2">
-                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Segunda a Sexta:</span>
-                      <span class="text-white font-medium">09:00 - 20:00</span>
-                    </div>
-                    <div class="flex justify-between w-64 border-b border-white/5 pb-1"><span>Sábado:</span> <span
-                        class="text-white font-medium">09:00 - 18:00</span></div>
-                    <div class="flex justify-between w-64"><span>Domingo:</span> <span
-                        class="text-amber-500 font-bold">Fechado</span></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="border border-white/10 bg-zinc-900 rounded-xl p-8 relative overflow-hidden group">
-              <div
-                class="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                <i data-lucide="message-circle" class="w-24 h-24 text-white"></i>
-              </div>
-              <div class="relative z-10">
-                <h4 class="text-white font-bold uppercase tracking-wider text-sm mb-2">Agende pelo WhatsApp</h4>
-                <p class="text-zinc-500 text-xs mb-6 max-w-xs">Prefere agendar direto pelo WhatsApp? Clique no botão
-                  abaixo!</p>
-
-                <a href="https://wa.me/554896689199" target="_blank"
-                  class="block w-full bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-4 rounded-lg text-center transition-all shadow-lg shadow-green-900/20 flex items-center justify-center gap-2 transform hover:-translate-y-1"
-                  rel="noopener">
-                  <i data-lucide="message-circle" class="w-5 h-5"></i>
-                  Chamar no WhatsApp
-                </a>
-              </div>
-            </div>
-
-            <div class="flex gap-4 pt-4">
-              <a href="https://instagram.com/diivulgaja" target="_blank"
-                class="w-12 h-12 bg-zinc-800 hover:bg-amber-600 border border-white/5 hover:border-amber-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300"
-                rel="noopener">
-                <i data-lucide="instagram" class="w-5 h-5"></i>
-              </a>
-              <a href="#"
-                class="w-12 h-12 bg-zinc-800 hover:bg-blue-600 border border-white/5 hover:border-blue-500 rounded-lg flex items-center justify-center text-zinc-400 hover:text-white transition-all duration-300">
-                <i data-lucide="facebook" class="w-5 h-5"></i>
-              </a>
-            </div>
-
-          </div>
-        </div>
-
-        <div
-          class="border-t border-white/5 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center text-zinc-600 text-xs gap-4">
-          <p>&copy; 2026 Ricardo Barbershop. Todos os direitos reservados.</p>
-          <button onclick="goAdmin()"
-            class="hover:text-amber-500 transition-colors uppercase font-bold tracking-wider flex items-center gap-2">
-            <i data-lucide="lock" class="w-3 h-3"></i> Painel Admin
-          </button>
-        </div>
+// ====== LANDING SERVICES ======
+function renderServicesLanding() {
+  const g = qs('services-grid');
+  const list = SERVICES.filter(s => !servicesSearch || s.name.toLowerCase().includes(servicesSearch.toLowerCase()));
+  g.innerHTML = list.map(s => `
+    <div class="glass-card p-8 rounded-2xl group cursor-default relative overflow-hidden">
+      ${s.popular ? `<span class="absolute top-0 right-0 bg-amber-600 text-white text-[10px] font-black px-3 py-1 uppercase rounded-bl-xl">Popular</span>` : ''}
+      <div class="flex justify-between items-start mb-6">
+        <div class="p-3 bg-white/5 rounded-xl text-amber-500 border border-white/5"><i data-lucide="scissors"></i></div>
+        <span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span>
       </div>
-    </section>
+      <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(s.name)}</h3>
+      <p class="text-zinc-400 mb-6 text-sm min-h-[40px]">${escapeHtml(s.description)}</p>
+      <button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold flex items-center gap-2">Reservar <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+    </div>`).join('');
+  lucide.createIcons();
+}
 
-    <a id="wa-float" href="https://wa.me/554896689199" target="_blank"
-      class="fixed bottom-6 right-6 z-[55] flex items-center gap-3 px-4 py-3 rounded-full bg-zinc-900/80 border border-white/10 hover:border-amber-500/60 shadow-2xl backdrop-blur text-white transition-all"
-      aria-label="WhatsApp - Dúvidas ou Cancelar" rel="noopener">
-      <span class="w-3 h-3 rounded-full bg-green-500"></span>
-      <div class="text-left leading-tight">
-        <p class="text-xs text-zinc-400">Dúvidas / Cancelar</p>
-        <p class="text-sm font-bold">WhatsApp suporte</p>
-      </div>
-    </a>
+function siteSearchServicesImpl(q) {
+  servicesSearch = (q || '').trim();
+  renderServicesLanding();
+}
 
+// ====== MENU / DROPDOWN ======
+function toggleMobileMenuImpl() { qs('mobile-menu')?.classList.toggle('hidden'); }
 
+function closeProfileDropdown() {
+  const d = qs('profile-dropdown');
+  if (!d) return;
+  d.classList.add('opacity-0', 'invisible');
+  d.classList.remove('translate-y-0');
+}
 
-  </div>
+function toggleProfileDropdownImpl() {
+  const d = qs('profile-dropdown');
+  if (!d) return;
+  const isOpen = !d.classList.contains('invisible');
+  if (isOpen) closeProfileDropdown();
+  else {
+    d.classList.remove('opacity-0', 'invisible');
+    d.classList.add('translate-y-0');
+  }
+}
 
-  <!-- =========================
-       ADMIN (mantido)
-  ========================== -->
-  <div id="admin-root" class="hidden">
-    <div id="admin-toast-container" class="fixed top-4 right-4 z-[100] flex flex-col gap-2"></div>
+// close dropdown on outside click
+document.addEventListener('click', (e) => {
+  const drop = qs('profile-dropdown');
+  const trigger = qs('nav-user');
+  if (!drop || drop.classList.contains('invisible')) return;
+  if (drop.contains(e.target)) return;
+  if (trigger && trigger.contains(e.target)) return;
+  closeProfileDropdown();
+});
 
-    <div id="admin-login-screen" class="fixed inset-0 z-50 bg-[#050505] flex items-center justify-center p-4">
-      <div class="admin-glass-panel p-8 rounded-2xl w-full max-w-sm shadow-2xl relative overflow-hidden">
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-600 to-amber-800"></div>
-        <div class="text-center mb-8">
-          <div
-            class="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-500/20">
-            <i data-lucide="shield" class="w-8 h-8 text-amber-500"></i>
-          </div>
-          <h1 class="text-2xl font-bold text-white font-['Playfair_Display']">Ricardo Admin</h1>
-          <p class="text-zinc-500 text-sm mt-1">Gestão Profissional</p>
-        </div>
-        <form onsubmit="adminApp.login(event)" class="space-y-4">
-          <input type="email" id="admin-email" class="w-full admin-glass-input rounded-lg py-3 px-4"
-            placeholder="admin@ricardo.com">
-          <input type="password" id="admin-password" class="w-full admin-glass-input rounded-lg py-3 px-4"
-            placeholder="Senha">
-          <button type="submit"
-            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3.5 rounded-lg transition-all shadow-lg shadow-amber-900/20">
-            Acessar Painel
-          </button>
-        </form>
-        <div class="mt-6 pt-6 border-t border-white/5 text-center space-y-3">
-          <button onclick="goSite()"
-            class="block w-full text-xs text-amber-500 hover:text-amber-400 transition-colors uppercase font-bold tracking-widest">
-            Voltar para o site
-          </button>
-        </div>
-      </div>
-    </div>
+// ====== APPOINTMENTS MODAL ======
+function openAppointmentsImpl() {
+  if (!currentUser) return window.openAuthModal('login');
+  qs('appointments-modal').classList.remove('hidden');
+  qs('appointments-content').innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
+  fetchAppointments(currentUser.id);
+}
+function closeAppointmentsImpl() { qs('appointments-modal').classList.add('hidden'); }
 
-    <div id="admin-app-layout" class="flex w-full h-screen hidden overflow-hidden admin-body">
-      <aside class="w-20 lg:w-64 glass-sidebar flex flex-col flex-shrink-0 transition-all duration-300 z-40">
-        <div class="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/5">
-          <i data-lucide="scissors" class="w-6 h-6 text-amber-500 lg:mr-3"></i>
-          <span class="font-['Playfair_Display'] font-bold text-lg text-white hidden lg:block">RICARDO</span>
-        </div>
+// ====== ROUTER (hash) ======
+function showSiteView() {
+  document.body.classList.remove('admin-body');
+  qs('admin-root').classList.add('hidden');
+  qs('site-root').classList.remove('hidden');
+  lucide.createIcons();
+}
+function showAdminView() {
+  document.body.classList.add('admin-body');
+  qs('site-root').classList.add('hidden');
+  qs('admin-root').classList.remove('hidden');
+  lucide.createIcons();
+  if (!window.__adminInitialized) {
+    window.__adminInitialized = true;
+    window.adminApp?.init?.();
+  } else {
+    window.adminApp?.refresh?.();
+  }
+}
+function route() {
+  const hash = (window.location.hash || '#home').toLowerCase();
+  if (hash.startsWith('#admin')) showAdminView();
+  else showSiteView();
+}
+function goAdmin() { window.location.hash = '#admin'; }
+function goSite() { window.location.hash = '#home'; }
+window.addEventListener('hashchange', route);
 
-        <nav class="flex-1 py-6 space-y-2 px-2">
-          <button onclick="adminApp.nav('dashboard')"
-            class="nav-item active w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
-            <i data-lucide="layout-grid" class="w-5 h-5"></i>
-            <span class="hidden lg:block font-medium">Visão Geral</span>
-          </button>
-          <button onclick="adminApp.nav('agenda')"
-            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
-            <i data-lucide="calendar" class="w-5 h-5"></i>
-            <span class="hidden lg:block font-medium">Agenda</span>
-          </button>
-          <button onclick="adminApp.nav('clients')"
-            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
-            <i data-lucide="users" class="w-5 h-5"></i>
-            <span class="hidden lg:block font-medium">Clientes</span>
-          </button>
-          <button onclick="adminApp.nav('services')"
-            class="nav-item w-full flex items-center gap-3 px-3 lg:px-4 py-3 text-zinc-400 rounded-lg group">
-            <i data-lucide="tag" class="w-5 h-5"></i>
-            <span class="hidden lg:block font-medium">Catálogo</span>
-          </button>
-        </nav>
+// ====== ADMIN APP (visual demo) ======
+// ====== ADMIN APP ======
+const adminApp = {
+  data: {
+    appointments: [],
+    services: [],
+    clients: []
+  },
 
-        <div class="p-4 border-t border-white/5 space-y-3">
-          <button onclick="goSite()"
-            class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-amber-500 hover:text-amber-400 text-sm transition-colors rounded-lg hover:bg-white/5">
-            <i data-lucide="arrow-left" class="w-4 h-4"></i>
-            <span class="hidden lg:block text-sm font-medium">Voltar ao Site</span>
-          </button>
-          <button onclick="adminApp.logout()"
-            class="w-full flex items-center justify-center lg:justify-start gap-3 p-2 text-zinc-500 hover:text-red-400 text-sm transition-colors rounded-lg hover:bg-white/5">
-            <i data-lucide="log-out" class="w-4 h-4"></i>
-            <span class="hidden lg:block text-sm font-medium">Sair</span>
-          </button>
-        </div>
-      </aside>
+  init: async () => {
+    if (!currentUser) return;
+    // Check role (in a real app, use RLS/Metadata. Here we trust the UI for demo but backend enforces RLS)
+    // const { data } = await supabaseClient.from('profiles').select('role').eq('id', currentUser.id).single();
+    // if (data?.role !== 'admin') { toast("Acesso negado", "error"); return goSite(); }
 
-      <main class="flex-1 flex flex-col h-full overflow-hidden bg-[#050505]">
-        <header
-          class="h-20 border-b border-white/5 flex items-center justify-between px-6 lg:px-10 bg-[#050505]/50 backdrop-blur-sm z-10">
-          <div class="flex items-center gap-4">
-            <h2 id="admin-page-title" class="text-xl font-bold text-white capitalize">Visão Geral</h2>
-            <span id="admin-header-loader" class="hidden">
-              <div class="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+    await adminApp.fetchData();
+    adminApp.renderKPIs();
+    adminApp.renderAgenda();
+    adminApp.renderClients();
+
+    // Auto refresh every 30s
+    setInterval(() => adminApp.fetchData().then(() => {
+      adminApp.renderKPIs();
+      adminApp.renderAgenda();
+    }), 30000);
+  },
+
+  refresh: () => {
+    adminApp.fetchData().then(() => {
+      adminApp.renderKPIs();
+      adminApp.renderAgenda();
+      adminApp.renderClients();
+    });
+  },
+
+  fetchData: async () => {
+    const today = new Date();
+    const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+
+    // Fetch all for client stats, but usually you'd paginate. For demo, fetch last 1000.
+    const { data: appts, error } = await supabaseClient
+      .from('appointments')
+      .select('*')
+      .order('date_iso', { ascending: true })
+      .limit(500);
+
+    if (error) { console.error(error); return; }
+
+    adminApp.data.appointments = appts.map(a => ({
+      ...a,
+      details: typeof a.details === 'string' ? JSON.parse(a.details) : a.details
+    }));
+  },
+
+  renderKPIs: () => {
+    const today = new Date().toDateString();
+    const todaysAppts = adminApp.data.appointments.filter(a => new Date(a.date_iso).toDateString() === today);
+
+    // KPI 1: Cortes Hoje
+    qs('admin-kpi-count').textContent = todaysAppts.length;
+
+    // KPI 2: Faturamento Estimado (Status != cancelado)
+    const revenue = todaysAppts
+      .filter(a => a.status !== 'cancelado')
+      .reduce((sum, a) => sum + (a.details?.service?.price || 0), 0);
+    qs('admin-kpi-revenue').textContent = `R$ ${revenue}`;
+
+    // KPI 3: Próximo Cliente
+    const now = new Date();
+    const next = todaysAppts.find(a => new Date(a.date_iso) > now && a.status !== 'cancelado');
+    if (next) {
+      qs('admin-kpi-next-name').textContent = next.details?.clientName || 'Cliente';
+      qs('admin-kpi-next-time').textContent = next.details?.time || '--:--';
+    } else {
+      qs('admin-kpi-next-name').textContent = 'Sem mais agendamentos';
+      qs('admin-kpi-next-time').textContent = '--:--';
+    }
+  },
+
+  nav: (p) => {
+    ['dashboard', 'agenda', 'clients', 'services'].forEach(v => qs(`admin-view-${v}`)?.classList.add('hidden'));
+    qs(`admin-view-${p}`)?.classList.remove('hidden');
+
+    const titleMap = { dashboard: 'Visão Geral', agenda: 'Agenda', clients: 'Clientes', services: 'Catálogo' };
+    qs('admin-page-title').textContent = titleMap[p] || 'Painel';
+
+    // Update active nav state
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+    // Simple way to highlight, typically you'd query by ID or data attribute
+  },
+
+  // --- AGENDA ---
+  renderAgenda: (filter = 'all') => {
+    const tbody = qs('admin-agenda-table-body');
+    if (!tbody) return;
+
+    tbody.innerHTML = adminApp.data.appointments.map(a => {
+      const statusColors = {
+        'confirmado': 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+        'pendente': 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+        'concluido': 'bg-green-500/10 text-green-500 border-green-500/20',
+        'cancelado': 'bg-red-500/10 text-red-500 border-red-500/20'
+      };
+
+      const dateObj = new Date(a.date_iso);
+      const dateStr = dateObj.toLocaleDateString('pt-BR');
+
+      return `
+        <tr class="hover:bg-white/5 transition-colors group">
+          <td class="p-5">
+            <div class="font-bold text-white">${escapeHtml(a.details?.clientName || 'Cliente')}</div>
+            <div class="text-xs text-zinc-500">${escapeHtml(a.details?.clientPhone || '')}</div>
+          </td>
+          <td class="p-5 text-zinc-300">${escapeHtml(a.details?.service?.name || '-')}</td>
+          <td class="p-5 text-zinc-400 text-sm">${dateStr}</td>
+          <td class="p-5 text-white font-bold">${escapeHtml(a.details?.time || '--:--')}</td>
+          <td class="p-5">
+            <span class="px-3 py-1 rounded-full text-xs font-bold border ${statusColors[a.status] || 'bg-zinc-800 text-zinc-400 border-white/10'} uppercase tracking-wider">
+              ${a.status}
             </span>
-          </div>
+          </td>
+          <td class="p-5 text-right">
+             <div class="flex gap-2 justify-end opacity-50 group-hover:opacity-100 transition-opacity">
+               ${a.status !== 'concluido' ? `
+               <button onclick="adminApp.updateStatus(${a.id}, 'concluido')" class="p-2 hover:bg-green-500/20 text-green-500 rounded-lg transition-colors" title="Concluir">
+                 <i data-lucide="check" class="w-4 h-4"></i>
+               </button>` : ''}
+               ${a.status !== 'cancelado' ? `
+               <button onclick="adminApp.updateStatus(${a.id}, 'cancelado')" class="p-2 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors" title="Cancelar">
+                 <i data-lucide="x" class="w-4 h-4"></i>
+               </button>` : ''}
+             </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+    lucide.createIcons();
+  },
 
-          <div class="flex items-center gap-4">
-            <button onclick="startBooking()"
-              class="bg-amber-600 hover:bg-amber-700 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2 shadow-lg shadow-amber-900/20 transition-all">
-              <i data-lucide="plus" class="w-4 h-4"></i> <span class="hidden sm:inline">Novo Agendamento</span>
-            </button>
-          </div>
-        </header>
+  updateStatus: async (id, status) => {
+    const { error } = await supabaseClient
+      .from('appointments')
+      .update({ status })
+      .eq('id', id);
 
-        <div class="flex-1 overflow-y-auto p-6 lg:p-10" id="admin-content-area">
-          <div id="admin-view-dashboard" class="space-y-8 animate-fade-in-up">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div class="admin-glass-panel p-6 rounded-2xl relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                  <i data-lucide="scissors" class="w-16 h-16 text-amber-500"></i>
-                </div>
-                <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">Cortes Hoje</p>
-                <h3 class="text-3xl font-bold text-white" id="admin-kpi-count">0</h3>
-              </div>
+    if (error) return toast("Erro ao atualizar", "error");
+    toast(`Agendamento ${status}!`);
+    adminApp.refresh();
+  },
 
-              <div class="admin-glass-panel p-6 rounded-2xl relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
-                  <i data-lucide="dollar-sign" class="w-16 h-16 text-emerald-500"></i>
-                </div>
-                <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-1">Faturamento (Est.)</p>
-                <h3 class="text-3xl font-bold text-white" id="admin-kpi-revenue">R$ 0</h3>
-              </div>
+  // --- CLIENTS ---
+  renderClients: () => {
+    // Unique clients by phone
+    const clientsMap = {};
+    adminApp.data.appointments.forEach(a => {
+      const phone = a.details?.clientPhone;
+      if (!phone) return;
+      if (!clientsMap[phone]) {
+        clientsMap[phone] = {
+          name: a.details.clientName,
+          phone,
+          visits: 0,
+          totalSpent: 0,
+          lastVisit: a.date_iso
+        };
+      }
+      clientsMap[phone].visits++;
+      if (a.status !== 'cancelado') {
+        clientsMap[phone].totalSpent += (a.details.service?.price || 0);
+      }
+      if (a.date_iso > clientsMap[phone].lastVisit) {
+        clientsMap[phone].lastVisit = a.date_iso;
+      }
+    });
 
-              <div
-                class="admin-glass-panel p-6 rounded-2xl border-l-4 border-l-amber-500 md:col-span-2 flex items-center justify-between">
-                <div>
-                  <p class="text-zinc-500 text-xs font-bold uppercase tracking-wider mb-2">Próximo Cliente</p>
-                  <h3 class="text-2xl font-bold text-white mb-1" id="admin-kpi-next-name">Sem agendamentos</h3>
-                  <p class="text-amber-500 font-medium flex items-center gap-2">
-                    <i data-lucide="clock" class="w-4 h-4"></i> <span id="admin-kpi-next-time">--:--</span>
-                  </p>
-                </div>
-                <button onclick="adminApp.nav('agenda')"
-                  class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-lg text-sm font-medium transition-colors border border-white/5">
-                  Ver Agenda
-                </button>
-              </div>
-            </div>
+    const clients = Object.values(clientsMap).sort((a, b) => b.totalSpent - a.totalSpent);
 
-            <div class="admin-glass-panel p-6 rounded-2xl">
-              <h3 class="font-bold text-white mb-6">Performance Semanal</h3>
-              <div class="h-64 w-full"><canvas id="admin-revenueChart"></canvas></div>
-            </div>
-          </div>
+    const tbody = qs('admin-clients-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = clients.map(c => `
+      <tr class="hover:bg-white/5 transition-colors">
+        <td class="p-5 text-white font-bold">${escapeHtml(c.name)}</td>
+        <td class="p-5 text-zinc-400 text-sm">${escapeHtml(c.phone)}</td>
+        <td class="p-5 text-zinc-300">${c.visits}</td>
+        <td class="p-5 text-emerald-500 font-bold">R$ ${c.totalSpent}</td>
+        <td class="p-5 text-zinc-500 text-sm">${new Date(c.lastVisit).toLocaleDateString('pt-BR')}</td>
+      </tr>
+    `).join('');
+  },
 
-          <div id="admin-view-agenda" class="hidden space-y-6 animate-fade-in-up">
-            <div class="admin-glass-panel rounded-2xl overflow-hidden border border-white/5">
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="bg-white/5 border-b border-white/5 text-xs text-zinc-400 uppercase tracking-wider">
-                      <th class="p-5 font-bold">Cliente</th>
-                      <th class="p-5 font-bold">Serviço</th>
-                      <th class="p-5 font-bold">Data</th>
-                      <th class="p-5 font-bold">Horário</th>
-                      <th class="p-5 font-bold">Status</th>
-                      <th class="p-5 font-bold text-right">Ações</th>
-                    </tr>
-                  </thead>
-                  <tbody id="admin-agenda-table-body" class="text-sm divide-y divide-white/5"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+  // --- SERVICES (CRUD) ---
+  renderServices: () => {
+    const grid = qs('admin-services-grid');
+    if (!grid) return;
 
-          <div id="admin-view-clients" class="hidden space-y-6 animate-fade-in-up">
-            <div class="admin-glass-panel rounded-2xl overflow-hidden border border-white/5">
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                  <thead>
-                    <tr class="bg-white/5 border-b border-white/5 text-xs text-zinc-400 uppercase tracking-wider">
-                      <th class="p-5 font-bold">Nome</th>
-                      <th class="p-5 font-bold">Telefone</th>
-                      <th class="p-5 font-bold">Total Cortes</th>
-                      <th class="p-5 font-bold">Total Gasto (LTV)</th>
-                      <th class="p-5 font-bold">Última Visita</th>
-                    </tr>
-                  </thead>
-                  <tbody id="admin-clients-table-body" class="text-sm divide-y divide-white/5"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <div id="admin-view-services" class="hidden space-y-6 animate-fade-in-up">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="admin-services-grid"></div>
-          </div>
+    // Add "New Service" card
+    let html = `
+      <div onclick="adminApp.openServiceModal()" class="admin-glass-panel p-6 rounded-2xl flex flex-col items-center justify-center gap-4 border-2 border-dashed border-white/10 hover:border-amber-500/50 cursor-pointer group transition-all min-h-[200px]">
+        <div class="w-16 h-16 rounded-full bg-zinc-800 flex items-center justify-center group-hover:bg-amber-500 transition-colors">
+          <i data-lucide="plus" class="w-8 h-8 text-zinc-500 group-hover:text-white"></i>
         </div>
-      </main>
-    </div>
-  </div>
-
-  <!-- AUTH MODAL -->
-  <div id="auth-modal"
-    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-in-up">
-    <div
-      class="relative w-full max-w-md bg-[#18181b] rounded-3xl border border-white/10 shadow-2xl overflow-hidden glass-panel">
-      <!-- ... auth content ... -->
-      <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i
-          data-lucide="x"></i></button>
-      <div id="auth-content" class="p-8">
-        <div id="auth-message-container"
-          class="hidden mb-6 bg-amber-500/10 border border-amber-500/20 p-4 rounded-xl flex items-start gap-3">
-          <i data-lucide="alert-circle" class="w-5 h-5 text-amber-500 shrink-0 mt-0.5"></i>
-          <p id="auth-message-text" class="text-sm text-amber-200">
-            Para agendar seu horário, faça login ou crie sua conta.
-          </p>
-        </div>
-
-        <div class="flex gap-6 border-b border-white/10 mb-6">
-          <button onclick="switchAuthTab('login')" id="tab-login"
-            class="pb-2 text-amber-500 border-b-2 border-amber-500 font-bold text-lg transition-all">Entrar</button>
-          <button onclick="switchAuthTab('register')" id="tab-register"
-            class="pb-2 text-zinc-400 hover:text-white font-medium text-lg transition-all">Criar Conta</button>
-        </div>
-
-        <div id="form-login" class="space-y-5">
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-            <input type="email" id="login-email" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="seu@email.com">
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
-            <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="••••••••">
-          </div>
-
-          <button onclick="handleLogin()"
-            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
-            Entrar
-          </button>
-
-          <button onclick="openResetPassword()" class="w-full text-sm text-zinc-400 hover:text-white transition-colors">
-            Esqueci minha senha
-          </button>
-        </div>
-
-        <div id="form-register" class="space-y-5 hidden">
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">Nome Completo</label>
-            <input type="text" id="register-name" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="Seu nome">
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-            <input type="email" id="register-email" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="seu@email.com">
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
-            <input type="password" id="register-password" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="••••••••">
-          </div>
-          <button onclick="handleRegister()"
-            class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-amber-900/30">
-            Criar Conta
-          </button>
-        </div>
-
-        <div id="form-reset" class="space-y-5 hidden">
-          <p class="text-sm text-zinc-400">Digite seu e-mail para receber o link de recuperação.</p>
-          <div class="space-y-2">
-            <label class="text-xs font-bold text-zinc-400 uppercase">E-mail</label>
-            <input type="email" id="reset-email" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="seu@email.com">
-          </div>
-          <button onclick="handleResetPassword()"
-            class="w-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-3 rounded-xl transition-all">
-            Enviar Link
-          </button>
-          <button onclick="backToLogin()"
-            class="w-full text-sm text-zinc-400 hover:text-white transition-colors">Voltar</button>
-        </div>
-
-        <div class="relative my-7">
-          <div class="absolute inset-0 flex items-center">
-            <div class="w-full border-t border-white/10"></div>
-          </div>
-          <div class="relative flex justify-center text-xs uppercase">
-            <span class="bg-[#18181b] px-4 text-zinc-500 font-bold">Ou continue com</span>
-          </div>
-        </div>
-
-        <button onclick="handleGoogleLogin()"
-          class="w-full glass-input hover:bg-white hover:text-black transition-colors font-bold py-3 rounded-xl flex items-center justify-center gap-3 group">
-          <svg class="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              fill="#4285F4" />
-            <path
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              fill="#34A853" />
-            <path
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.84z"
-              fill="#FBBC05" />
-            <path
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              fill="#EA4335" />
-          </svg>
-          <span id="google-btn-text">Google</span>
-          <div id="google-loader" class="loader hidden"></div>
-        </button>
+        <p class="font-bold text-zinc-400 group-hover:text-amber-500">Novo Serviço</p>
       </div>
-    </div>
-  </div>
+    `;
 
-  <!-- BOOKING MODAL -->
-  <div id="booking-modal" class="fixed inset-0 z-[60] hidden flex items-center justify-center p-0 md:p-4">
-    <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeBooking()"></div>
-
-    <div
-      class="glass-panel w-full h-full md:h-[90vh] md:max-w-4xl md:rounded-2xl shadow-2xl relative z-10 flex flex-col overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
-      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-        <div>
-          <h3 class="text-xl font-bold text-white">Agendar Horário</h3>
-          <p class="text-xs text-zinc-500 mt-1" id="step-hint">Escolha o serviço desejado</p>
+    html += SERVICES.map(s => `
+      <div class="admin-glass-panel p-6 rounded-2xl relative group">
+        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+           <button onclick="adminApp.openServiceModal(${s.id})" class="p-2 bg-zinc-800 hover:bg-amber-600 rounded-lg text-white"><i data-lucide="edit-2" class="w-4 h-4"></i></button>
+           <button onclick="adminApp.deleteService(${s.id})" class="p-2 bg-zinc-800 hover:bg-red-600 rounded-lg text-white"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
-        <button onclick="closeBooking()"
-          class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-
-      <div class="px-8 py-4 bg-zinc-900/30 border-b border-white/5">
-        <div class="flex items-center justify-between max-w-md mx-auto">
-          <div class="flex flex-col items-center gap-2">
-            <div class="step-dot active" id="dot-1">1</div>
-            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Serviço</span>
-          </div>
-          <div class="step-line" id="line-1"></div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="step-dot" id="dot-2">2</div>
-            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Barbeiro</span>
-          </div>
-          <div class="step-line" id="line-2"></div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="step-dot" id="dot-3">3</div>
-            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Data</span>
-          </div>
-          <div class="step-line" id="line-3"></div>
-          <div class="flex flex-col items-center gap-2">
-            <div class="step-dot" id="dot-4">4</div>
-            <span class="text-[0.6rem] uppercase font-bold text-zinc-500">Final</span>
-          </div>
+        <div class="flex items-center justify-between mb-4">
+           <div class="p-3 bg-white/5 rounded-xl text-amber-500"><i data-lucide="scissors"></i></div>
+           <span class="font-bold text-white bg-white/5 px-3 py-1 rounded-lg">R$ ${s.price}</span>
+        </div>
+        <h3 class="font-bold text-white text-lg mb-1">${escapeHtml(s.name)}</h3>
+        <p class="text-xs text-zinc-500 mb-4 h-10 overflow-hidden text-ellipsis">${escapeHtml(s.description)}</p>
+        <div class="flex gap-2 text-xs font-bold uppercase tracking-wider text-zinc-600">
+           <span>${s.durationMin} min</span>
+           ${s.popular ? '<span class="text-amber-500">• Popular</span>' : ''}
         </div>
       </div>
+    `).join('');
 
-      <div class="flex flex-1 overflow-hidden relative">
-        <div id="booking-content" class="flex-1 p-6 overflow-y-auto border-r border-white/5 pb-24 md:pb-6"></div>
+    grid.innerHTML = html;
+    lucide.createIcons();
+  },
 
-        <div class="hidden md:flex w-80 glass-panel flex-col p-8 border-l border-white/5 relative bg-[#0c0c0e]">
-          <h4 class="text-xs font-bold text-amber-500 uppercase tracking-[0.25em] mb-8 flex items-center gap-2">
-            <span class="w-8 h-px bg-amber-500/50"></span> Resumo
-          </h4>
+  openServiceModal: (id = null) => {
+    const s = id ? SERVICES.find(x => x.id === id) : { name: '', price: '', duration_min: 30, description: '', popular: false };
+    if (!s) return;
 
-          <div class="space-y-8 flex-1">
-            <div class="flex gap-4 items-start group">
-              <div
-                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
-                <i data-lucide="scissors" class="w-5 h-5 text-amber-500"></i>
-              </div>
-              <div>
-                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Serviço</p>
-                <p id="summary-service" class="text-base font-bold text-white leading-tight">Nenhum</p>
-                <p id="summary-price" class="text-xs text-amber-500 font-bold mt-1 tracking-wide opacity-80">--</p>
-              </div>
-            </div>
+    qs('service-modal-title').textContent = id ? 'Editar Serviço' : 'Novo Serviço';
+    qs('svc-id').value = id || '';
+    qs('svc-name').value = s.name;
+    qs('svc-price').value = s.price;
+    qs('svc-duration').value = s.durationMin || s.duration_min; // DB uses snake_case usually, but let's handle mismatch
+    qs('svc-desc').value = s.description || '';
+    qs('svc-popular').checked = s.popular;
 
-            <div class="flex gap-4 items-start group">
-              <div
-                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
-                <i data-lucide="user" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
-              </div>
-              <div>
-                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Profissional</p>
-                <p id="summary-barber"
-                  class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">--</p>
-              </div>
-            </div>
+    qs('service-modal').classList.remove('hidden');
+  },
 
-            <div class="flex gap-4 items-start group">
-              <div
-                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
-                <i data-lucide="calendar" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
-              </div>
-              <div>
-                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Data e Hora</p>
-                <p id="summary-date" class="text-sm font-medium text-zinc-300 group-hover:text-white transition-colors">
-                  --</p>
-              </div>
-            </div>
+  saveService: async (e) => {
+    e.preventDefault();
+    const id = qs('svc-id').value;
+    const data = {
+      name: qs('svc-name').value,
+      price: Number(qs('svc-price').value),
+      duration_min: Number(qs('svc-duration').value),
+      description: qs('svc-desc').value,
+      popular: qs('svc-popular').checked
+    };
 
-            <div class="flex gap-4 items-start group">
-              <div
-                class="w-10 h-10 rounded-xl bg-zinc-900 flex items-center justify-center shrink-0 border border-white/5 group-hover:border-amber-500/30 transition-colors">
-                <i data-lucide="store" class="w-5 h-5 text-zinc-400 group-hover:text-white transition-colors"></i>
-              </div>
-              <div>
-                <p class="text-[0.65rem] text-zinc-500 mb-1 uppercase font-bold tracking-wider">Pagamento</p>
-                <p id="summary-payment" class="text-sm font-medium text-zinc-300">No Local</p>
-              </div>
-            </div>
-          </div>
+    if (!data.name || !data.price) return toast("Nome e Preço obrigatórios", "error");
 
-          <div class="pt-8 border-t border-white/5">
-            <div class="flex justify-between items-end mb-6">
-              <span class="text-zinc-500 text-xs font-bold uppercase tracking-wider">Total a Pagar</span>
-              <span id="summary-total" class="text-3xl font-bold text-white tracking-tight">R$ 0,00</span>
-            </div>
-            <div id="booking-footer-action"></div>
-          </div>
-        </div>
-      </div>
+    let error;
+    if (id) {
+      ({ error } = await supabaseClient.from('services').update(data).eq('id', id));
+    } else {
+      ({ error } = await supabaseClient.from('services').insert(data));
+    }
 
-      <div
-        class="md:hidden p-4 border-t border-white/5 bg-zinc-900/90 backdrop-blur flex justify-between items-center absolute bottom-0 w-full z-20">
-        <div class="text-left">
-          <p class="text-xs text-zinc-500">Total</p>
-          <p id="mobile-total" class="font-bold text-white text-lg">R$ 0,00</p>
-        </div>
-        <div id="mobile-footer-action" class="flex items-center"></div>
-      </div>
-    </div>
-  </div>
+    if (error) return toast("Erro ao salvar serviço", "error");
 
-  <!-- MY APPOINTMENTS MODAL -->
-  <div id="appointments-modal" class="fixed inset-0 z-[80] hidden flex items-center justify-center p-4">
-    <div class="absolute inset-0 bg-zinc-950/80 backdrop-blur-md" onclick="closeAppointments()"></div>
-    <div
-      class="glass-panel w-full max-w-2xl rounded-2xl shadow-2xl relative z-10 flex flex-col max-h-[80vh] overflow-hidden animate-scale-up border border-white/10 bg-[#18181b]">
-      <div class="p-6 border-b border-white/5 flex justify-between items-center bg-zinc-900/50">
-        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-          <i data-lucide="calendar-check" class="text-amber-500"></i> Meus Agendamentos
-        </h3>
-        <button onclick="closeAppointments()"
-          class="p-2 hover:bg-white/10 rounded-full text-zinc-400 hover:text-white transition-colors">
-          <i data-lucide="x"></i>
-        </button>
-      </div>
-      <div class="p-4 border-b border-white/5 bg-zinc-900/30">
-        <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-          <div class="text-sm text-zinc-400">
-            Cancelar: somente via WhatsApp (botão dentro do agendamento).
-          </div>
-          <button onclick="startBooking()"
-            class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-4 py-2 rounded-xl text-sm">
-            Novo Agendamento
-          </button>
-        </div>
-      </div>
-      <div id="appointments-content" class="p-6 overflow-y-auto flex-1 space-y-4"></div>
-    </div>
-  </div>
-  <!-- SERVICE MODAL (ADMIN) -->
-  <div id="service-modal"
-    class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-in-up">
-    <div class="relative w-full max-w-md glass-panel p-8 rounded-3xl overflow-hidden">
-      <button onclick="document.getElementById('service-modal').classList.add('hidden')"
-        class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i data-lucide="x"></i></button>
-      <h3 id="service-modal-title" class="text-2xl font-bold text-white mb-6">Novo Serviço</h3>
-      <form onsubmit="adminApp.saveService(event)" class="space-y-4">
-        <input type="hidden" id="svc-id">
-        <div>
-          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Nome</label>
-          <input id="svc-name" type="text"
-            class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
-            placeholder="Ex: Corte Degadê" required>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Preço (R$)</label>
-            <input id="svc-price" type="number"
-              class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
-              placeholder="00" required>
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Duração (min)</label>
-            <input id="svc-duration" type="number"
-              class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
-              value="30">
-          </div>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Descrição</label>
-          <textarea id="svc-desc" rows="3"
-            class="w-full bg-zinc-900/50 border border-white/10 rounded-xl p-3 text-white focus:border-amber-500 outline-none"
-            placeholder="Detalhes do serviço..."></textarea>
-        </div>
-        <div class="flex items-center gap-2">
-          <input id="svc-popular" type="checkbox"
-            class="w-5 h-5 rounded border-zinc-700 bg-zinc-900 text-amber-500 focus:ring-amber-500">
-          <label for="svc-popular" class="text-sm text-zinc-300">Marcar como Popular</label>
-        </div>
-        <button type="submit"
-          class="w-full py-4 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-900/20 transition-all">Salvar
-          Serviço</button>
-      </form>
-    </div>
-  </div>
+    toast("Serviço salvo!");
+    qs('service-modal').classList.add('hidden');
+    await loadServices(); // Refresh local list
+    adminApp.renderServices();
+    renderServicesLanding(); // Update Landing Page
+  },
 
-  <!-- SUPABASE (Global UMD) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  deleteService: async (id) => {
+    if (!confirm("Tem certeza?")) return;
+    const { error } = await supabaseClient.from('services').delete().eq('id', id);
+    if (error) return toast("Erro ao deletar", "error");
 
-  <!-- SITE LOGIC -->
-  <script src="./assets/site.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); window.route(); });
-  </script>
-</body>
+    toast("Serviço removido.");
+    await loadServices();
+    adminApp.renderServices();
+    renderServicesLanding();
+  },
+  login: (e) => {
+    e.preventDefault();
+    const email = qs('admin-email').value;
+    // Simple "fake" auth for demo if Supabase fails or for quick access
+    // In production, use Supabase Login
+    if (email) {
+      document.body.classList.add('admin-body'); // Force style
+      qs('admin-login-screen').classList.add('hidden');
+      qs('admin-app-layout').classList.remove('hidden');
+      adminApp.init(); // Try real init
+    }
+  }
+};
+window.adminApp = adminApp;
 
-</html>
+window.adminApp = adminApp;
+
+// ====== INIT ======
+function ensureSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || SUPABASE_ANON_KEY === "COLE_SUA_ANON_KEY_AQUI") {
+    toast("Configure SUPABASE_URL e SUPABASE_ANON_KEY em assets/config.js", "error");
+    return null;
+  }
+  // Use global 'supabase' object from CDN
+  const { createClient } = window.supabase;
+  return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true }
+  });
+}
+
+// ====== ANIMATIONS ======
+function initScrollObserver() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate-fade-in-up');
+        entry.target.classList.remove('opacity-0', 'translate-y-10');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  // Select elements to animate
+  const targets = document.querySelectorAll('.glass-card, .glass-panel, h2, h3, #home p, #home button');
+  targets.forEach(el => {
+    if (!el.classList.contains('animate-fade-in-up')) {
+      el.classList.add('opacity-0', 'transition-opacity', 'duration-500');
+      observer.observe(el);
+    }
+  });
+}
+
+(function init() {
+  supabaseClient = ensureSupabase();
+
+  if (supabaseClient) {
+    loadServices().then(renderServicesLanding);
+    supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
+    supabaseClient.auth.onAuthStateChange((_event, session) => handleSession(session));
+  } else {
+    updateUIForGuest();
+  }
+
+
+  // icons + route first load
+  lucide.createIcons();
+  route();
+
+  // Start animations
+  setTimeout(initScrollObserver, 100);
+})();
