@@ -172,9 +172,30 @@ async function handleLoginImpl() {
   const password = qs('login-password').value;
   if (!email || !password) return toast("Preencha e-mail e senha.", "error");
 
+  // Validação de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return toast("E-mail inválido.", "error");
+
+  // Mostrar loader
+  const loginBtn = document.querySelector('#form-login button[onclick="handleLogin()"]');
+  const originalText = loginBtn.innerHTML;
+  loginBtn.innerHTML = '<div class="loader mx-auto"></div>';
+  loginBtn.disabled = true;
+
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if (error) return toast(error.message, "error");
-  toast("Login efetuado!", "success");
+
+  // Restaurar botão
+  loginBtn.innerHTML = originalText;
+  loginBtn.disabled = false;
+
+  if (error) {
+    if (error.message.includes('Invalid login')) {
+      return toast("E-mail ou senha incorretos.", "error");
+    }
+    return toast(error.message, "error");
+  }
+
+  toast("Login efetuado com sucesso!", "success");
   closeAuthModalImpl();
 }
 
@@ -182,21 +203,85 @@ async function handleRegisterImpl() {
   const name = qs('register-name').value.trim();
   const email = qs('register-email').value.trim();
   const password = qs('register-password').value;
-  if (!name || !email || !password) return toast("Preencha nome, e-mail e senha.", "error");
+  if (!name || !email || !password) return toast("Preencha todos os campos.", "error");
 
-  const { error } = await supabaseClient.auth.signUp({
+  // Validação de email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) return toast("E-mail inválido.", "error");
+
+  // Validação de senha
+  if (password.length < 6) return toast("A senha deve ter no mínimo 6 caracteres.", "error");
+
+  // Mostrar loader
+  const registerBtn = document.querySelector('#form-register button[onclick="handleRegister()"]');
+  const originalText = registerBtn.innerHTML;
+  registerBtn.innerHTML = '<div class="loader mx-auto"></div>';
+  registerBtn.disabled = true;
+
+  const { data, error } = await supabaseClient.auth.signUp({
     email,
     password,
-    options: { data: { full_name: name } }
+    options: {
+      data: { full_name: name },
+      emailRedirectTo: window.location.origin
+    }
   });
-  if (error) return toast(error.message, "error");
-  toast("Conta criada! Verifique seu e-mail se for exigido.", "success");
-  switchAuthTabImpl('login');
+
+  // Restaurar botão
+  registerBtn.innerHTML = originalText;
+  registerBtn.disabled = false;
+
+  if (error) {
+    if (error.message.includes('already registered')) {
+      return toast("Este e-mail já está cadastrado. Faça login.", "error");
+    }
+    return toast(error.message, "error");
+  }
+
+  // Verificar se precisa de confirmação de email
+  if (data?.user?.identities?.length === 0) {
+    toast("Este e-mail já está em uso. Faça login.", "error");
+    switchAuthTabImpl('login');
+    return;
+  }
+
+  // Se o email foi confirmado automaticamente, fazer login
+  if (data?.user?.email_confirmed_at || data?.session) {
+    toast("Conta criada com sucesso! Você já está logado.", "success");
+    closeAuthModalImpl();
+  } else {
+    toast("Conta criada! Verifique seu e-mail para confirmar.", "success");
+    switchAuthTabImpl('login');
+  }
 }
 
 async function handleGoogleLoginImpl() {
-  const { error } = await supabaseClient.auth.signInWithOAuth({ provider: 'google' });
-  if (error) toast(error.message, "error");
+  // Mostrar feedback visual
+  const googleBtn = document.querySelector('button[onclick="handleGoogleLogin()"]');
+  const btnText = qs('google-btn-text');
+  const btnLoader = qs('google-loader');
+
+  if (btnText) btnText.classList.add('hidden');
+  if (btnLoader) btnLoader.classList.remove('hidden');
+  googleBtn.disabled = true;
+
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin,
+      queryParams: {
+        access_type: 'offline',
+        prompt: 'consent',
+      }
+    }
+  });
+
+  // Restaurar botão (só executa se der erro, pois normalmente redireciona)
+  if (btnText) btnText.classList.remove('hidden');
+  if (btnLoader) btnLoader.classList.add('hidden');
+  googleBtn.disabled = false;
+
+  if (error) toast("Erro ao conectar com Google. Tente novamente.", "error");
 }
 
 async function logoutImpl() {
