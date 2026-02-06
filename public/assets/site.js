@@ -477,7 +477,7 @@ function renderStep() {
       <h4 class="text-3xl font-display font-bold text-white mb-8">Selecione a Experiência</h4>
       <div class="grid grid-cols-1 gap-4">
         ${SERVICES.map(s => `
-        <div onclick="selectService('${s.id}')" class="group relative overflow-hidden glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-500 hover:bg-white/5 hover:border-copper-500/50 ${bookingData.service?.id === s.id ? 'border-copper-500 bg-copper-500/10' : ''}">
+        <button type="button" onclick="selectService('${s.id}')" class="w-full text-left appearance-none group relative overflow-hidden glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-500 hover:bg-white/5 hover:border-copper-500/50 ${bookingData.service?.id === s.id ? 'border-copper-500 bg-copper-500/10' : ''}">
            <div class="flex items-center gap-6 relative z-10">
               <div class="w-16 h-16 bg-zinc-900 border border-white/5 flex items-center justify-center text-copper-600 shadow-inner group-hover:scale-105 transition-transform duration-500">
                 <i data-lucide="scissors" class="w-7 h-7"></i>
@@ -494,7 +494,7 @@ function renderStep() {
            
            <!-- Hover effect background -->
            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"></div>
-        </div>`).join('')}
+        </button>`).join('')}
       </div>`;
   }
 
@@ -504,7 +504,7 @@ function renderStep() {
       <h4 class="text-3xl font-display font-bold text-white mb-8">Quem vai te atender?</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
         ${BARBERS.map(b => `
-        <div onclick="selectBarber('${b.id}')" class="group glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-copper-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-copper-500 bg-copper-500/10 ring-1 ring-copper-500/50' : ''}">
+        <button type="button" onclick="selectBarber('${b.id}')" class="w-full appearance-none group glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-copper-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-copper-500 bg-copper-500/10 ring-1 ring-copper-500/50' : ''}">
           <div class="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-700 shadow-xl group-hover:border-copper-500 transition-colors relative">
              <div class="absolute inset-0 bg-transparent group-hover:bg-copper-500/20 z-10 transition-colors"></div>
              ${b.image ? `<img src="${b.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 filter grayscale group-hover:grayscale-0" alt="${escapeHtml(b.name)}">` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><i data-lucide="user" class="w-10 h-10"></i></div>`}
@@ -515,7 +515,7 @@ function renderStep() {
               ${escapeHtml(b.role)}
             </div>
           </div>
-        </div>`).join('')}
+        </button>`).join('')}
       </div>`;
   }
 
@@ -826,7 +826,7 @@ function renderServicesLanding() {
   const list = SERVICES.filter(s => !servicesSearch || s.name.toLowerCase().includes(servicesSearch.toLowerCase()));
 
   g.innerHTML = list.map((s, index) => `
-    <div class="group relative p-8 glass-panel rounded-none border-l-2 border-l-transparent border-y-0 border-r-0 hover:border-l-copper-500 transition-all duration-500 hover:bg-white/5 cursor-pointer overflow-hidden min-h-[280px] flex flex-col justify-between" onclick="selectService(${s.id})">
+    <button type="button" class="w-full text-left appearance-none group relative p-8 glass-panel rounded-none border-l-2 border-l-transparent border-y-0 border-r-0 hover:border-l-copper-500 transition-all duration-500 hover:bg-white/5 cursor-pointer overflow-hidden min-h-[280px] flex flex-col justify-between" onclick="selectService(${s.id})">
       
       <div class="absolute right-[-20px] top-[-20px] p-4 opacity-0 group-hover:opacity-10 transition-opacity duration-700 text-copper-500 rotate-12 transform scale-150">
          <i data-lucide="scissors" class="w-32 h-32"></i>
@@ -848,7 +848,7 @@ function renderServicesLanding() {
       </div>
       
       ${s.popular ? `<div class="absolute bottom-0 right-0 bg-copper-600 text-white text-[9px] font-black px-4 py-1.5 uppercase z-20 tracking-widest">Popular</div>` : ''}
-    </div>`).join('');
+    </button>`).join('');
 
   lucide.createIcons();
 }
