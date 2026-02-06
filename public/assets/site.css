@@ -588,6 +588,26 @@ input[type="tel"] {
   border: 1px solid rgba(217, 119, 6, 0.3);
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
   position: relative;
+  color: #e4e4e7;
+  /* Ensure text base color is light */
+}
+
+.auth-ticket h3,
+.auth-ticket h4 {
+  font-family: 'Playfair Display', serif;
+  color: white;
+}
+
+.auth-ticket input {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.auth-ticket input:focus {
+  border-color: #d97706;
+  /* Copper */
+  background: rgba(0, 0, 0, 0.5);
 }
 
 .auth-ticket::after {
