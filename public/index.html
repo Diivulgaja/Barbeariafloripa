@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ricardo Barbershop | Agendamento Online</title>
 
   <!-- Fonts -->
@@ -83,7 +83,8 @@
     <!-- NAVIGATION -->
     <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-500">
       <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-4 group cursor-pointer" onclick="window.scrollTo(0,0)">
+        <div class="flex items-center gap-4 group cursor-pointer" onclick="window.scrollTo(0,0)" role="button"
+          tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ') window.scrollTo(0,0)">
           <div
             class="w-12 h-12 bg-gradient-to-br from-copper-600 to-copper-900 rounded-none flex items-center justify-center text-white shadow-xl shadow-copper-900/20 transform group-hover:rotate-45 transition-transform duration-500 relative overflow-hidden">
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20">
@@ -138,7 +139,7 @@
 
           <!-- Guest -->
           <div id="nav-guest" class="flex items-center gap-6 pl-2">
-            <button onclick="openAuthModal('login')"
+            <button onclick="openAuthModal('login')" aria-label="Abrir modal de login"
               class="text-white hover:text-copper-400 transition-colors text-xs font-bold tracking-widest uppercase">
               Entrar
             </button>
@@ -152,7 +153,9 @@
 
           <!-- Logged -->
           <div id="nav-user" class="hidden flex items-center gap-6 relative">
-            <div onclick="toggleProfileDropdown()" class="flex items-center gap-4 cursor-pointer select-none group">
+            <div onclick="toggleProfileDropdown()" class="flex items-center gap-4 cursor-pointer select-none group"
+              role="button" tabindex="0" aria-label="Menu do usuário" aria-expanded="false"
+              onkeydown="if(event.key==='Enter'||event.key===' ') toggleProfileDropdown()">
               <div class="text-right hidden lg:block">
                 <p class="text-[0.65rem] text-zinc-500 uppercase tracking-widest">Bem-vindo(a)</p>
                 <p id="user-name-display"
@@ -163,7 +166,8 @@
                 class="w-10 h-10 border border-copper-500/50 p-0.5 rotate-45 group-hover:rotate-0 transition-transform duration-300">
                 <div
                   class="w-full h-full bg-zinc-900 overflow-hidden relative -rotate-45 group-hover:rotate-0 transition-transform duration-300">
-                  <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                  <img id="user-avatar" src="" alt="Foto de perfil do usuário"
+                    class="w-full h-full object-cover hidden">
                   <div id="user-initial"
                     class="w-full h-full flex items-center justify-center font-display font-bold text-copper-500">U
                   </div>
@@ -361,6 +365,7 @@
               <div class="relative w-full sm:w-72">
                 <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i>
                 <input id="services-search" oninput="siteSearchServices(this.value)" placeholder="Buscar serviço..."
+                  aria-label="Buscar serviços de barbearia"
                   class="w-full glass-input rounded-full py-2.5 pl-10 pr-4 text-sm">
               </div>
               <button onclick="startBooking()"
@@ -496,7 +501,7 @@
           <div class="glass-card rounded-2xl overflow-hidden group">
             <div class="relative overflow-hidden aspect-square">
               <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Barbeiro 1">
+                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Foto do barbeiro Ricardo Silva">
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
               </div>
               <div class="absolute bottom-6 left-6">
@@ -512,7 +517,7 @@
           <div class="glass-card rounded-2xl overflow-hidden group">
             <div class="relative overflow-hidden aspect-square">
               <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Barbeiro 2">
+                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Foto do barbeiro André Costa">
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
               </div>
               <div class="absolute bottom-6 left-6">
@@ -554,6 +559,7 @@
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3536.637373406206!2d-48.58682292359783!3d-27.57375622325357!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9527387343053805%3A0xc3f83732e783a62!2sR.%20Irm%C3%A3%20Bonavita%2C%20123%20-%20Capoeiras%2C%20Florian%C3%B3polis%20-%20SC%2C%2088070-630!5e0!3m2!1spt-BR!2sbr!4v1707248382745!5m2!1spt-BR!2sbr"
               width="100%" height="100%" style="border:0; filter: grayscale(100%) invert(92%) contrast(83%);"
               allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+              title="Localização da Barbearia no Google Maps"
               class="group-hover:filter-none transition-all duration-500"></iframe>
             <div class="absolute inset-0 border-4 border-copper-500/10 pointer-events-none rounded-none"></div>
           </div>
@@ -688,9 +694,10 @@
         </div>
         <form onsubmit="adminApp.login(event)" class="space-y-4">
           <input type="email" id="admin-email" class="w-full admin-glass-input rounded-none py-3 px-4 border-white/10"
-            placeholder="admin@ricardo.com">
+            placeholder="admin@ricardo.com" aria-label="Email de administrador">
           <input type="password" id="admin-password"
-            class="w-full admin-glass-input rounded-none py-3 px-4 border-white/10" placeholder="Senha">
+            class="w-full admin-glass-input rounded-none py-3 px-4 border-white/10" placeholder="Senha"
+            aria-label="Senha de administrador">
           <button type="submit"
             class="w-full bg-copper-600 hover:bg-copper-700 text-white font-bold py-3.5 rounded-none transition-all shadow-lg shadow-copper-900/20 uppercase tracking-widest text-xs">
             Acessar Painel
