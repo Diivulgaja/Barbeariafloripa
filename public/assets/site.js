@@ -218,40 +218,56 @@ async function handleRegisterImpl() {
   registerBtn.innerHTML = '<div class="loader mx-auto"></div>';
   registerBtn.disabled = true;
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: name },
-      emailRedirectTo: window.location.origin
+  try {
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name }
+      }
+    });
+
+    // Restaurar botão
+    registerBtn.innerHTML = originalText;
+    registerBtn.disabled = false;
+
+    if (error) {
+      console.error('Supabase signup error:', error);
+
+      // Erro 500 - problema de configuração do Supabase
+      if (error.status === 500 || error.message.includes('Internal')) {
+        return toast("⚠️ Erro no servidor. Desabilite a confirmação de email no painel do Supabase (Authentication → Settings).", "error");
+      }
+
+      // Erro de duplicação
+      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        return toast("Este e-mail já está cadastrado. Faça login.", "error");
+      }
+
+      // Outros erros
+      return toast(error.message || "Erro ao criar conta. Tente novamente.", "error");
     }
-  });
 
-  // Restaurar botão
-  registerBtn.innerHTML = originalText;
-  registerBtn.disabled = false;
-
-  if (error) {
-    if (error.message.includes('already registered')) {
-      return toast("Este e-mail já está cadastrado. Faça login.", "error");
+    // Verificar se precisa de confirmação de email
+    if (data?.user?.identities?.length === 0) {
+      toast("Este e-mail já está em uso. Faça login.", "error");
+      switchAuthTabImpl('login');
+      return;
     }
-    return toast(error.message, "error");
-  }
 
-  // Verificar se precisa de confirmação de email
-  if (data?.user?.identities?.length === 0) {
-    toast("Este e-mail já está em uso. Faça login.", "error");
-    switchAuthTabImpl('login');
-    return;
-  }
-
-  // Se o email foi confirmado automaticamente, fazer login
-  if (data?.user?.email_confirmed_at || data?.session) {
-    toast("Conta criada com sucesso! Você já está logado.", "success");
-    closeAuthModalImpl();
-  } else {
-    toast("Conta criada! Verifique seu e-mail para confirmar.", "success");
-    switchAuthTabImpl('login');
+    // Se o email foi confirmado automaticamente, fazer login
+    if (data?.user?.email_confirmed_at || data?.session) {
+      toast("Conta criada com sucesso! Você já está logado.", "success");
+      closeAuthModalImpl();
+    } else {
+      toast("Conta criada! Verifique seu e-mail para confirmar.", "success");
+      switchAuthTabImpl('login');
+    }
+  } catch (err) {
+    console.error('Unexpected error during signup:', err);
+    registerBtn.innerHTML = originalText;
+    registerBtn.disabled = false;
+    toast("Erro inesperado. Verifique a configuração do Supabase.", "error");
   }
 }
 
@@ -458,22 +474,22 @@ function renderStep() {
   if (currentStep === 1) {
     hint.textContent = "Escolha o serviço desejado.";
     html += `
-      <h4 class="text-2xl font-bold text-white mb-6">Escolha o Serviço</h4>
+      <h4 class="text-3xl font-display font-bold text-white mb-8">Selecione a Experiência</h4>
       <div class="grid grid-cols-1 gap-4">
         ${SERVICES.map(s => `
-        <div onclick="selectService('${s.id}')" class="group relative overflow-hidden glass-panel p-5 rounded-2xl border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:shadow-lg hover:shadow-amber-500/10 ${bookingData.service?.id === s.id ? 'border-amber-500 bg-amber-500/5' : ''}">
-           <div class="flex items-center gap-5 relative z-10">
-              <div class="w-14 h-14 rounded-xl bg-zinc-900 border border-white/5 flex items-center justify-center text-amber-500 shadow-inner group-hover:scale-110 transition-transform duration-300">
-                <i data-lucide="scissors" class="w-6 h-6"></i>
+        <div onclick="selectService('${s.id}')" class="group relative overflow-hidden glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex justify-between items-center transition-all duration-500 hover:bg-white/5 hover:border-copper-500/50 ${bookingData.service?.id === s.id ? 'border-copper-500 bg-copper-500/10' : ''}">
+           <div class="flex items-center gap-6 relative z-10">
+              <div class="w-16 h-16 bg-zinc-900 border border-white/5 flex items-center justify-center text-copper-600 shadow-inner group-hover:scale-105 transition-transform duration-500">
+                <i data-lucide="scissors" class="w-7 h-7"></i>
               </div>
               <div>
-                <h4 class="font-bold text-white text-lg group-hover:text-amber-500 transition-colors">${escapeHtml(s.name)}</h4>
-                <p class="text-zinc-400 text-sm">${s.durationMin} min • <span class="text-zinc-500">${escapeHtml(s.description)}</span></p>
+                <h4 class="font-display font-bold text-white text-xl group-hover:text-copper-400 transition-colors uppercase tracking-wide">${escapeHtml(s.name)}</h4>
+                <p class="text-zinc-500 text-sm font-light mt-1">${s.durationMin} min <span class="mx-2 text-zinc-700">|</span> ${escapeHtml(s.description)}</p>
               </div>
            </div>
            <div class="flex flex-col items-end gap-1 relative z-10">
-              <span class="text-xl font-bold text-white">R$ ${s.price}</span>
-              ${s.popular ? `<span class="bg-amber-500/20 text-amber-500 text-[10px] uppercase font-bold px-2 py-0.5 rounded-full border border-amber-500/20">Popular</span>` : ''}
+              <span class="text-xl font-bold text-white font-display">R$ ${s.price}</span>
+              ${s.popular ? `<span class="text-copper-500 text-[10px] uppercase font-bold tracking-widest">Popular</span>` : ''}
            </div>
            
            <!-- Hover effect background -->
@@ -485,16 +501,17 @@ function renderStep() {
   if (currentStep === 2) {
     hint.textContent = "Selecione o profissional.";
     html += `
-      <h4 class="text-2xl font-bold text-white mb-6">Profissional</h4>
+      <h4 class="text-3xl font-display font-bold text-white mb-8">Quem vai te atender?</h4>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 auto-rows-fr">
         ${BARBERS.map(b => `
-        <div onclick="selectBarber('${b.id}')" class="group glass-panel p-6 rounded-2xl border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-amber-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-amber-500 bg-amber-500/5 ring-1 ring-amber-500/50' : ''}">
-          <div class="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border-4 border-zinc-900 shadow-xl group-hover:border-amber-500/50 transition-colors">
-            ${b.image ? `<img src="${b.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="${escapeHtml(b.name)}">` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><i data-lucide="user" class="w-10 h-10"></i></div>`}
+        <div onclick="selectBarber('${b.id}')" class="group glass-panel p-6 rounded-none border border-white/5 cursor-pointer flex flex-col items-center gap-4 text-center transition-all duration-300 hover:bg-white/5 hover:border-copper-500/50 hover:-translate-y-1 ${bookingData.barber?.id === b.id ? 'border-copper-500 bg-copper-500/10 ring-1 ring-copper-500/50' : ''}">
+          <div class="w-24 h-24 rounded-full bg-zinc-800 overflow-hidden border-2 border-zinc-700 shadow-xl group-hover:border-copper-500 transition-colors relative">
+             <div class="absolute inset-0 bg-transparent group-hover:bg-copper-500/20 z-10 transition-colors"></div>
+             ${b.image ? `<img src="${b.image}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 filter grayscale group-hover:grayscale-0" alt="${escapeHtml(b.name)}">` : `<div class="w-full h-full flex items-center justify-center text-zinc-600"><i data-lucide="user" class="w-10 h-10"></i></div>`}
           </div>
           <div>
-            <h4 class="font-bold text-white text-lg">${escapeHtml(b.name)}</h4>
-            <div class="inline-block mt-1 px-3 py-1 rounded-full bg-zinc-900/50 border border-white/5 text-xs text-amber-500 font-bold uppercase tracking-wider">
+            <h4 class="font-display font-bold text-white text-lg tracking-wide group-hover:text-copper-400 transition-colors">${escapeHtml(b.name)}</h4>
+            <div class="inline-block mt-2 px-3 py-0.5 border-y border-white/10 text-[10px] text-zinc-400 font-bold uppercase tracking-[0.2em] group-hover:text-copper-500 group-hover:border-copper-500/30 transition-all">
               ${escapeHtml(b.role)}
             </div>
           </div>
@@ -509,23 +526,23 @@ function renderStep() {
 
     html += `
       <div class="flex flex-col h-full">
-        <h4 class="text-2xl font-bold text-white mb-6">Data e Hora</h4>
+        <h4 class="text-3xl font-display font-bold text-white mb-8">Data e Hora</h4>
         
         <div class="mb-8">
-          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Selecione o Dia</label>
-          <div class="relative">
-             <input type="date" id="date-input-picker" value="${selectedDateStr}" min="${todayStr}" onchange="selectDate(this.value)" class="w-full bg-zinc-900 border border-white/10 text-white font-bold rounded-xl py-4 px-5 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer">
-             <i data-lucide="calendar" class="absolute right-5 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none"></i>
+          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-3 pl-1">Selecione o Dia</label>
+          <div class="relative group">
+             <input type="date" id="date-input-picker" value="${selectedDateStr}" min="${todayStr}" onchange="selectDate(this.value)" class="w-full bg-zinc-900/80 border border-white/10 text-white font-mono text-lg font-bold rounded-none border-l-4 border-l-copper-500 py-4 px-6 outline-none focus:bg-black focus:border-copper-400 transition-all cursor-pointer placeholder-zinc-700">
+             <i data-lucide="calendar" class="absolute right-6 top-1/2 -translate-y-1/2 text-zinc-600 group-hover:text-copper-500 transition-colors pointer-events-none"></i>
           </div>
         </div>
 
         <div class="flex-1">
-          <label class="block text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">Horários Disponíveis</label>
+          <label class="block text-xs font-bold text-zinc-500 uppercase tracking-[0.2em] mb-3 pl-1">Horários Disponíveis</label>
           ${bookingData.date ?
         `<div id="slots-container" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 animate-fade-in-up"></div>` :
-        `<div class="h-40 flex flex-col items-center justify-center text-zinc-500 bg-white/5 rounded-xl border border-white/5 border-dashed">
-                <i data-lucide="calendar-clock" class="w-8 h-8 mb-2 opacity-50"></i>
-                <span class="text-sm">Selecione um dia acima</span>
+        `<div class="h-40 flex flex-col items-center justify-center text-zinc-600 bg-white/[0.02] border border-white/5 border-dashed">
+                <i data-lucide="calendar-clock" class="w-8 h-8 mb-2 opacity-30"></i>
+                <span class="text-xs uppercase tracking-widest font-bold opacity-50">Selecione um dia acima</span>
              </div>`
       }
         </div>
@@ -540,33 +557,35 @@ function renderStep() {
     hint.textContent = "Confirme seus dados.";
     html += `
       <div class="flex items-center justify-center h-full">
-        <div class="w-full max-w-md bg-zinc-900/40 backdrop-blur-md p-8 rounded-2xl border border-white/10 shadow-2xl relative overflow-hidden">
-          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-amber-700"></div>
+        <div class="w-full max-w-md bg-[#0a0a0a] p-1 glass-panel rounded-none border border-white/10 relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-copper-600 to-copper-800"></div>
           
-          <h4 class="text-2xl font-bold text-white mb-2 text-center">Quase lá!</h4>
-          <p class="text-zinc-400 text-sm text-center mb-8">Confirme seus dados para finalizar o agendamento.</p>
-
-          <div class="space-y-5">
-            <div class="space-y-2">
-              <label class="text-xs font-bold text-zinc-400 uppercase ml-1">Seu Nome</label>
-              <div class="relative">
-                <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"></i>
-                <input type="text" oninput="updateClientData('clientName', this.value)" value="${escapeHtml(bookingData.clientName || '')}" class="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-amber-500 focus:bg-black/40 transition-all outline-none" placeholder="Como prefere ser chamado?">
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-xs font-bold text-zinc-400 uppercase ml-1">WhatsApp</label>
-              <div class="relative">
-                <i data-lucide="smartphone" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-500"></i>
-                <input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${escapeHtml(bookingData.clientPhone || '')}" class="w-full bg-black/20 border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-zinc-600 focus:border-amber-500 focus:bg-black/40 transition-all outline-none" placeholder="(00) 00000-0000">
-              </div>
-            </div>
-
-            <div class="bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 flex gap-3 text-amber-200 text-sm mt-2">
-              <i data-lucide="info" class="w-5 h-5 shrink-0 text-amber-500"></i>
-              <p>O pagamento é realizado <b>apenas no local</b> após o serviço.</p>
-            </div>
+          <div class="p-8">
+             <h4 class="text-3xl font-display font-bold text-white mb-2 text-center tracking-tight">Quase lá</h4>
+             <p class="text-zinc-500 text-sm text-center mb-8 font-light">Confirme seus dados para finalizar.</p>
+   
+             <div class="space-y-6">
+               <div class="space-y-2">
+                 <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">Seu Nome</label>
+                 <div class="relative group">
+                   <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-copper-500 transition-colors"></i>
+                   <input type="text" oninput="updateClientData('clientName', this.value)" value="${escapeHtml(bookingData.clientName || '')}" class="w-full bg-zinc-900/50 border-b border-white/10 py-3 pl-12 pr-4 text-white placeholder-zinc-700 focus:border-copper-500 transition-all outline-none font-medium" placeholder="Como prefere ser chamado?">
+                 </div>
+               </div>
+   
+               <div class="space-y-2">
+                 <label class="text-[10px] font-bold text-zinc-500 uppercase tracking-[0.2em] ml-1">WhatsApp</label>
+                 <div class="relative group">
+                   <i data-lucide="smartphone" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600 group-focus-within:text-copper-500 transition-colors"></i>
+                   <input type="tel" oninput="updateClientData('clientPhone', this.value)" value="${escapeHtml(bookingData.clientPhone || '')}" class="w-full bg-zinc-900/50 border-b border-white/10 py-3 pl-12 pr-4 text-white placeholder-zinc-700 focus:border-copper-500 transition-all outline-none font-mono" placeholder="(00) 00000-0000">
+                 </div>
+               </div>
+   
+               <div class="bg-copper-900/10 p-4 border-l-2 border-copper-700 flex gap-4 text-copper-200 text-xs mt-4">
+                 <i data-lucide="info" class="w-5 h-5 shrink-0 text-copper-600"></i>
+                 <p class="font-light">O pagamento é realizado <b class="text-white font-bold">apenas no local</b> após o serviço.</p>
+               </div>
+             </div>
           </div>
         </div>
       </div>`;
@@ -621,7 +640,7 @@ function renderStep() {
               Meus Cortes
            </button>
 
-           <button onclick="closeBooking()" class="col-span-1 sm:col-span-2 px-6 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-bold shadow-lg shadow-amber-900/20 transition-all transform hover:-translate-y-0.5">
+           <button onclick="closeBooking()" class="col-span-1 sm:col-span-2 px-6 py-4 rounded-xl bg-copper-700 hover:bg-copper-600 text-white font-bold shadow-lg shadow-copper-900/30 transition-all transform hover:-translate-y-0.5 uppercase tracking-widest text-xs">
               Voltar ao Início
            </button>
         </div>
@@ -651,9 +670,9 @@ function renderSlots() {
 
   grid.innerHTML = slots.map(slot => {
     if (slot.status === 'busy') {
-      return `<button disabled class="slot-btn py-4 rounded-xl border border-white/5 text-zinc-600 bg-zinc-900/30 text-sm font-bold relative opacity-50 cursor-not-allowed transition-colors"><span class="line-through decoration-white/20">${slot.time}</span></button>`;
+      return `<button disabled class="slot-btn py-3 rounded-none border border-white/5 text-zinc-700 bg-white/5 text-sm font-medium relative opacity-40 cursor-not-allowed transition-colors"><span class="line-through">${slot.time}</span></button>`;
     }
-    return `<button onclick="selectTime('${slot.time}')" class="slot-btn py-4 rounded-xl border bg-zinc-800/50 border-white/5 text-zinc-200 font-bold hover:bg-amber-600 hover:text-white hover:border-amber-600 hover:shadow-lg hover:shadow-amber-900/40 hover:-translate-y-1 transition-all duration-300 ${bookingData.time === slot.time ? 'bg-amber-600 border-amber-600 text-white shadow-lg shadow-amber-900/40 -translate-y-1 ring-2 ring-amber-400/30' : ''}">${slot.time}</button>`;
+    return `<button onclick="selectTime('${slot.time}')" class="slot-btn py-3 rounded-none border border-white/5 text-zinc-300 font-bold hover:bg-copper-600 hover:text-white hover:border-copper-600 hover:shadow-lg transition-all duration-300 ${bookingData.time === slot.time ? 'bg-copper-600 border-copper-600 text-white shadow-lg shadow-copper-900/50' : 'bg-transparent'}">${slot.time}</button>`;
   }).join('');
 }
 
@@ -801,20 +820,36 @@ function renderAppointments() {
 }
 
 // ====== LANDING SERVICES ======
+// ====== LANDING SERVICES ======
 function renderServicesLanding() {
   const g = qs('services-grid');
   const list = SERVICES.filter(s => !servicesSearch || s.name.toLowerCase().includes(servicesSearch.toLowerCase()));
-  g.innerHTML = list.map(s => `
-    <div class="glass-card p-8 rounded-2xl group cursor-default relative overflow-hidden">
-      ${s.popular ? `<span class="absolute top-0 right-0 bg-amber-600 text-white text-[10px] font-black px-3 py-1 uppercase rounded-bl-xl">Popular</span>` : ''}
-      <div class="flex justify-between items-start mb-6">
-        <div class="p-3 bg-white/5 rounded-xl text-amber-500 border border-white/5"><i data-lucide="scissors"></i></div>
-        <span class="text-xl font-bold text-white bg-zinc-900/80 px-4 py-1 rounded-full border border-white/10">R$ ${s.price}</span>
+
+  g.innerHTML = list.map((s, index) => `
+    <div class="group relative p-8 glass-panel rounded-none border-l-2 border-l-transparent border-y-0 border-r-0 hover:border-l-copper-500 transition-all duration-500 hover:bg-white/5 cursor-pointer overflow-hidden min-h-[280px] flex flex-col justify-between" onclick="selectService(${s.id})">
+      
+      <div class="absolute right-[-20px] top-[-20px] p-4 opacity-0 group-hover:opacity-10 transition-opacity duration-700 text-copper-500 rotate-12 transform scale-150">
+         <i data-lucide="scissors" class="w-32 h-32"></i>
       </div>
-      <h3 class="text-xl font-bold text-white mb-2">${escapeHtml(s.name)}</h3>
-      <p class="text-zinc-400 mb-6 text-sm min-h-[40px]">${escapeHtml(s.description)}</p>
-      <button onclick="selectService(${s.id})" class="text-amber-500 text-sm font-bold flex items-center gap-2">Reservar <i data-lucide="arrow-right" class="w-4 h-4"></i></button>
+
+      <div class="relative z-10">
+         <div class="flex justify-between items-start mb-6">
+            <span class="text-5xl font-display font-bold text-zinc-700 group-hover:text-copper-500/50 transition-colors select-none">${String(index + 1).padStart(2, '0')}</span>
+            <span class="text-lg font-bold text-copper-400 bg-copper-900/20 px-3 py-1 rounded-none border border-copper-500/20">R$ ${s.price}</span>
+         </div>
+         <h3 class="text-2xl font-display font-bold text-white mb-3 uppercase tracking-wider group-hover:text-copper-100 transition-colors">${escapeHtml(s.name)}</h3>
+         <p class="text-zinc-500 text-sm font-light leading-relaxed max-w-[90%] border-t border-white/5 pt-4 min-h-[40px]">${escapeHtml(s.description)}</p>
+      </div>
+
+      <div class="mt-8 relative z-10">
+         <button class="flex items-center gap-3 text-xs font-bold uppercase tracking-[0.25em] text-zinc-500 group-hover:text-copper-400 transition-colors group-hover:translate-x-2 duration-300">
+            Reservar <i data-lucide="arrow-right" class="w-3 h-3"></i>
+         </button>
+      </div>
+      
+      ${s.popular ? `<div class="absolute bottom-0 right-0 bg-copper-600 text-white text-[9px] font-black px-4 py-1.5 uppercase z-20 tracking-widest">Popular</div>` : ''}
     </div>`).join('');
+
   lucide.createIcons();
 }
 
