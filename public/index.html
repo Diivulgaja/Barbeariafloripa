@@ -6,40 +6,69 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Ricardo Barbershop | Agendamento Online</title>
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            amber: { 450: '#F59E0B', 550: '#D97706' },
-            zinc: { 850: '#1f1f22', 925: '#121214' },
-            dark: { 950: '#050505' }
-          },
-          screens: { xs: '375px' }
-        }
-      }
-    }
-  </script>
-
-  <!-- Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Chart.js (painel) -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Inter:wght@200;300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
     rel="stylesheet">
 
   <link rel="stylesheet" href="./assets/site.css" />
 
   <!-- Config (edite aqui suas chaves públicas) -->
   <script src="./assets/config.js"></script>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+            display: ['Cinzel', 'serif'],
+          },
+          colors: {
+            copper: {
+              300: '#fbd38d',
+              400: '#f6ad55',
+              500: '#ed8936',
+              600: '#dd6b20',
+              700: '#c05621',
+              800: '#9c4221',
+              900: '#7b341e',
+            },
+            gold: {
+              100: '#fffaeb',
+              200: '#fcefc7',
+              300: '#fae3a3',
+              400: '#facc15', // Amber-400 base
+              500: '#eab308',
+              600: '#ca8a04',
+              700: '#a16207',
+              800: '#854d0e',
+              900: '#713f12',
+            },
+            noir: {
+              800: '#27272a', /* Zinc 800 */
+              900: '#18181b', /* Zinc 900 */
+              950: '#09090b', /* Zinc 950 */
+            }
+          },
+          backgroundImage: {
+            'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            'grain': "url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"noiseFilter\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.8\" numOctaves=\"3\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23noiseFilter)\" opacity=\"0.4\"/%3E%3C/svg%3E')",
+          },
+          letterSpacing: {
+            widest: '.25em',
+            tighter: '-.05em',
+          },
+          screens: { xs: '375px' }
+        }
+      }
+    }
+  </script>
 </head>
 
 <body class="antialiased selection:bg-amber-600 selection:text-white">
@@ -52,57 +81,92 @@
   ========================== -->
   <div id="site-root">
     <!-- NAVIGATION -->
-    <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-300">
+    <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b-0 transition-all duration-500">
       <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-4 group cursor-pointer" onclick="window.scrollTo(0,0)">
           <div
-            class="w-10 h-10 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center text-white shadow-lg shadow-amber-900/40">
-            <i data-lucide="scissors" class="w-5 h-5 fill-white/20"></i>
+            class="w-12 h-12 bg-gradient-to-br from-copper-600 to-copper-900 rounded-none flex items-center justify-center text-white shadow-xl shadow-copper-900/20 transform group-hover:rotate-45 transition-transform duration-500 relative overflow-hidden">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20">
+            </div>
+            <i data-lucide="scissors"
+              class="w-6 h-6 rotate-45 group-hover:-rotate-45 transition-transform duration-500 text-gold-200"></i>
           </div>
-          <div>
-            <h1 class="text-xl font-bold leading-none tracking-tight text-white">RICARDO</h1>
-            <span class="text-[0.65rem] text-amber-500 tracking-[0.25em] font-bold uppercase">Barbershop</span>
+          <div class="flex flex-col">
+            <h1
+              class="text-2xl font-display font-bold leading-none tracking-tighter text-white group-hover:text-copper-400 transition-colors">
+              RICARDO</h1>
+            <span
+              class="text-[0.6rem] text-copper-500 tracking-[0.3em] font-medium uppercase border-t border-copper-900/50 pt-1 mt-0.5">Barbershop</span>
           </div>
         </div>
 
         <!-- Desktop Menu -->
-        <div class="hidden md:flex items-center gap-8">
-          <a href="#home"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Início</a>
-          <a href="#services"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Serviços</a>
-          <a href="#team"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Equipe</a>
-          <a href="#about"
-            class="text-zinc-400 hover:text-white transition-colors text-sm font-medium tracking-wide">Sobre</a>
+        <div class="hidden md:flex items-center gap-10">
+          <div class="flex items-center gap-8">
+            <a href="#home"
+              class="nav-link text-zinc-400 hover:text-white transition-colors text-xs font-bold tracking-widest uppercase relative group">
+              Início
+              <span
+                class="absolute -bottom-1 left-0 w-0 h-px bg-copper-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#services"
+              class="nav-link text-zinc-400 hover:text-white transition-colors text-xs font-bold tracking-widest uppercase relative group">
+              Serviços
+              <span
+                class="absolute -bottom-1 left-0 w-0 h-px bg-copper-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#team"
+              class="nav-link text-zinc-400 hover:text-white transition-colors text-xs font-bold tracking-widest uppercase relative group">
+              Equipe
+              <span
+                class="absolute -bottom-1 left-0 w-0 h-px bg-copper-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+            <a href="#about"
+              class="nav-link text-zinc-400 hover:text-white transition-colors text-xs font-bold tracking-widest uppercase relative group">
+              Sobre
+              <span
+                class="absolute -bottom-1 left-0 w-0 h-px bg-copper-500 transition-all duration-300 group-hover:w-full"></span>
+            </a>
+          </div>
+
+          <div class="w-px h-8 bg-white/10"></div>
 
           <button onclick="goAdmin()"
-            class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
-            Painel
+            class="text-zinc-500 hover:text-copper-500 transition-colors text-xs font-bold tracking-widest uppercase flex items-center gap-2">
+            <i data-lucide="lock" class="w-3 h-3"></i> Painel
           </button>
 
           <!-- Guest -->
-          <div id="nav-guest" class="flex items-center gap-4 border-l border-white/10 pl-6">
+          <div id="nav-guest" class="flex items-center gap-6 pl-2">
             <button onclick="openAuthModal('login')"
-              class="text-zinc-400 hover:text-amber-500 transition-colors text-sm font-bold tracking-wide">
+              class="text-white hover:text-copper-400 transition-colors text-xs font-bold tracking-widest uppercase">
               Entrar
             </button>
             <button onclick="startBooking()"
-              class="btn-glow bg-white text-zinc-950 hover:bg-zinc-200 font-bold py-2.5 px-6 rounded-full transition-all duration-300 shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)]">
-              Agendar Horário
+              class="btn-glow relative overflow-hidden bg-white text-zinc-950 hover:bg-gold-100 font-bold py-3 px-8 transition-all duration-300 shadow-[0_0_30px_-10px_rgba(255,255,255,0.3)] clip-path-slant group">
+              <span
+                class="relative z-10 text-xs tracking-widest uppercase group-hover:tracking-[0.3em] transition-all">Agendar
+                Horário</span>
             </button>
           </div>
 
           <!-- Logged -->
-          <div id="nav-user" class="hidden flex items-center gap-4 relative">
-            <div onclick="toggleProfileDropdown()" class="flex items-center gap-3 cursor-pointer select-none">
+          <div id="nav-user" class="hidden flex items-center gap-6 relative">
+            <div onclick="toggleProfileDropdown()" class="flex items-center gap-4 cursor-pointer select-none group">
               <div class="text-right hidden lg:block">
-                <p class="text-xs text-zinc-400">Olá,</p>
-                <p id="user-name-display" class="text-sm font-bold text-white">Usuário</p>
+                <p class="text-[0.65rem] text-zinc-500 uppercase tracking-widest">Bem-vindo(a)</p>
+                <p id="user-name-display"
+                  class="text-sm font-serif font-bold text-copper-100 group-hover:text-white transition-colors">Usuário
+                </p>
               </div>
-              <div class="w-10 h-10 rounded-full bg-zinc-800 border-2 border-amber-600 overflow-hidden">
-                <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
-                <div id="user-initial" class="w-full h-full flex items-center justify-center font-bold text-amber-500">U
+              <div
+                class="w-10 h-10 border border-copper-500/50 p-0.5 rotate-45 group-hover:rotate-0 transition-transform duration-300">
+                <div
+                  class="w-full h-full bg-zinc-900 overflow-hidden relative -rotate-45 group-hover:rotate-0 transition-transform duration-300">
+                  <img id="user-avatar" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                  <div id="user-initial"
+                    class="w-full h-full flex items-center justify-center font-display font-bold text-copper-500">U
+                  </div>
                 </div>
               </div>
             </div>
@@ -194,55 +258,78 @@
     <!-- HERO -->
     <section id="home" class="relative h-screen flex items-center overflow-hidden">
       <div class="absolute inset-0 z-0">
-        <video autoplay muted loop playsinline class="w-full h-full object-cover opacity-50">
+        <video autoplay muted loop playsinline class="w-full h-full object-cover opacity-40 grayscale contrast-125">
           <source src="Criação_de_Vídeo_Animado_e_Motion_Design.mp4" type="video/mp4">
           Seu navegador não suporta vídeos HTML5.
         </video>
-        <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-zinc-950/30"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent"></div>
+        <!-- Vignette & Scanlines -->
+        <div class="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/60 to-zinc-950/20"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-zinc-950/40"></div>
+        <div
+          class="absolute inset-0 bg-[linear-gradient(rgba(18,18,18,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-[1] bg-[length:100%_2px,3px_100%] pointer-events-none">
+        </div>
       </div>
 
       <div class="container mx-auto px-6 relative z-10 pt-24 md:pt-20">
-        <div class="max-w-3xl animate-fade-in-up text-center md:text-left">
+        <div class="max-w-4xl animate-fade-in-up md:pl-8 border-l border-white/5">
           <div
-            class="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-panel mb-6 border border-amber-500/30">
-            <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span class="text-xs font-medium text-amber-200 uppercase tracking-wider">Agendamento 100% online</span>
+            class="inline-flex items-center gap-3 px-4 py-1.5 glass-panel border border-copper-700/30 mb-8 backdrop-blur-md">
+            <span class="relative flex h-2 w-2">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-copper-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-copper-500"></span>
+            </span>
+            <span class="text-[0.65rem] font-bold text-copper-100 uppercase tracking-[0.2em]">Agendamento Online</span>
           </div>
+
           <h1
-            class="text-4xl sm:text-5xl md:text-8xl font-bold text-white leading-[1.1] md:leading-[0.9] mb-6 md:mb-8 tracking-tight">
-            Domine <br /><span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700">Seu
+            class="text-4xl sm:text-5xl md:text-9xl font-serif font-black text-white leading-[1] md:leading-[0.85] mb-6 md:mb-8 tracking-tighter mix-blend-screen">
+            DOMINE <br /><span
+              class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-amber-700 italic pr-4">Seu
               Estilo.</span>
           </h1>
+
           <p
-            class="text-zinc-400 text-base md:text-xl mb-8 md:mb-10 leading-relaxed max-w-lg font-light mx-auto md:mx-0">
-            Agende pelo site em segundos. Pagamento <b>apenas no local</b>. WhatsApp somente para dúvidas ou
-            cancelamentos.
+            class="text-zinc-300 text-lg md:text-xl mb-12 leading-relaxed max-w-lg font-light border-l-2 border-copper-600 pl-6">
+            A união definitiva entre a <strong class="text-white">barbearia clássica</strong> e o lifestyle
+            contemporâneo na Grande Florianópolis.
           </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
+
+          <div class="flex flex-col sm:flex-row gap-6 mb-16 items-start">
             <button onclick="startBooking()"
-              class="btn-glow bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-8 rounded-xl transition-all shadow-[0_0_30px_-5px_rgba(217,119,6,0.4)] flex items-center justify-center gap-2 group">
-              Agendar Agora <i data-lucide="arrow-right"
-                class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+              class="btn-glow group relative bg-copper-600 text-white font-bold py-5 px-10 overflow-hidden shadow-[0_0_40px_-5px_rgba(221,107,32,0.5)] transition-all hover:bg-copper-700">
+              <div
+                class="absolute inset-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10">
+              </div>
+              <span class="relative flex items-center gap-3 tracking-[0.15em] uppercase text-sm">
+                Agendar Agora <i data-lucide="arrow-right"
+                  class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+              </span>
             </button>
             <button onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'})"
-              class="glass-panel hover:bg-white/5 text-white border border-white/10 font-bold py-4 px-8 rounded-xl transition-all">
+              class="group px-8 py-5 text-white border border-white/10 hover:border-white/30 font-bold uppercase text-xs tracking-[0.2em] transition-all hover:bg-white/5">
               Conhecer Serviços
             </button>
           </div>
 
-          <div class="grid grid-cols-3 gap-8 pt-8 border-t border-white/10 max-w-lg mx-auto md:mx-0">
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">+5 Anos</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">De História</p>
+          <div class="flex items-center gap-12 pt-8 border-t border-white/5">
+            <div>
+              <p class="text-3xl font-display font-bold text-white">05+</p>
+              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-[0.2em] mt-1">Anos de Tradição</p>
             </div>
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">12k+</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Cortes Feitos</p>
+            <div>
+              <p class="text-3xl font-display font-bold text-white">12k</p>
+              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-[0.2em] mt-1">Clientes Atendidos</p>
             </div>
-            <div class="text-center md:text-left">
-              <p class="text-2xl font-bold text-white">4.9/5</p>
-              <p class="text-[0.6rem] text-zinc-500 uppercase tracking-widest font-bold">Avaliação</p>
+            <div class="flex items-center gap-2">
+              <div class="flex text-copper-500">
+                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+                <i data-lucide="star" class="w-4 h-4 fill-current"></i>
+              </div>
+              <span class="text-xs font-bold text-white">4.9/5</span>
             </div>
           </div>
         </div>
@@ -315,7 +402,7 @@
               </p>
               <p>
                 Nosso espaço foi projetado para transportá-lo a uma atmosfera única. Aqui, você não é apenas um cliente
-                 é um parceiro que merece o melhor atendimento de Florianópolis.
+                é um parceiro que merece o melhor atendimento de Florianópolis.
               </p>
               <p>
                 Com uma equipe de barbeiros altamente qualificados, garantimos que cada visita seja uma jornada de
@@ -409,8 +496,7 @@
           <div class="glass-card rounded-2xl overflow-hidden group">
             <div class="relative overflow-hidden aspect-square">
               <img src="https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                alt="Barbeiro 1">
+                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Barbeiro 1">
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
               </div>
               <div class="absolute bottom-6 left-6">
@@ -426,8 +512,7 @@
           <div class="glass-card rounded-2xl overflow-hidden group">
             <div class="relative overflow-hidden aspect-square">
               <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&h=500&fit=crop"
-                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                alt="Barbeiro 2">
+                class="w-full h-full object-cover bw-hover group-hover:scale-110" alt="Barbeiro 2">
               <div class="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-80">
               </div>
               <div class="absolute bottom-6 left-6">
@@ -773,8 +858,7 @@
   <!-- AUTH MODAL -->
   <div id="auth-modal"
     class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm hidden animate-fade-in-up">
-    <div
-      class="relative w-full max-w-md bg-[#18181b] rounded-3xl border border-white/10 shadow-2xl overflow-hidden glass-panel">
+    <div class="relative w-full max-w-md auth-ticket rounded-2xl overflow-hidden glass-panel">
       <!-- ... auth content ... -->
       <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-zinc-500 hover:text-white"><i
           data-lucide="x"></i></button>
@@ -802,8 +886,7 @@
           </div>
           <div class="space-y-2">
             <label class="text-xs font-bold text-zinc-400 uppercase">Senha</label>
-            <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4"
-              placeholder="">
+            <input type="password" id="login-password" class="w-full glass-input rounded-xl py-3 px-4" placeholder="">
           </div>
 
           <button onclick="handleLogin()"
@@ -1088,4 +1171,5 @@
     // window.route is called from site.js init
   </script>
 </body>
+
 </html>
